@@ -151,7 +151,7 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
     result <- apply(pmat,2,cumprod)
   }
   else{
-    result <- plist
+    result <- pmat
   }
 
   return(result)
@@ -218,7 +218,7 @@ quantityIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
            laspeyres = {plist[i,1] <- fixed_t(q0,q1,p0)},
            paasche = {plist[i,1] <- fixed_t(q0,q1,p1)},
            fisher = {plist[i,1] <- fisher_t(q0,q1,p0,p1)},
-           tornqvist = {plist[i,1] <- tornqvist_tq(p0,p1,q0,q1)})
+           tornqvist = {plist[i,1] <- tornqvist_t(q0,q1,p0,p1)})
   }
 
   if(output=="chained"){
