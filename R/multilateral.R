@@ -1,15 +1,9 @@
-################ IndexNumR ##############
-# File: multilateral.R                  #
-# Computes bilateral index numbers      #
-# Author: Graham White                  #
-# g.white@student.unsw.gov.au           #
-# Written: 15/09/2017                   #
-# Updated: 22/09/2017                   #
-#########################################
-
-# function to compute a GEKS index over a window
-# the window size is assumed to be the number of periods available in pervar.
-# this is not exposed to the user because GEKSIndex calls this
+#' GEKS_w
+#'
+#' Function to compute a GEKS index over a window.
+#' The window size is assumed to be the number of periods available in pervar.
+#' This is not exposed to the user because GEKSIndex calls this
+#' @keywords internal
 GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
                    sample="matched"){
 
