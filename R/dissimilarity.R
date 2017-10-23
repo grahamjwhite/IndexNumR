@@ -91,11 +91,15 @@ relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
 #' @param prodID string identifying the product id variable in x
 #' @param measure choice of dissimilarity measure. Valid options
 #' are mix, scale or absolute.
+#' @param combine specifies how to combine the price and quantity vectors.
+#' "stack" stacks the price and quantity vectors, "geomean" computes
+#' separate dissimilarity measures for prices and quantities then takes
+#' the geometric mean of these.
 #' @return A matrix where the first two columns are the possible combinations
 #' of periods and the third column is the dissimilarity measure.
 #' @export
 mixScaleDissimilarity <- function(x, pvar, qvar, prodID, pervar,
-                                  measure="absolute"){
+                                  measure="absolute", combine="geomean"){
 
   # find number of combinations
   n <- max(x[[pervar]])
@@ -121,15 +125,22 @@ mixScaleDissimilarity <- function(x, pvar, qvar, prodID, pervar,
     qi <- xi[[qvar]]
     qj <- xj[[qvar]]
 
-    # stack p and q into one vector
-    xstack <- c(pi,qi)
-    ystack <- c(pj,qj)
-
-    # compute m*, s*, ad*
-    switch(tolower(measure),
-           mix = {d <- mstar(xstack,ystack)},
-           scale = {d <- sstar},
-           absolute = {d <- adstar(xstack,ystack)})
+    # if stacking requested stack p and q into one vector
+    if(tolower(combine)=="stack"){
+      xvec <- c(pi,qi)
+      yvec <- c(pj,qj)
+      # compute m*, s*, ad*
+      switch(tolower(measure),
+             mix = {d <- mstar(xvec,yvec)},
+             scale = {d <- sstar(xvec,yvec)},
+             absolute = {d <- adstar(xvec,yvec)})
+    }
+    else if(tolower(combine)=="geomean"){
+      switch(tolower(measure),
+             mix = {d <- (mstar(pi,pj)*mstar(qi,qj))^0.5},
+             scale = {d <- (sstar(pi,pj)*sstar(qi,qj))^0.5},
+             absolute = {d <- (adstar(pi,pj)*adstar(qi,qj))^0.5})
+    }
 
     # store in results matrix
     result[i,3] = d
@@ -153,4 +164,42 @@ sstar <- function(x,y){
 # absolute dissimilarity
 adstar <- function(x,y){
   return(mstar(x,y)+sstar(x,y))
+}
+
+#' function to compute the maximum similarity chain links from
+#' a measure of dissimilarity
+#' @param x a matrix containing a dissimilarity measure where
+#' the first two columns are the indices and the third column
+#' is the dissimilarity measure.
+#' @export
+maximiumSimilarityLinks <- function(x){
+
+  # initialise some matrices
+  periods <- nrow(x[x$period_i==1,])+1
+  # results[,1] = current period index
+  # results[,2] = linking period
+  # results[,3] = the dissimilarity measure for linked periods
+  result <- matrix(1,nrow=periods,ncol=3)
+  # period 1 link is 1 and dissimilarity is 0
+  result[1,3] = 0
+  # period 2 must be linked to period 1
+  result[2,1] = 2
+  result[2,2] = 1
+  result[2,3] = x[x$period_j==2 & x$period_i==1,3]
+
+  # from period 3 onwards, find the minimum dissimilarity linking period
+  for(i in 3:periods){
+    # get the similarity measures between period i and previous periods
+    temp <- x[x$period_j==i & x$period_i<i,]
+    # store minimum dissimilarity
+    # current period
+    result[i,1] = i
+    # linking period
+    result[i,2] = which.min(temp$dissimilarity)
+    # the dissimilarity measure
+    result[i,3] = min(temp$dissimilarity)
+  }
+  colnames(result) <- c("xt","x0","dissimilarity")
+  print(result)
+  return(as.data.frame(result))
 }

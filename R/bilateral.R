@@ -96,10 +96,20 @@ tornqvist_t <- function(p0,p1,q0,q1){
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
 #' @param output A character string specifying whether a chained, fixed base or
-#' period-on-period price index numbers should be returned.
+#' period-on-period price index numbers should be returned. Default is period-on-period.
+#' @param chainMethod A character string specifying the method of chain linking
+#' to use if the output option is set to "chained".
+#' Valid options are "pop" for period-on-period, and similarity chain linked
+#' options "plspread" for the Paasche-Laspeyres spread, "asymplinear" for
+#' weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
+#' and "mixScale" for the mix, scale or absolute dissimilarity measures.
+#' The default is period-on-period. Additional parameters can be passed to the
+#' mixScaleDissimilarity function using ...
+#' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
+#' function.
 #' @export
 priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
-                       sample="matched",output="pop"){
+                       sample="matched",output="pop",chainMethod="pop",...){
 
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
                     "paasche","fisher","tornqvist")
@@ -107,51 +117,82 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
     stop("Not a valid index number method.")
   }
 
+  # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)
-  pmat <- matrix(1, nrow = n, ncol = 1)
+  plist <- matrix(1, nrow = n, ncol = 1)
 
+  # if similarity chaining was requested, get the similarity measure
+  if(tolower(output)=="chained" & !(tolower(chainMethod)=="pop")){
+    switch(tolower(chainMethod),
+           plspread = {similarityMatrix <- relativeDissimilarity(x,pvar=pvar,qvar=qvar,
+                                                                 pervar=pervar,prodID=prodID,
+                                                                 similarityMethod = "plspread")},
+           logquadratic = {similarityMatrix <- relativeDissimilarity(x,pvar=pvar,qvar=qvar,
+                                                                     pervar=pervar,prodID=prodID,
+                                                                     similarityMethod = "logquadratic")},
+           asymplinear = {similarityMatrix <- relativeDissimilarity(x,pvar=pvar,qvar=qvar,
+                                                                    pervar=pervar,prodID=prodID,
+                                                                    similarityMethod = "asymplinear")},
+           mixscale = {similarityMatrix <- mixScaleDissimilarity(x,pvar=pvar,qvar=qvar,
+                                                                 pervar=pervar,prodID=prodID,
+                                                                 ...)})
+    # use the similarity matrix to compute links
+    links <- maximiumSimilarityLinks(similarityMatrix)
+  }
+
+  # if fixed base requested, set xt0 to the first period data
   if(tolower(output)=="fixedbase"){
     xt0 <- x[x[[pervar]]==1,]
   }
 
   for(i in 2:n){
-    if(!(tolower(output)=="fixedbase")){
+    # if chained or period-on-period requested then set xt0
+    # to the previous period
+    if(tolower(output) == "chained" & tolower(chainMethod)=="pop" |
+       tolower(output) == "pop"){
       xt0 <- x[x[[pervar]]==i-1,]
     }
+    # if similarity linking requested set xt0 to link period
+    else if(tolower(output) == "chained" & !(tolower(chainMethod) == "pop")){
+      xt0 <- x[x[[pervar]]==links[links$xt==i,2],]
+    }
+    # set xt1 to current period data
     xt1 <- x[x[[pervar]]==i,]
 
+    # if matching requested then remove unmatched items
     if(sample=="matched"){
       xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
       xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
     }
 
+    # set p and q
     p0 <- xt0[[pvar]]
     p1 <- xt1[[pvar]]
     q0 <- xt0[[qvar]]
     q1 <- xt1[[qvar]]
 
-    if(!(tolower(indexMethod=="dutot")) & length(p0)!=length(p1)){
-      stop("Price vectors p1 and p0 are of different length. Only the
-           Dutot index can computed, or use option sample=matched.")
-    }
-
+    # compute the index
     switch(tolower(indexMethod),
-           dutot = {pmat[i,1] <- dutot_t(p0,p1)},
-           carli = {pmat[i,1] <- carli_t(p0,p1)},
-           jevons = {pmat[i,1] <- jevons_t(p0,p1)},
-           harmonic = {pmat[i,1] <- harmonic_t(p0,p1)},
-           cswd = {pmat[i,1] <- cswd_t(p0,p1)},
-           laspeyres = {pmat[i,1] <- fixed_t(p0,p1,q0)},
-           paasche = {pmat[i,1] <- fixed_t(p0,p1,q1)},
-           fisher = {pmat[i,1] <- fisher_t(p0,p1,q0,q1)},
-           tornqvist = {pmat[i,1] <- tornqvist_t(p0,p1,q0,q1)})
+           dutot = {plist[i,1] <- dutot_t(p0,p1)},
+           carli = {plist[i,1] <- carli_t(p0,p1)},
+           jevons = {plist[i,1] <- jevons_t(p0,p1)},
+           harmonic = {plist[i,1] <- harmonic_t(p0,p1)},
+           cswd = {plist[i,1] <- cswd_t(p0,p1)},
+           laspeyres = {plist[i,1] <- fixed_t(p0,p1,q0)},
+           paasche = {plist[i,1] <- fixed_t(p0,p1,q1)},
+           fisher = {plist[i,1] <- fisher_t(p0,p1,q0,q1)},
+           tornqvist = {plist[i,1] <- tornqvist_t(p0,p1,q0,q1)})
+    # if similarity chain linking then multiply the index by the link period index
+    if(tolower(output) == "chained" & !(tolower(chainMethod) == "pop")){
+      plist[i,1] = plist[i,1]*plist[links[links$xt==i,2],1]
+    }
   }
 
-  if(output=="chained"){
-    result <- apply(pmat,2,cumprod)
+  if(tolower(output) == "chained" & tolower(chainMethod)=="pop"){
+    result <- apply(plist,2,cumprod)
   }
   else{
-    result <- pmat
+    result <- plist
   }
 
   return(result)

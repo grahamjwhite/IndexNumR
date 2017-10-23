@@ -4,7 +4,8 @@
 \alias{mixScaleDissimilarity}
 \title{mixScaleDissimilarity}
 \usage{
-mixScaleDissimilarity(x, pvar, qvar, prodID, pervar, measure = "absolute")
+mixScaleDissimilarity(x, pvar, qvar, prodID, pervar, measure = "absolute",
+  combine = "geomean")
 }
 \arguments{
 \item{x}{A dataframe}
@@ -19,6 +20,11 @@ mixScaleDissimilarity(x, pvar, qvar, prodID, pervar, measure = "absolute")
 
 \item{measure}{choice of dissimilarity measure. Valid options
 are mix, scale or absolute.}
+
+\item{combine}{specifies how to combine the price and quantity vectors.
+"stack" stacks the price and quantity vectors, "geomean" computes
+separate dissimilarity measures for prices and quantities then takes
+the geometric mean of these.}
 }
 \value{
 A matrix where the first two columns are the possible combinations

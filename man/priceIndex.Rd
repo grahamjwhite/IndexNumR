@@ -5,7 +5,7 @@
 \title{priceIndex}
 \usage{
 priceIndex(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
-  sample = "matched", output = "pop")
+  sample = "matched", output = "pop", chainMethod = "pop", ...)
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier
@@ -29,7 +29,19 @@ harmonic and tornqvist.}
 should be used.}
 
 \item{output}{A character string specifying whether a chained, fixed base or
-period-on-period price index numbers should be returned.}
+period-on-period price index numbers should be returned. Default is period-on-period.}
+
+\item{chainMethod}{A character string specifying the method of chain linking
+to use if the output option is set to "chained".
+Valid options are "pop" for period-on-period, and similarity chain linked
+options "plspread" for the Paasche-Laspeyres spread, "asymplinear" for
+weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
+and "mixScale" for the mix, scale or absolute dissimilarity measures.
+The default is period-on-period. Additional parameters can be passed to the
+mixScaleDissimilarity function using ...}
+
+\item{...}{this is used to pass additional parameters to the mixScaleDissimilarity
+function.}
 }
 \description{
 A function to compute a price index given data on product prices over time
