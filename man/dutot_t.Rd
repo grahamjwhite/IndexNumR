@@ -10,4 +10,3 @@ dutot_t(p0, p1)
 compute a bilateral Dutot index for a single period
 }
 \keyword{internal}
-

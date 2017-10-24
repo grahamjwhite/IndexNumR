@@ -27,4 +27,3 @@ quantities, and unit values.
 \description{
 A function to aggregate price and quantity data to unit values
 }
-

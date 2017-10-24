@@ -10,4 +10,3 @@ carli_t(p0, p1)
 compute a bilateral Carli index for a single period
 }
 \keyword{internal}
-

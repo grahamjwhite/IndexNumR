@@ -13,4 +13,3 @@ geomean(x)
 function for the geometric mean of a vector
 }
 \keyword{internal}
-

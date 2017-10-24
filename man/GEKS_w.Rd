@@ -13,4 +13,3 @@ The window size is assumed to be the number of periods available in pervar.
 This is not exposed to the user because GEKSIndex calls this
 }
 \keyword{internal}
-

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bilateral.R
 \name{tornqvist_t}
 \alias{tornqvist_t}
-\title{tornqvist_T}
+\title{tornqvist_t}
 \usage{
 tornqvist_t(p0, p1, q0, q1)
 }
@@ -10,4 +10,3 @@ tornqvist_t(p0, p1, q0, q1)
 compute a bilateral Tornqvist index for a single period
 }
 \keyword{internal}
-

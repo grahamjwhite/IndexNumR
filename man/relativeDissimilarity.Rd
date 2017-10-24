@@ -36,4 +36,3 @@ comparisons and the third column is the dissimilarity measure.
 A function to compute the relative price dissimilarity
 between two vectors of prices.
 }
-

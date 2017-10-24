@@ -33,4 +33,3 @@ of periods and the third column is the dissimilarity measure.
 \description{
 Fox, Hill and Diewert 2004 vector dissimilarity
 }
-

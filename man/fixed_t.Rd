@@ -10,4 +10,3 @@ fixed_t(p0, p1, q)
 compute a bilateral fixed base index for a single period
 }
 \keyword{internal}
-

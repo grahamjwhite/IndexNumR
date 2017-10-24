@@ -2,7 +2,7 @@
 % Please edit documentation in R/bilateral.R
 \name{fisher_t}
 \alias{fisher_t}
-\title{fischer_t}
+\title{fisher_t}
 \usage{
 fisher_t(p0, p1, q0, q1)
 }
@@ -10,4 +10,3 @@ fisher_t(p0, p1, q0, q1)
 compute a bilateral Fisher index for a single period
 }
 \keyword{internal}
-

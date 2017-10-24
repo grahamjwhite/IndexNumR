@@ -13,4 +13,3 @@ monthIndex(x)
 A function to create a month index variable
 }
 \keyword{internal}
-

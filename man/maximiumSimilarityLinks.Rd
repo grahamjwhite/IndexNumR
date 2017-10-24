@@ -16,4 +16,3 @@ is the dissimilarity measure.}
 function to compute the maximum similarity chain links from
 a measure of dissimilarity
 }
-

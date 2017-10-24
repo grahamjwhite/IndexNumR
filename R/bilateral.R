@@ -54,7 +54,7 @@ fixed_t <- function(p0,p1,q){
   return(sum(p1*q)/sum(p0*q))
 }
 
-#' fischer_t
+#' fisher_t
 #'
 #' compute a bilateral Fisher index for a single period
 #'
@@ -65,7 +65,7 @@ fisher_t <- function(p0,p1,q0,q1){
   return(sqrt((las*pas)))
 }
 
-#' tornqvist_T
+#' tornqvist_t
 #'
 #' compute a bilateral Tornqvist index for a single period
 #'
@@ -76,6 +76,20 @@ tornqvist_t <- function(p0,p1,q0,q1){
   s0 <- (p0*q0)/exp0
   s1 <- (p1*q1)/exp1
   return(prod((p1/p0)^(0.5*(s0+s1))))
+}
+
+#' Sato-Vartia index
+#'
+#' compute a bilateral Sato-Vartia index
+#' @keywords internal
+satoVartia_t <- function(p0,p1,q0,q1){
+  exp0 <- sum(p0*q0)
+  exp1 <- sum(p1*q1)
+  s0 <- (p0*q0)/exp0
+  s1 <- (p1*q1)/exp1
+  wstar <- (s1-s0)/(log(s1)-log(s0))
+  w <- wstar/sum(wstar)
+  return(exp(sum(w*log(p1/p0))))
 }
 
 #' priceIndex
@@ -92,7 +106,7 @@ tornqvist_t <- function(p0,p1,q0,q1){
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
 #' number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-#' harmonic and tornqvist.
+#' harmonic, tornqvist and satovartia.
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
 #' @param output A character string specifying whether a chained, fixed base or
@@ -112,7 +126,7 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
                        sample="matched",output="pop",chainMethod="pop",...){
 
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
-                    "paasche","fisher","tornqvist")
+                    "paasche","fisher","tornqvist","satovartia")
   if(!(tolower(indexMethod) %in% validMethods)){
     stop("Not a valid index number method.")
   }
@@ -181,7 +195,9 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
            laspeyres = {plist[i,1] <- fixed_t(p0,p1,q0)},
            paasche = {plist[i,1] <- fixed_t(p0,p1,q1)},
            fisher = {plist[i,1] <- fisher_t(p0,p1,q0,q1)},
-           tornqvist = {plist[i,1] <- tornqvist_t(p0,p1,q0,q1)})
+           tornqvist = {plist[i,1] <- tornqvist_t(p0,p1,q0,q1)},
+           satovartia = {plist[i,1] <- satoVartia_t(p0,p1,q0,q1)})
+
     # if similarity chain linking then multiply the index by the link period index
     if(tolower(output) == "chained" & !(tolower(chainMethod) == "pop")){
       plist[i,1] = plist[i,1]*plist[links[links$xt==i,2],1]
@@ -212,62 +228,25 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
 #' number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-#' harmonic and tornqvist.
+#' harmonic, tornqvist and satovartia.
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
 #' @param output A character string specifying whether a chained, fixed base or
 #' period-on-period price index numbers should be returned.
+#' @param chainMethod A character string specifying the method of chain linking
+#' to use if the output option is set to "chained".
+#' Valid options are "pop" for period-on-period, and similarity chain linked
+#' options "plspread" for the Paasche-Laspeyres spread, "asymplinear" for
+#' weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
+#' and "mixScale" for the mix, scale or absolute dissimilarity measures.
+#' The default is period-on-period. Additional parameters can be passed to the
+#' mixScaleDissimilarity function using ...
+#' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
+#' function.
 #' @export
-quantityIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
-                          sample="matched",output="pop"){
-
-  validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
-                    "paasche","fisher","tornqvist")
-  if(!(tolower(indexMethod) %in% validMethods)){
-    stop("Not a valid index number method.")
-  }
-
-  n <- max(x[[pervar]],na.rm = TRUE)
-  plist <- matrix(1, nrow = n, ncol = 1)
-
-  if(tolower(output)=="fixedbase"){
-    xt0 <- x[x[[pervar]]==1,]
-  }
-
-  for(i in 2:n){
-    if(!(tolower(output)=="fixedbase")){
-      xt0 <- x[x[[pervar]]==i-1,]
-    }
-    xt1 <- x[x[[pervar]]==i,]
-
-    if(sample=="matched"){
-      xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
-      xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
-    }
-
-    p0 <- xt0[[pvar]]
-    p1 <- xt1[[pvar]]
-    q0 <- xt0[[qvar]]
-    q1 <- xt1[[qvar]]
-
-    switch(tolower(indexMethod),
-           dutot = {plist[i,1] <- dutot_t(q0,q1)},
-           carli = {plist[i,1] <- carli_t(q0,q1)},
-           jevons = {plist[i,1] <- jevons_t(q0,q1)},
-           harmonic = {plist[i,1] <- harmonic_t(q0,q1)},
-           cswd = {plist[i,1] <- cswd_t(q0,q1)},
-           laspeyres = {plist[i,1] <- fixed_t(q0,q1,p0)},
-           paasche = {plist[i,1] <- fixed_t(q0,q1,p1)},
-           fisher = {plist[i,1] <- fisher_t(q0,q1,p0,p1)},
-           tornqvist = {plist[i,1] <- tornqvist_t(q0,q1,p0,p1)})
-  }
-
-  if(output=="chained"){
-    result <- apply(plist,2,cumprod)
-  }
-  else{
-    result <- plist
-  }
-
-  return(result)
+quantityIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres", prodID,
+                          sample="matched", output="pop", chainMethod="pop", ...){
+  return(priceIndex(x, pvar=qvar, qvar=pvar, pervar = pervar, indexMethod=indexMethod,
+                    prodID = prodID, sample = sample, output = output,
+                    chainMethod = chainMethod, ... = ...))
 }

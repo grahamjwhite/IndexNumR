@@ -5,7 +5,7 @@
 \title{quantityIndex}
 \usage{
 quantityIndex(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
-  sample = "matched", output = "pop")
+  sample = "matched", output = "pop", chainMethod = "pop", ...)
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier
@@ -21,7 +21,7 @@ There may be observations on multiple products for each time period.}
 
 \item{indexMethod}{A character string to select the index number method. Valid index
 number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-harmonic and tornqvist.}
+harmonic, tornqvist and satovartia.}
 
 \item{prodID}{A character string for the name of the product identifier}
 
@@ -30,8 +30,16 @@ should be used.}
 
 \item{output}{A character string specifying whether a chained, fixed base or
 period-on-period price index numbers should be returned.}
+
+\item{chainMethod}{A character string specifying the method of chain linking
+to use if the output option is set to "chained".
+Valid options are "pop" for period-on-period, and similarity chain linked
+options "plspread" for the Paasche-Laspeyres spread, "asymplinear" for
+weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
+and "mixScale" for the mix, scale or absolute dissimilarity measures.
+The default is period-on-period. Additional parameters can be passed to the
+mixScaleDissimilarity function using ...}
 }
 \description{
 A function to compute a price index given data on product prices over time
 }
-

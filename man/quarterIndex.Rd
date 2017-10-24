@@ -13,4 +13,3 @@ quarterIndex(x)
 A function to create a quarter index variable
 }
 \keyword{internal}
-

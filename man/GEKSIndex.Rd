@@ -56,4 +56,3 @@ is computed over these possibilities to arrive at the final index value.
 \keyword{multilateral}
 \keyword{price}
 \keyword{splice}
-

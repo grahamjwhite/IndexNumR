@@ -10,4 +10,3 @@ harmonic_t(p0, p1)
 compute a bilateral Harmonic mean index for a single period
 }
 \keyword{internal}
-

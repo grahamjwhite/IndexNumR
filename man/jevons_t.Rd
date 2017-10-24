@@ -10,4 +10,3 @@ jevons_t(p0, p1)
 compute a bilateral Jevons index for a single period
 }
 \keyword{internal}
-
