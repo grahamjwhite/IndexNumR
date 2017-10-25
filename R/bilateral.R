@@ -94,7 +94,7 @@ satoVartia_t <- function(p0,p1,q0,q1){
 
 #' priceIndex
 #'
-#' A function to compute a price index given data on product prices over time
+#' A function to compute a price index given data on products over time
 #'
 #' @param x A dataframe containing price, quantity, a time period identifier
 #' and a product identifier. It must have column names.
@@ -216,7 +216,7 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
 
 #' quantityIndex
 #'
-#' A function to compute a price index given data on product prices over time
+#' A function to compute a quantity index given data on products over time
 #'
 #' @param x A dataframe containing price, quantity, a time period identifier
 #' and a product identifier. It must have column names.

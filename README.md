@@ -5,4 +5,4 @@ IndexNumR provides a set of functions for computing various bilateral and multil
 
 Multilateral indices can be computed in the time series context using the GEKS methodology, and updating is provided via the window, movement or mean splice methods. The GEKS method is computed using either the Fisher or Tornqvist superlative index number formulae.
 
-The package also provides functions to compute measures of dissimilarity between time periods. The output can be used with the optrees package for R to compute minimum cost spanning trees, along the lines of Hill (2001). More generally, the dissimilarity measures can be used to choose the linking period for chained indices. 
+The package also provides functions to compute measures of dissimilarity between time periods, which can be used to choose the linking period for chained indices. 

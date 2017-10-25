@@ -44,3 +44,31 @@ unitValues <- function(x,pvar,qvar,pervar,prodID){
   result_it <- do.call(rbind,means_it)
   return(as.data.frame(result_it))
 }
+
+#' monthIndex
+#'
+#' A function to create a month index variable
+#'
+#' @param x A vector or column of dates
+#' @export
+monthIndex <- function(x){
+  month <- as.numeric(format(x,"%m"))+
+    (as.numeric(format(x,"%Y"))-
+       as.numeric(format(x[1],"%Y")))*12-
+    as.numeric(format(x[1],"%m"))
+  return(month)
+}
+
+#' quarterIndex
+#'
+#' A function to create a quarter index variable
+#'
+#' @param x A vector or column of dates
+#' @export
+quarterIndex <- function(x){
+  quarter <- ceiling(as.numeric(format(x,"%m"))/3)+
+    (as.numeric(format(x,"%Y"))-
+       as.numeric(format(x[1],"%Y")))*4-2
+  quarter <- quarter - (quarter[1]-1)
+  return(quarter)
+}

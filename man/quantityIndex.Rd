@@ -44,5 +44,5 @@ mixScaleDissimilarity function using ...}
 function.}
 }
 \description{
-A function to compute a price index given data on product prices over time
+A function to compute a quantity index given data on products over time
 }
