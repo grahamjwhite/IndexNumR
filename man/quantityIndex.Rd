@@ -39,6 +39,9 @@ weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
 and "mixScale" for the mix, scale or absolute dissimilarity measures.
 The default is period-on-period. Additional parameters can be passed to the
 mixScaleDissimilarity function using ...}
+
+\item{...}{this is used to pass additional parameters to the mixScaleDissimilarity
+function.}
 }
 \description{
 A function to compute a price index given data on product prices over time
