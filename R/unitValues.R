@@ -55,7 +55,7 @@ monthIndex <- function(x){
   month <- as.numeric(format(x,"%m"))+
     (as.numeric(format(x,"%Y"))-
        as.numeric(format(x[1],"%Y")))*12-
-    as.numeric(format(x[1],"%m"))
+    (as.numeric(format(x[1],"%m"))-1)
   return(month)
 }
 
@@ -68,7 +68,7 @@ monthIndex <- function(x){
 quarterIndex <- function(x){
   quarter <- ceiling(as.numeric(format(x,"%m"))/3)+
     (as.numeric(format(x,"%Y"))-
-       as.numeric(format(x[1],"%Y")))*4-2
+       as.numeric(format(x[1],"%Y")))*4
   quarter <- quarter - (quarter[1]-1)
   return(quarter)
 }
