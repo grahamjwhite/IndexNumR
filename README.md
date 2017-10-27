@@ -9,6 +9,6 @@ The package also provides functions to compute measures of dissimilarity between
 
 To install the package, use the following R commands, 
 
-install.packages("devtools")
-devtools::install_github("grahamjwhite/IndexNumR")
+install.packages("devtools")  
+devtools::install_github("grahamjwhite/IndexNumR")  
 library(IndexNumR)
