@@ -72,3 +72,14 @@ quarterIndex <- function(x){
   quarter <- quarter - (quarter[1]-1)
   return(quarter)
 }
+
+#' yearIndex
+#'
+#' Function to create a year index variable
+#'
+#' @param x A vector or column of dates
+#' @export
+yearIndex <- function(x){
+  year <- as.numeric(format(x,"%Y"))-as.numeric(format(x[1],"%Y"))+1
+  return(year)
+}
