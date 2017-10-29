@@ -2,8 +2,7 @@
 % Please edit documentation in R/dissimilarity.R
 \name{maximiumSimilarityLinks}
 \alias{maximiumSimilarityLinks}
-\title{function to compute the maximum similarity chain links from
-a measure of dissimilarity}
+\title{Finds periods to link using minimum dissimilarity.}
 \usage{
 maximiumSimilarityLinks(x)
 }
@@ -13,6 +12,10 @@ the first two columns are the indices and the third column
 is the dissimilarity measure.}
 }
 \description{
-function to compute the maximum similarity chain links from
-a measure of dissimilarity
+Function to compute the maximum similarity chain links from
+a measure of dissimilarity. The procedure works as described in
+Diewert and Fox (2017). It first links period 2 to period 1.
+Then for each period t, from periods 3,...,T it searches
+among the periods 1,...,t-1 for the period that is most
+similar (least dissimilar) to period t.
 }

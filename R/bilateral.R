@@ -92,7 +92,7 @@ satoVartia_t <- function(p0,p1,q0,q1){
   return(exp(sum(w*log(p1/p0))))
 }
 
-#' priceIndex
+#' Computes a bilateral price index
 #'
 #' A function to compute a price index given data on products over time
 #'
@@ -214,7 +214,7 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
   return(result)
 }
 
-#' quantityIndex
+#' Computes a bilateral quantity index
 #'
 #' A function to compute a quantity index given data on products over time
 #'

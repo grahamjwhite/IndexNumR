@@ -2,7 +2,7 @@
 % Please edit documentation in R/dissimilarity.R
 \name{relativeDissimilarity}
 \alias{relativeDissimilarity}
-\title{relativeDissimilarity}
+\title{Computes measures of relative dissimilarity between all periods}
 \usage{
 relativeDissimilarity(x, pvar, qvar, pervar, prodID, indexMethod = "fisher",
   similarityMethod = "logquadratic")
@@ -35,4 +35,9 @@ comparisons and the third column is the dissimilarity measure.
 \description{
 A function to compute the relative price dissimilarity
 between two vectors of prices.
+}
+\references{
+Diewert, W.E. (2002). "Similarity and Dissimilarity Indexes:
+An Axiomatic Approach" Discussion Paper No. 0210, Department of Economics,
+University of British Columbia.
 }

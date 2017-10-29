@@ -2,7 +2,7 @@
 % Please edit documentation in R/unitValues.R
 \name{monthIndex}
 \alias{monthIndex}
-\title{monthIndex}
+\title{Generate an index of months}
 \usage{
 monthIndex(x)
 }

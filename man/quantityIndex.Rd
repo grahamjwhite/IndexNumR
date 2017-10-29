@@ -2,7 +2,7 @@
 % Please edit documentation in R/bilateral.R
 \name{quantityIndex}
 \alias{quantityIndex}
-\title{quantityIndex}
+\title{Computes a bilateral quantity index}
 \usage{
 quantityIndex(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   sample = "matched", output = "pop", chainMethod = "pop", ...)

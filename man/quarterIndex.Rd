@@ -2,7 +2,7 @@
 % Please edit documentation in R/unitValues.R
 \name{quarterIndex}
 \alias{quarterIndex}
-\title{quarterIndex}
+\title{Generate an index of quarters}
 \usage{
 quarterIndex(x)
 }

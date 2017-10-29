@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluateMatched.R
 \name{evaluateMatched}
 \alias{evaluateMatched}
-\title{evaluateMatched}
+\title{Evaluate product overlap between periods}
 \usage{
 evaluateMatched(x, pvar, qvar, pervar, prodID, output = "pop")
 }

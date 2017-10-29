@@ -2,7 +2,7 @@
 % Please edit documentation in R/bilateral.R
 \name{priceIndex}
 \alias{priceIndex}
-\title{priceIndex}
+\title{Computes a bilateral price index}
 \usage{
 priceIndex(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   sample = "matched", output = "pop", chainMethod = "pop", ...)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/unitValues.R
 \name{unitValues}
 \alias{unitValues}
-\title{unitValues}
+\title{Aggregates prices to unit values and quantities to sums}
 \usage{
 unitValues(x, pvar, qvar, pervar, prodID)
 }

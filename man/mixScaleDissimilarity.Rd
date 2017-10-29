@@ -2,7 +2,7 @@
 % Please edit documentation in R/dissimilarity.R
 \name{mixScaleDissimilarity}
 \alias{mixScaleDissimilarity}
-\title{mixScaleDissimilarity}
+\title{Computes mix, scale and absolute dissimilarity measures}
 \usage{
 mixScaleDissimilarity(x, pvar, qvar, prodID, pervar, measure = "absolute",
   combine = "geomean")
@@ -31,5 +31,11 @@ A matrix where the first two columns are the possible combinations
 of periods and the third column is the dissimilarity measure.
 }
 \description{
-Fox, Hill and Diewert 2004 vector dissimilarity
+This is a function to compute the Fox, Hill and Diewert 2004
+dissimilarity measures.
+}
+\references{
+Fox, K.J., R.J. Hill and W.E. Diewert (2004),
+"Identifying outliers in multi-output models", Journal of
+Productivity Analysis, 22, 7394, 2004.
 }

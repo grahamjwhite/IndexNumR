@@ -1,4 +1,4 @@
-#' relativeDissimilarity
+#' Computes measures of relative dissimilarity between all periods
 #'
 #' A function to compute the relative price dissimilarity
 #' between two vectors of prices.
@@ -18,6 +18,9 @@
 #' @return A matrix of dissimilarity measures.
 #' The first two columns are the possible combinations of bilateral
 #' comparisons and the third column is the dissimilarity measure.
+#' @references Diewert, W.E. (2002). "Similarity and Dissimilarity Indexes:
+#' An Axiomatic Approach" Discussion Paper No. 0210, Department of Economics,
+#' University of British Columbia.
 #' @export
 relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
                                   indexMethod="fisher",
@@ -81,9 +84,11 @@ relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
   return(res)
 }
 
-#' mixScaleDissimilarity
+#' Computes mix, scale and absolute dissimilarity measures
 #'
-#' Fox, Hill and Diewert 2004 vector dissimilarity
+#' This is a function to compute the Fox, Hill and Diewert 2004
+#' dissimilarity measures.
+#'
 #' @param x A dataframe
 #' @param pvar string identifying the price variable in x
 #' @param qvar string identifying the quantity variable in x
@@ -97,6 +102,9 @@ relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
 #' the geometric mean of these.
 #' @return A matrix where the first two columns are the possible combinations
 #' of periods and the third column is the dissimilarity measure.
+#' @references Fox, K.J., R.J. Hill and W.E. Diewert (2004),
+#' "Identifying outliers in multi-output models", Journal of
+#' Productivity Analysis, 22, 7394, 2004.
 #' @export
 mixScaleDissimilarity <- function(x, pvar, qvar, prodID, pervar,
                                   measure="absolute", combine="geomean"){
@@ -166,8 +174,15 @@ adstar <- function(x,y){
   return(mstar(x,y)+sstar(x,y))
 }
 
-#' function to compute the maximum similarity chain links from
-#' a measure of dissimilarity
+#' Finds periods to link using minimum dissimilarity.
+#'
+#' Function to compute the maximum similarity chain links from
+#' a measure of dissimilarity. The procedure works as described in
+#' Diewert and Fox (2017). It first links period 2 to period 1.
+#' Then for each period t, from periods 3,...,T it searches
+#' among the periods 1,...,t-1 for the period that is most
+#' similar (least dissimilar) to period t.
+#'
 #' @param x a matrix containing a dissimilarity measure where
 #' the first two columns are the indices and the third column
 #' is the dissimilarity measure.

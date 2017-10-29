@@ -1,4 +1,4 @@
-#' unitValues
+#' Aggregates prices to unit values and quantities to sums
 #'
 #' A function to aggregate price and quantity data to unit values
 #'
@@ -45,7 +45,7 @@ unitValues <- function(x,pvar,qvar,pervar,prodID){
   return(as.data.frame(result_it))
 }
 
-#' monthIndex
+#' Generate an index of months
 #'
 #' A function to create a month index variable
 #'
@@ -59,7 +59,7 @@ monthIndex <- function(x){
   return(month)
 }
 
-#' quarterIndex
+#' Generate an index of quarters
 #'
 #' A function to create a quarter index variable
 #'
@@ -73,7 +73,7 @@ quarterIndex <- function(x){
   return(quarter)
 }
 
-#' yearIndex
+#' Generate an index of years
 #'
 #' Function to create a year index variable
 #'

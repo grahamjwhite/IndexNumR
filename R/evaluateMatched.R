@@ -1,7 +1,8 @@
-#' evaluateMatched
+#' Evaluate product overlap between periods
 #'
 #' Evaluate the counts and expenditure for each period with and without
 #' matching items across periods.
+#'
 #' @param x A dataframe containing price, quantity, a time period identifier
 #' and a product identifier. It must have column names.
 #' @param pvar A character string for the name of the price variable

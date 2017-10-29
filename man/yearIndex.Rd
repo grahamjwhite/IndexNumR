@@ -2,7 +2,7 @@
 % Please edit documentation in R/unitValues.R
 \name{yearIndex}
 \alias{yearIndex}
-\title{yearIndex}
+\title{Generate an index of years}
 \usage{
 yearIndex(x)
 }
