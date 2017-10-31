@@ -3,7 +3,7 @@ context("bilateral indices")
 load(system.file("testdata","testData_bilateral.RData",package = "IndexNumR"))
 
 indexMethods <- c("laspeyres","paasche","fisher","tornqvist","satovartia",
-                  "dutot","carli","jevons","harmonic","cswd")
+                  "dutot","carli","jevons","harmonic","cswd","walsh")
 outputTypes <- c("pop","chained","fixedbase")
 
 for(i in 1:length(indexMethods)){

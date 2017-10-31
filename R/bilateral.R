@@ -92,6 +92,16 @@ satoVartia_t <- function(p0,p1,q0,q1){
   return(exp(sum(w*log(p1/p0))))
 }
 
+#' Walsh index
+#'
+#' compute a bilateral Walsh index
+#'
+#' @keywords internal
+#'
+walsh_t <- function(p0,p1,q0,q1){
+  return(sum(p1*sqrt(q0*q1))/sum(p0*sqrt(q0*q1)))
+}
+
 #' Computes a bilateral price index
 #'
 #' A function to compute a price index given data on products over time
@@ -106,7 +116,7 @@ satoVartia_t <- function(p0,p1,q0,q1){
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
 #' number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-#' harmonic, tornqvist and satovartia.
+#' harmonic, tornqvist, satovartia and walsh.
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
 #' @param output A character string specifying whether a chained, fixed base or
@@ -126,7 +136,7 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
                        sample="matched",output="pop",chainMethod="pop",...){
 
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
-                    "paasche","fisher","tornqvist","satovartia")
+                    "paasche","fisher","tornqvist","satovartia","walsh")
   if(!(tolower(indexMethod) %in% validMethods)){
     stop("Not a valid index number method.")
   }
@@ -196,7 +206,8 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
            paasche = {plist[i,1] <- fixed_t(p0,p1,q1)},
            fisher = {plist[i,1] <- fisher_t(p0,p1,q0,q1)},
            tornqvist = {plist[i,1] <- tornqvist_t(p0,p1,q0,q1)},
-           satovartia = {plist[i,1] <- satoVartia_t(p0,p1,q0,q1)})
+           satovartia = {plist[i,1] <- satoVartia_t(p0,p1,q0,q1)},
+           walsh = {plist[i,1] <- walsh_t(p0,p1,q0,q1)})
 
     # if similarity chain linking then multiply the index by the link period index
     if(tolower(output) == "chained" & !(tolower(chainMethod) == "pop")){
@@ -228,7 +239,7 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
 #' number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-#' harmonic, tornqvist and satovartia.
+#' harmonic, tornqvist, satovartia and walsh.
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
 #' @param output A character string specifying whether a chained, fixed base or
