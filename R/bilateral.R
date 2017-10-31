@@ -6,7 +6,7 @@
 dutot_t <- function(p0,p1){
   M0 <- length(p0)
   M1 <- length(p1)
-  return(((1/M0)*sum(p0))/((1/M1)*sum(p1)))
+  return(((1/M1)*sum(p1))/((1/M0)*sum(p0)))
 }
 
 #' Carli
