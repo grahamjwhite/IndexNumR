@@ -10,3 +10,9 @@ test_that("time index functions return the correct index values",{
   expect_equal(quarterIndex(dat_quarter),c(1,2,3,3))
   expect_equal(monthIndex(dat_month),c(1,2,2,3))
 })
+
+test_that("correct indices are returned if dates are reversed",{
+  expect_equal(yearIndex(rev(dat_year)),rev(c(1,1,2,2,3)))
+  expect_equal(quarterIndex(rev(dat_quarter)),rev(c(1,2,3,3)))
+  expect_equal(monthIndex(rev(dat_month)),rev(c(1,2,2,3)))
+})
