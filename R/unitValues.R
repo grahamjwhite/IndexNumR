@@ -52,10 +52,11 @@ unitValues <- function(x,pvar,qvar,pervar,prodID){
 #' @param x A vector or column of dates
 #' @export
 monthIndex <- function(x){
+  firstDate <- min(x)
   month <- as.numeric(format(x,"%m"))+
     (as.numeric(format(x,"%Y"))-
-       as.numeric(format(x[1],"%Y")))*12-
-    (as.numeric(format(x[1],"%m"))-1)
+       as.numeric(format(firstDate,"%Y")))*12-
+    (as.numeric(format(firstDate,"%m"))-1)
   return(month)
 }
 
@@ -66,10 +67,11 @@ monthIndex <- function(x){
 #' @param x A vector or column of dates
 #' @export
 quarterIndex <- function(x){
+  firstDate <- min(x)
   quarter <- ceiling(as.numeric(format(x,"%m"))/3)+
     (as.numeric(format(x,"%Y"))-
-       as.numeric(format(x[1],"%Y")))*4
-  quarter <- quarter - (quarter[1]-1)
+       as.numeric(format(firstDate,"%Y")))*4
+  quarter <- quarter - (quarter[which.min(x)]-1)
   return(quarter)
 }
 
@@ -80,6 +82,53 @@ quarterIndex <- function(x){
 #' @param x A vector or column of dates
 #' @export
 yearIndex <- function(x){
-  year <- as.numeric(format(x,"%Y"))-as.numeric(format(x[1],"%Y"))+1
+  firstDate <- min(x)
+  year <- as.numeric(format(x,"%Y"))-as.numeric(format(firstDate,"%Y"))+1
   return(year)
+}
+
+#' Generate an index of weeks
+#'
+#' Function to create a week index variable with weeks
+#' determined as defined in ISO 8601.
+#' If the week (starting on Monday) containing 1 January has four
+#' or more days in the new year, then it is considered week 1.
+#' Otherwise, it is the 53rd week of the previous year, and the
+#' next week is week 1.
+#'
+#' @param x A vector of dates
+#' @export
+weekIndex <- function(x){
+
+  # we first need a measure of how many weeks are in each year in our sample
+  years <- sort(as.numeric(unique(format(x,"%Y"))))
+  # this gets the week number of December 31 for each of the years in
+  # the year vector
+  weeksInYears <- sapply(years,
+          function(y){as.numeric(format(as.Date(paste0(y,"-12-31")),"%V"))})
+  # If the week number is 1, then there must be 52 weeks in the year because
+  # it's saying that the end of the calendar year falls into week 1 of the
+  # following year.
+  weeksInYears[weeksInYears==1] <- 52
+  cumWeeks <- cumsum(weeksInYears)
+
+  # get the week number within the year of each date
+  weeks <- as.numeric(format(x,"%V"))
+  # get the year of each date in 'week-year' format. see ?strptime
+  weekYears <- as.numeric(format(x,"%G"))
+
+  # initialise a maxtrix for our final week index
+  week <- matrix(0, nrow=length(x), ncol=1)
+
+  # get the week of the first date in our sample, we'll use this to
+  # normalise our weekindex to start at 1
+  firstWeek <- as.numeric(format(min(x),"%V"))
+
+  # compute the week index as the week's number in the current year, plus the
+  # number of elapsed weeks in prior years, normalised to start at week 1.
+  for(i in 1:length(x)){
+    week[i,1] <- weeks[i] + cumWeeks[years==weekYears[i]] - cumWeeks[1] - (firstWeek-1)
+  }
+
+  return(as.vector(week))
 }

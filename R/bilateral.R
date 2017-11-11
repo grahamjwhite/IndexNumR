@@ -180,7 +180,7 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
     else if(tolower(output) == "chained" & !(tolower(chainMethod) == "pop")){
       xt0 <- x[x[[pervar]]==links[links$xt==i,2],]
     }
-    # set xt1 to current period data
+    # otherwise set xt1 to current period data
     xt1 <- x[x[[pervar]]==i,]
 
     # if matching requested then remove unmatched items
