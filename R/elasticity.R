@@ -16,7 +16,12 @@
 #' @param lower lower limit to search for sigma.
 #' @param upper upper limit to search for sigma.
 #' @param indexType either pop or fixedbase
-
+#' @return A list with three elements: sigma (the average elasticity
+#' over all time periods); allsigma (a T-1 by 1 matrix of the estimated
+#' elasticities for each time period, except period one); and diff
+#' (the value of the difference between the two indexes, check this is zero
+#' for all time periods).
+#' @export
 elasticity <- function(x, pvar, qvar, pervar, prodID,
                           compIndex = "lloydMoulton", lower = -20, upper = 20,
                           indexType = "fixedbase"){
@@ -25,7 +30,7 @@ elasticity <- function(x, pvar, qvar, pervar, prodID,
   n <- max(x[[pervar]],na.rm = TRUE)
   result <- list()
   sigmas <- matrix(0, nrow=n-1, ncol=1)
-  objective <- matrix(0,nrow=n-1,ncol=1)
+  diff <- matrix(0,nrow=n-1,ncol=1)
 
   # if fixed base requested, set xt0 to the first period data
   if(tolower(indexType)=="fixedbase"){
@@ -57,12 +62,12 @@ elasticity <- function(x, pvar, qvar, pervar, prodID,
 
     # save result
     sigmas[i-1] <- root$root
-    objective[i-1] <- root$f.root
+    diff[i-1] <- root$f.root
   }
 
   result$sigma <- mean(sigmas)
   result$allsigma <- sigmas
-  result$objective <- objective
+  result$diff <- diff
 
   return(result)
 }

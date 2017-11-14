@@ -31,6 +31,13 @@ index with the 'current period' lloyd-moulton index.}
 
 \item{indexType}{either pop or fixedbase}
 }
+\value{
+A list with three elements: sigma (the average elasticity
+over all time periods); allsigma (a T-1 by 1 matrix of the estimated
+elasticities for each time period, except period one); and diff
+(the value of the difference between the two indexes, check this is zero
+for all time periods).
+}
 \description{
 A function to estimate the elasticity of substitution
 }
