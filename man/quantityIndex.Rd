@@ -5,7 +5,8 @@
 \title{Computes a bilateral quantity index}
 \usage{
 quantityIndex(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
-  sample = "matched", output = "pop", chainMethod = "pop", ...)
+  sample = "matched", output = "pop", chainMethod = "pop",
+  sigma = 1.0001, ...)
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier
@@ -21,7 +22,7 @@ There may be observations on multiple products for each time period.}
 
 \item{indexMethod}{A character string to select the index number method. Valid index
 number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-harmonic, tornqvist, satovartia and walsh.}
+harmonic, tornqvist, satovartia, walsh and CES.}
 
 \item{prodID}{A character string for the name of the product identifier}
 
@@ -39,6 +40,8 @@ weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
 and "mixScale" for the mix, scale or absolute dissimilarity measures.
 The default is period-on-period. Additional parameters can be passed to the
 mixScaleDissimilarity function using ...}
+
+\item{sigma}{The elasticity of substitution for the CES index method.}
 
 \item{...}{this is used to pass additional parameters to the mixScaleDissimilarity
 function.}

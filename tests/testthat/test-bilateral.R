@@ -3,7 +3,7 @@ context("bilateral indices")
 load(system.file("testdata","testData_bilateral.RData",package = "IndexNumR"))
 
 indexMethods <- c("laspeyres","paasche","fisher","tornqvist","satovartia",
-                  "dutot","carli","jevons","harmonic","cswd","walsh")
+                  "dutot","carli","jevons","harmonic","cswd","walsh","ces")
 outputTypes <- c("pop","chained","fixedbase")
 
 for(i in 1:length(indexMethods)){
@@ -12,7 +12,8 @@ for(i in 1:length(indexMethods)){
       expect_equal(priceIndex(CES_sigma_2,pvar="prices",qvar="quantities",
                               pervar="time",prodID = "prodID",
                               indexMethod = indexMethods[i],
-                              sample = "matched",output=outputTypes[j]),
+                              sample = "matched",output=outputTypes[j],
+                              sigma=2),
                    as.matrix(testData[[paste0(indexMethods[i],"_",outputTypes[j])]]))
     })
   }
@@ -29,7 +30,8 @@ for(i in 1:length(indexMethods)){
       expect_equal(quantityIndex(CES_sigma_2,pvar="prices",qvar="quantities",
                               pervar="time",prodID = "prodID",
                               indexMethod = indexMethods[i],
-                              sample = "matched",output=outputTypes[j]),
+                              sample = "matched",output=outputTypes[j],
+                              sigma=2),
                    as.matrix(testData[[paste0(indexMethods[i],"_",outputTypes[j])]]))
     })
   }

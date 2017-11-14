@@ -97,9 +97,26 @@ satoVartia_t <- function(p0,p1,q0,q1){
 #' compute a bilateral Walsh index
 #'
 #' @keywords internal
-#'
 walsh_t <- function(p0,p1,q0,q1){
   return(sum(p1*sqrt(q0*q1))/sum(p0*sqrt(q0*q1)))
+}
+
+#' Lloyd-Moulton index, period 0 share
+#'
+#' @keywords internal
+lloydMoulton_t0 <- function(p0,p1,q,sigma){
+  e <- sum(p0*q)
+  s0 <- (p0*q)/e
+  return(sum((s0*((p1/p0)^(1-sigma))))^(1/(1-sigma)))
+}
+
+#' Lloyd-Moulton index, current period share
+#'
+#' @keywords internal
+lloydMoulton_tc <- function(p0,p1,q,sigma){
+  e <- sum(p1*q)
+  s1 <- (p1*q)/e
+  return(sum((s1*((p1/p0)^-(1-sigma))))^(-1/(1-sigma)))
 }
 
 #' Computes a bilateral price index
@@ -116,7 +133,7 @@ walsh_t <- function(p0,p1,q0,q1){
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
 #' number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-#' harmonic, tornqvist, satovartia and walsh.
+#' harmonic, tornqvist, satovartia, walsh and CES.
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
 #' @param output A character string specifying whether a chained, fixed base or
@@ -129,14 +146,16 @@ walsh_t <- function(p0,p1,q0,q1){
 #' and "mixScale" for the mix, scale or absolute dissimilarity measures.
 #' The default is period-on-period. Additional parameters can be passed to the
 #' mixScaleDissimilarity function using ...
+#' @param sigma The elasticity of substitution for the CES index method.
 #' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
 #' function.
 #' @export
 priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
-                       sample="matched",output="pop",chainMethod="pop",...){
+                       sample="matched",output="pop",chainMethod="pop",
+                       sigma=1.0001, ...){
 
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
-                    "paasche","fisher","tornqvist","satovartia","walsh")
+                    "paasche","fisher","tornqvist","satovartia","walsh","ces")
   if(!(tolower(indexMethod) %in% validMethods)){
     stop("Not a valid index number method.")
   }
@@ -207,7 +226,9 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
            fisher = {plist[i,1] <- fisher_t(p0,p1,q0,q1)},
            tornqvist = {plist[i,1] <- tornqvist_t(p0,p1,q0,q1)},
            satovartia = {plist[i,1] <- satoVartia_t(p0,p1,q0,q1)},
-           walsh = {plist[i,1] <- walsh_t(p0,p1,q0,q1)})
+           walsh = {plist[i,1] <- walsh_t(p0,p1,q0,q1)},
+           ces = {plist[i,1] <- lloydMoulton_t0(p0,p1,q0,sigma = sigma)}
+           )
 
     # if similarity chain linking then multiply the index by the link period index
     if(tolower(output) == "chained" & !(tolower(chainMethod) == "pop")){
@@ -239,7 +260,7 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
 #' number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-#' harmonic, tornqvist, satovartia and walsh.
+#' harmonic, tornqvist, satovartia, walsh and CES.
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
 #' @param output A character string specifying whether a chained, fixed base or
@@ -252,12 +273,14 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
 #' and "mixScale" for the mix, scale or absolute dissimilarity measures.
 #' The default is period-on-period. Additional parameters can be passed to the
 #' mixScaleDissimilarity function using ...
+#' @param sigma The elasticity of substitution for the CES index method.
 #' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
 #' function.
 #' @export
 quantityIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres", prodID,
-                          sample="matched", output="pop", chainMethod="pop", ...){
+                          sample="matched", output="pop", chainMethod="pop",
+                          sigma=1.0001, ...){
   return(priceIndex(x, pvar=qvar, qvar=pvar, pervar = pervar, indexMethod=indexMethod,
                     prodID = prodID, sample = sample, output = output,
-                    chainMethod = chainMethod, ... = ...))
+                    chainMethod = chainMethod, sigma = sigma, ... = ...))
 }
