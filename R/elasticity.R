@@ -15,16 +15,20 @@
 #' index with the 'current period' lloyd-moulton index.
 #' @param lower lower limit to search for sigma.
 #' @param upper upper limit to search for sigma.
-#' @param indexType either pop or fixedbase
+#' @param indexType either pop to use period-on-period indexes or fixedbase
+#' to use fixed base indexes.
 #' @return A list with three elements: sigma (the average elasticity
 #' over all time periods); allsigma (a T-1 by 1 matrix of the estimated
 #' elasticities for each time period, except period one); and diff
 #' (the value of the difference between the two indexes, check this is zero
 #' for all time periods).
+#' @examples
+#' elasticity(CES_sigma_2,pvar="prices",qvar="quantities",pervar="time",
+#' prodID = "prodID",indexType = "pop")
 #' @export
 elasticity <- function(x, pvar, qvar, pervar, prodID,
                           compIndex = "lloydMoulton", lower = -20, upper = 20,
-                          indexType = "fixedbase"){
+                          indexType = "pop"){
 
   # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)

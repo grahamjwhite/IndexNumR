@@ -81,7 +81,7 @@ relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
     }
   }
   colnames(res) <- c("period_i","period_j","dissimilarity")
-  return(res)
+  return(as.data.frame(res))
 }
 
 #' Computes mix, scale and absolute dissimilarity measures
@@ -154,7 +154,8 @@ mixScaleDissimilarity <- function(x, pvar, qvar, prodID, pervar,
     result[i,3] = d
   }
   result[,1:2] = t(cn)
-  return(result)
+  colnames(result) <- c("period_i","period_j","dissimilarity")
+  return(as.data.frame(result))
 }
 
 # mix dissimilarity
@@ -215,6 +216,5 @@ maximiumSimilarityLinks <- function(x){
     result[i,3] = min(temp$dissimilarity)
   }
   colnames(result) <- c("xt","x0","dissimilarity")
-  print(result)
   return(as.data.frame(result))
 }

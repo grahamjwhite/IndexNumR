@@ -149,6 +149,20 @@ lloydMoulton_tc <- function(p0,p1,q,sigma){
 #' @param sigma The elasticity of substitution for the CES index method.
 #' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
 #' function.
+#' @examples
+#' # period-on-period Laspeyres index for the CES_sigma_2 dataset
+#' priceIndex(CES_sigma_2, pvar="prices", qvar="quantities", pervar="time",
+#' prodID = "prodID", indexMethod = "laspeyres")
+#'
+#' # chained Fisher index
+#' priceIndex(CES_sigma_2, pvar="prices", qvar="quantities", pervar="time",
+#' prodID = "prodID", indexMethod = "fisher", output="chained")
+#'
+#' # chained Tornqvist index, with linking periods chosen by the
+#' # weighted log-quadratic dissimilarity measure
+#' priceIndex(CES_sigma_2, pvar="prices", qvar="quantities", pervar="time",
+#' prodID = "prodID", indexMethod = "tornqvist", output="chained",
+#' chainMethod = "logquadratic")
 #' @export
 priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
                        sample="matched",output="pop",chainMethod="pop",

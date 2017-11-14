@@ -5,7 +5,7 @@
 \title{Computes the elasticity of substitution}
 \usage{
 elasticity(x, pvar, qvar, pervar, prodID, compIndex = "lloydMoulton",
-  lower = -20, upper = 20, indexType = "fixedbase")
+  lower = -20, upper = 20, indexType = "pop")
 }
 \arguments{
 \item{x}{A dataframe}
@@ -29,7 +29,8 @@ index with the 'current period' lloyd-moulton index.}
 
 \item{upper}{upper limit to search for sigma.}
 
-\item{indexType}{either pop or fixedbase}
+\item{indexType}{either pop to use period-on-period indexes or fixedbase
+to use fixed base indexes.}
 }
 \value{
 A list with three elements: sigma (the average elasticity
@@ -40,4 +41,8 @@ for all time periods).
 }
 \description{
 A function to estimate the elasticity of substitution
+}
+\examples{
+elasticity(CES_sigma_2,pvar="prices",qvar="quantities",pervar="time",
+prodID = "prodID",indexType = "pop")
 }
