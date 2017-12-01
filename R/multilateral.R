@@ -124,15 +124,23 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
   # use a splicing method to compute the rest of the index
   if(n>window){
     for(i in 2:(n-window+1)){
+      # set the old GEKS window
+      if(i==2){
+        oldGEKS <- pGEKS[(i-1):(i+window-2),1]
+      }
+      else {
+        oldGEKS <- newGEKS
+      }
+      
       # fetch the next window of data
       xWindow <- x[x[[pervar]]>=i & x[[pervar]] < i + window,]
 
       # call GEKS_w on this window
-      tempGEKS <- GEKS_w(xWindow,pvar,qvar,pervar,indexMethod,prodID,
+      newGEKS <- GEKS_w(xWindow,pvar,qvar,pervar,indexMethod,prodID,
                          sample)
 
       # splice the new datapoint on
-      pGEKS[i+window-1,1] <- splice_t(pGEKS[(i-1):(i+window-2),1],tempGEKS,method=splice)
+      pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1],oldGEKS,newGEKS,method=splice)
     }
   }
   return(pGEKS)
@@ -140,11 +148,11 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 
 
 # function to pass the correct values to splice helper functions
-splice_t <- function(oldGEK,newGEK,method="mean"){
+splice_t <- function(x,oldGEK,newGEK,method="mean"){
   switch(method,
-         movement = {pt <- movementSplice(oldGEK[length(oldGEK)],newGEK)},
-         window = {pt <- windowSplice(oldGEK[2],newGEK)},
-         mean = {pt <- meanSplice(oldGEK,newGEK)}
+         movement = {pt <- movementSplice(x,newGEK)},
+         window = {pt <- windowSplice(x,oldGEK,newGEK)},
+         mean = {pt <- meanSplice(x,oldGEK,newGEK)}
   )
   return(pt)
 }
@@ -157,18 +165,18 @@ movementSplice <- function(x,NewGEK){
 }
 
 # window splice using the first and last observations of the new GEKS
-windowSplice <- function(x,NewGEK){
-  spliceFactor <- NewGEK[length(NewGEK)]/NewGEK[1]
+windowSplice <- function(x,oldGEK,NewGEK){
+  spliceFactor <- (NewGEK[length(NewGEK)]/NewGEK[1])/(oldGEK[length(oldGEK)]/oldGEK[1])
   return(x*spliceFactor)
 }
 
 # mean splicing using the geometric mean of all overlapping periods
-meanSplice <- function(oldGEK,newGEK){
+meanSplice <- function(x,oldGEK,newGEK){
   w = length(newGEK)
   pvector <- matrix(0,nrow=w-1,ncol=1)
 
   for(l in 1:(w-1)){
-    pvector[l,1] <- oldGEK[l+1]*(newGEK[w]/newGEK[l])
+    pvector[l,1] <- (newGEK[w]/newGEK[l])/(oldGEK[w]/oldGEK[l])
   }
   return(geomean(pvector))
 }
