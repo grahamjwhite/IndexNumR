@@ -23,25 +23,36 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
     xt0 <- x[x[[pervar]] == pi[j],]
     # for every period in the window...
     for(k in 1:window){
-      # set the period pi(k) = period '1'
-      xt1 <- x[x[[pervar]] == pi[k],]
-
-      # if user asked for matching, get matched samples
-      if(sample=="matched"){
-        xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
-        xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
+      # if j=k then the index is 1
+      if(j==k){
+        pindices[j,k] <- 1
       }
+      # if we're below the diagonal, then use symmetry to
+      # save computation time
+      else if(j>k){
+        pindices[j,k] <- 1/pindices[k,j]
+      }
+      else {
+        # set the period pi(k) = period '1'
+        xt1 <- x[x[[pervar]] == pi[k],]
 
-      # set the price and quantity vectors
-      p0 <- xt0[[pvar]]
-      p1 <- xt1[[pvar]]
-      q0 <- xt0[[qvar]]
-      q1 <- xt1[[qvar]]
+        # if user asked for matching, get matched samples
+        if(sample=="matched"){
+          xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
+          xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
+        }
 
-      # calculate the price index for 'base' period j and 'next' period k
-      switch(tolower(indexMethod),
-             fisher = {pindices[j,k] <- fisher_t(p0,p1,q0,q1)},
-             tornqvist = {pindices[j,k] <- tornqvist_t(p0,p1,q0,q1)})
+        # set the price and quantity vectors
+        p0 <- xt0[[pvar]]
+        p1 <- xt1[[pvar]]
+        q0 <- xt0[[qvar]]
+        q1 <- xt1[[qvar]]
+
+        # calculate the price index for 'base' period j and 'next' period k
+        switch(tolower(indexMethod),
+               fisher = {pindices[j,k] <- fisher_t(p0,p1,q0,q1)},
+               tornqvist = {pindices[j,k] <- tornqvist_t(p0,p1,q0,q1)})
+      }
     }
   }
   # compute the geometric mean of each column of the price indices matrix
