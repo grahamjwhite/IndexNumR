@@ -23,25 +23,36 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
     xt0 <- x[x[[pervar]] == pi[j],]
     # for every period in the window...
     for(k in 1:window){
-      # set the period pi(k) = period '1'
-      xt1 <- x[x[[pervar]] == pi[k],]
-
-      # if user asked for matching, get matched samples
-      if(sample=="matched"){
-        xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
-        xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
+      # if j=k then the index is 1
+      if(j==k){
+        pindices[j,k] <- 1
       }
+      # if we're below the diagonal, then use symmetry to
+      # save computation time
+      else if(j>k){
+        pindices[j,k] <- 1/pindices[k,j]
+      }
+      else {
+        # set the period pi(k) = period '1'
+        xt1 <- x[x[[pervar]] == pi[k],]
 
-      # set the price and quantity vectors
-      p0 <- xt0[[pvar]]
-      p1 <- xt1[[pvar]]
-      q0 <- xt0[[qvar]]
-      q1 <- xt1[[qvar]]
+        # if user asked for matching, get matched samples
+        if(sample=="matched"){
+          xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
+          xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
+        }
 
-      # calculate the price index for 'base' period j and 'next' period k
-      switch(tolower(indexMethod),
-             fisher = {pindices[j,k] <- fisher_t(p0,p1,q0,q1)},
-             tornqvist = {pindices[j,k] <- tornqvist_t(p0,p1,q0,q1)})
+        # set the price and quantity vectors
+        p0 <- xt0[[pvar]]
+        p1 <- xt1[[pvar]]
+        q0 <- xt0[[qvar]]
+        q1 <- xt1[[qvar]]
+
+        # calculate the price index for 'base' period j and 'next' period k
+        switch(tolower(indexMethod),
+               fisher = {pindices[j,k] <- fisher_t(p0,p1,q0,q1)},
+               tornqvist = {pindices[j,k] <- tornqvist_t(p0,p1,q0,q1)})
+      }
     }
   }
   # compute the geometric mean of each column of the price indices matrix
@@ -124,15 +135,23 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
   # use a splicing method to compute the rest of the index
   if(n>window){
     for(i in 2:(n-window+1)){
+      # set the old GEKS window
+      if(i==2){
+        oldGEKS <- pGEKS[(i-1):(i+window-2),1]
+      }
+      else {
+        oldGEKS <- newGEKS
+      }
+      
       # fetch the next window of data
       xWindow <- x[x[[pervar]]>=i & x[[pervar]] < i + window,]
 
       # call GEKS_w on this window
-      tempGEKS <- GEKS_w(xWindow,pvar,qvar,pervar,indexMethod,prodID,
+      newGEKS <- GEKS_w(xWindow,pvar,qvar,pervar,indexMethod,prodID,
                          sample)
 
       # splice the new datapoint on
-      pGEKS[i+window-1,1] <- splice_t(pGEKS[(i-1):(i+window-2),1],tempGEKS,method=splice)
+      pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1],oldGEKS,newGEKS,method=splice)
     }
   }
   return(pGEKS)
@@ -140,11 +159,11 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 
 
 # function to pass the correct values to splice helper functions
-splice_t <- function(oldGEK,newGEK,method="mean"){
+splice_t <- function(x,oldGEK,newGEK,method="mean"){
   switch(method,
-         movement = {pt <- movementSplice(oldGEK[length(oldGEK)],newGEK)},
-         window = {pt <- windowSplice(oldGEK[2],newGEK)},
-         mean = {pt <- meanSplice(oldGEK,newGEK)}
+         movement = {pt <- movementSplice(x,newGEK)},
+         window = {pt <- windowSplice(x,oldGEK,newGEK)},
+         mean = {pt <- meanSplice(x,oldGEK,newGEK)}
   )
   return(pt)
 }
@@ -157,18 +176,18 @@ movementSplice <- function(x,NewGEK){
 }
 
 # window splice using the first and last observations of the new GEKS
-windowSplice <- function(x,NewGEK){
-  spliceFactor <- NewGEK[length(NewGEK)]/NewGEK[1]
+windowSplice <- function(x,oldGEK,NewGEK){
+  spliceFactor <- (NewGEK[length(NewGEK)]/NewGEK[1])/(oldGEK[length(oldGEK)]/oldGEK[1])
   return(x*spliceFactor)
 }
 
 # mean splicing using the geometric mean of all overlapping periods
-meanSplice <- function(oldGEK,newGEK){
+meanSplice <- function(x,oldGEK,newGEK){
   w = length(newGEK)
   pvector <- matrix(0,nrow=w-1,ncol=1)
 
   for(l in 1:(w-1)){
-    pvector[l,1] <- oldGEK[l+1]*(newGEK[w]/newGEK[l])
+    pvector[l,1] <- (newGEK[w]/newGEK[l])/(oldGEK[w]/oldGEK[l])
   }
   return(geomean(pvector))
 }
