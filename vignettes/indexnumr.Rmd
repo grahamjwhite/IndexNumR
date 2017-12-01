@@ -1,0 +1,209 @@
+---
+title: "IndexNumR: A Package for Index Number Calculation"
+author: "Graham White"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+bibliography: "indexnumrbib.bib"
+vignette: >
+  %\VignetteIndexEntry{IndexNumR: A Package for Index Number Calculation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r include=FALSE}
+library(IndexNumR)
+```
+
+## Data organisation
+
+This first section covers the inputs into the main index number functions are how the data are to be organised to use these functions. 
+
+### Index number input dataframe
+
+The index number functions `priceIndex`, `quantityIndex` and `GEKSIndex` all take a dataframe as their first argument. This dataframe should contain everything needed to compute the index. In general this includes columns for,
+
+* prices
+* quantities
+* a time period variable (more on this below)
+* a product identifier that uniquely identifies each product.
+
+The dataframe must have column names, since character strings are used in other arguments to the index number functions to specify which columns contain these pieces of data. Column names can be set with the `colnames` function of base R. The dataset CES_sigma_2 is an example of the minimum dataframe required to compute an index.  
+
+```{r}
+head(CES_sigma_2)
+```
+
+In this case, the dataframe is sorted by the product identifier *prodID*, but it need not be sorted at all. 
+
+### The time period variable
+
+To be able to compute indices, the data need to be subset in order to extract all observations on products for given periods. The approach used in *IndexNumR* is to require a time period variable as an input into many of its functions that will be used for subsetting. This time period variable must satisfy the following,
+
+* start at 1
+* increase in integer increments of 1
+* continuous (that is, no gaps).
+
+The variable may, and in fact likely will, have many observations for a given time period, since there are generally multiple items with price and quantity information. For example, the CES_sigma_2 dataset has observations on 4 products for each time period. We can see this by observing the first few rows of the dataset sorted by the time period.
+```{r}
+head(CES_sigma_2[order(CES_sigma_2$time),])
+```
+
+The user can provide their own time variable, or if a date variable is available, *IndexNumR* has four functions that can compute the required time variable: `yearIndex`, `quarterIndex`, `monthIndex` and `weekIndex`. Users should be aware that if there are a very large number of observations then these functions can take some time to compute, but once it has been computed it is easier and faster to work with than dates. 
+
+### Time aggregation
+
+A related issue is that of aggregating data collected at some higher frequency, to a lower frequency. When computing index numbers, this is often done by computing a *unit value* as follows,
+\begin{equation}
+  UV_{t} = \frac{\sum_{i=1}^{N}p^{t}_{n}q^{t}_{n}}{\sum_{i=1}^{N}q^{t}_{n}}
+\end{equation}
+That is, sum up total expenditure on each item over the required period, and divide by the total quantity. Provided that a time period variable as described above is available, the unit values can be computed using the function `unitValues`. This function returns the unit values, along with the aggregate quantities for each time period and each product. The output will also include the product identifier and time period variable so the output dataframe from the `unitvalues` function contains everything needed to compute an index number.  
+
+
+## Matched-sample indexes
+
+A common issue when computing index numbers is that the sample of products over which the index is computed changes over time. Since price and quantity information is generally needed on the same set of products for each pair of periods being compared, the index calculation functions provided in *IndexNumR* provide the option `sample="matched"` to use only a matched sample of products. This means that the price and quantity information will be extracted for a pair of periods, any non-overlapping products removed, and the index computed over these matched products. This is repeated for each pair of periods over which the index is being computed. 
+
+Matched-sample indices may suffer from bias. As a simple assessment of the potential bias, the function `evaluateMatched` calculates the proportion of total expenditure that the matched sample covers in each time period. The function provides output for expenditure as well as counts and can evaluate overlap using either a chained or fixed base index. 
+
+The first four columns of the output presents the base period information base_index (the time index of the base period), base (total base period expenditure or count), base_matched (the expenditure or count of the base period for matched products), base_share (share of total expenditure in the base period that remains after matching). Columns 5-8 report the same information for the current period. Columns 4 and 8 can be expressed as,
+\begin{equation}
+  \lambda_{t} = \frac{\sum_{I\in I(1)\cap I(0)}p_{n}^{t}q_{n}^{t}}{\sum_{I\in I(t)}p_{n}^{t}q_{n}^{t}} \quad \text{for } t \in \{1,0\},
+\end{equation}
+where $I(t)$ is the set of products available in period $t$, $t=1$ refers to the current period as is used to compute column 8 and $t=0$ refers to the comparison period, which is used to compute column 4. 
+
+## Bilateral index numbers
+
+Bilateral index numbers are those that use data for two periods to compute each value of the index. All of the bilateral index numbers can be computed as period-on-period, chained or fixed base. Period-on-period simply measures the change from one period to the next. Chained indices give the cumulative change, and it is calculated as the cumulative product of the period-on-period index. The fixed base index compares each period to the base period. This is also called a direct index, because unlike a chained index, it does not go through other periods to measure the change since the base period. Formulae used to compute the bilateral index numbers from period t-1 to period t are as below.
+
+### Elementary indexes
+
+* Carli index [@carli:1804],
+\begin{equation*}
+P(p^{t-1},p^{t}) = \frac{1}{N}\sum_{n=1}^{N}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)
+\end{equation*} 
+
+* Jevons index [@jevons:1865],
+\begin{equation*}
+	P(p^{t-1},p^{t}) = \prod_{n=1}^{N}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)^{(1/N)}
+\end{equation*}
+
+* Dutot index [@dutot:1738],
+\begin{equation*}
+	P(p^{t-1},p^{t}) = \frac{\sum_{n=1}^{N}p^{t}_{n}}{\sum_{n=1}^{N}p^{t-1}_{n}}
+\end{equation*}
+
+### Fixed-basket indexes
+
+* Laspeyres index [@lasp:1871],
+\begin{equation*}
+	P(p^{t-1},p^{t},q^{t-1}) = \frac{\sum_{n=1}^{N}p^{t}_{n}q^{t-1}_{n}}{\sum_{n=1}^{N}p^{t-1}_{n}q^{t-1}_{n}}
+\end{equation*}
+
+* Paasche index [@paasche:1874],
+\begin{equation*}
+	P(p^{t-1},p^{t},q^{t}) = \frac{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t-1}_{n}q^{t}_{n}}
+\end{equation*}
+
+### Superlative indexes
+
+* Fisher index [@fisher:1921],
+\begin{equation*}
+	P(p^{t-1},p^{t},q^{t-1},q^{t}) = [P_{P}P_{L}]^{\frac{1}{2}},
+\end{equation*}
+where $P_{P}$ is the Paasche index and $P_{L}$ is the Laspeyres index. The Fisher index has other representations, but this is the one used by *IndexNumR* in its computations.  
+
+* Tornqvist index [@torn:1936; @torntorn:1937],
+\begin{equation*}
+	P(p^{t-1},p^{t},q^{t-1},q^{t}) = \prod_{n=1}^{N}\left(\frac{p^{t}}{p^{t-1}}\right)^{\left(s^{t-1}_{n}+s^{t}_{n}\right)/2},
+\end{equation*}
+where $s^{t}_{n} = \frac{p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}$ is the share of period $t$ expenditure on good $n$.
+
+* Walsh index,
+\begin{equation*}
+	P(p^{t-1},p^{t},q^{t-1},q^{t}) = \frac{\sum_{n=1}^{N}\sqrt{q^{t-1}_{n}q^{t}_{n}}\cdot p^{t}_{n}}{\sum_{n=1}^{N}\sqrt{q^{t-1}_{n}q^{t}_{n}}\cdot p^{t-1}_{n}}
+\end{equation*}
+
+* Sato-Vartia index [@sato:1976; @vartia:1976],
+\begin{equation*}
+	P(p^{t-1},p^{t},q^{t-1},q^{t}) = \prod_{n=1}^{N}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)^{w_{n}}
+\end{equation*}
+where the weights are normalised to sum to one, 
+\begin{equation*}
+	w_{n} = \frac{w^{*}}{\sum_{n=1}^{N}w^{*}}
+\end{equation*}
+and $w^{*}_{n}$ is the logarithmic mean of the shares,
+\begin{equation*}
+	w^{*}_{n} = \frac{s^{t}_{n}-s^{t-1}_{n}}{\log (s^{t}_{n}) - \log (s^{t-1}_{n})}
+\end{equation*}
+
+### Constant elasticity of substitution (CES) framework indexes
+
+* CES index, also known as the Lloyd-Moulton index [@lloyd:1975; @Moult:1996],
+\begin{equation*}
+	P(p^{t-1},p^{t},q^{t-1}) = \left[\sum_{n=1}^{N}s_{n}^{t-1}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)^{(1-\sigma)}\right]^{\left(\frac{1}{1-\sigma}\right)},
+\end{equation*}
+where $\sigma$ is the elasticity of substitution. 
+
+### Examples
+
+To estimate a simple chained Laspeyres price index,
+
+```{r}
+priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",pervar = "time",prodID = "prodID", indexMethod = "laspeyres", output = "chained")
+```
+
+Estimating multiple different index numbers on the same data is straight-forward,
+```{r}
+methods <- c("laspeyres","paasche","fisher","tornqvist")
+prices <- lapply(methods, function(x) {priceIndex(CES_sigma_2,pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = x, output = "chained")})
+as.data.frame(prices, col.names = c("laspeyres","paasche","fisher","tornqvist"))
+```
+This illustrates the Laspeyres index's substantial positive bias, the Paasche index's substantial negative bias, and the similar estimates produced by the Fisher and Tornqvist superlative index numbers.   
+
+## Elasticity of substitution
+
+The CES index number method requires an elasticity of substitution parameter in order to be calculated. *IndexNumR* provides a function `elasticity` to estimate the elasticity of substitution parameter, following the method of [@balk:2000]. The basic method is to solve for the value of the elasticity of substitution that equates the CES index to a comparison index. One comparison index noted by Balk is the 'current period' CES index,
+\begin{equation}
+  \left[\sum_{n=1}^{N}s_{n}^{t}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)^{-(1-\sigma)}\right]^{\left(\frac{-1}{1-\sigma}\right)}.
+\end{equation}
+Therefore, we numerically calculate the value of $\sigma$ that solves,
+\begin{equation}
+  \left[\sum_{n=1}^{N}s_{n}^{t-1}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)^{(1-\sigma)}\right]^{\left(\frac{1}{1-\sigma}\right)} - \left[\sum_{n=1}^{N}s_{n}^{t}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)^{-(1-\sigma)}\right]^{\left(\frac{-1}{1-\sigma}\right)} = 0. 
+\end{equation}
+
+This is done using the `uniroot` function of the *stats* package distributed with base R. Note that this equation can be used to solve for sigma for any $t=2,\cdots,T$, so there are $T-1$ potential estimates of sigma. The `elasticity` function will return all $T-1$ estimates as well as the arithmetic mean of the estimates. In addition to the current period CES index, Balk also notes that the Sato-Vartia index can be used, while [@idf:2010] note that a Fisher index could be used. Any of these three indexes can be used as the comparison index by specifying the `compIndex` option as either `"fisher"`, `"ces"` or `"satovartia"`. The current period CES index is the default.    
+
+The dataset available with *IndexNumR*, CES_sigma_2, was calculated assuming a CES cost function with an elasticity of substitution equal to 2. Running the `elasticity` function on this dataset, 
+```{r}
+elasticity(CES_sigma_2, pvar="prices",qvar="quantities",pervar="time",prodID="prodID",compIndex="ces")
+```
+which recovers the value of $\sigma$ used to construct the dataset. There is one additional item of output labelled 'diff'. This is the value of the difference between the CES index and the comparison index and is returned so that the user can check that the value of this difference is indeed zero. If it is non-zero then it may indicate that `uniroot` was not able to find a solution, within the specified upper and lower bounds for $\sigma$. These bounds can be changed with the options `upper` and `lower` of the `elasticity` function. The defaults are 20 and -20 respectively.   
+
+
+## Multilateral index numbers
+
+Multilateral index number methods use data from multiple periods to compute the index. *IndexNumR* provides the function `GEKSIndex` to use the GEKS multilateral index number method. The GEKS method is attributable to Gini, Eltito and Koves, and Szulc in the cross-sectional context. It has been adapted to the time series context by Balk, and developed further by Ivancic, Diewert and Fox. 
+
+The basic method followed by the function `GEKSIndex` is as follows. Choose an initial window over which to apply the GEKS method, denote this as $w$. Choose a period, denoted period $k$, within the window as the base period. Calculate a bilateral index number between period $k$ and every other period in the window.  Repeat this for all possible choices of $k$. This gives a matrix of size $w\times w$ of bilateral indexes between all possible pairs of periods. Then compute the GEKS index over the window as, 
+\begin{equation}
+  \left[ \prod_{k=1}^{w}P^{k,1} \right]^{1/w}, \left[ \prod_{k=1}^{w}P^{k,2} \right]^{1/w}, \cdots, \left[ \prod_{k=1}^{w}P^{k,w} \right]^{1/w},
+\end{equation}
+where the term $P^{k,t}$ is the bilateral index between period $t$ and base period $k$. *IndexNumR* offers the Fisher and Tornqvist index number methods for the index $P$ via the `indexMethod` option. The Tornqvist index method is the default. The $w\times w$ matrix of bilateral indexes is as follows,
+\[
+\begin{pmatrix}
+  P^{1,1} & \cdots & P^{1,w} \\
+  \vdots & \ddots & \vdots \\
+  P^{w,1} & \cdots & P^{w,w}
+\end{pmatrix}
+\]
+So that the first term of the GEKS index is the geometric mean of the elements in the first column of the above matrix, the second term is the geometric mean of the second column, and so on. These indexes are then normalised by dividing by the first term, to give an index for the first $w$ periods that starts at 1. If the index only covers $w$ periods then no further calculation is required. However, if there are $T>w$ periods in the dataset then the index must be extended.  
+
+### Extending the GEKS index
+
+Extending a GEKS index can be done in a multitude of ways. Statistical agencies generally do not revise price indices like the consumer price index, so the methods offered by *IndexNumR* to extend the GEKS index are methods that do not lead to revisions. More specifically, these are called *splicing methods* and the three options available are the *movement*, *window* and *mean splice*. The idea is that we start by moving the window forward by one period and calculate a GEKS index for the new window. There will be $w-1$ overlapping periods between the initial GEKS index and the GEKS index computed on the window that has been rolled forward one period. Any one of these overlapping periods can be used to extend the GEKS index.   
+
+```{r} 
+GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = "Fisher", window=5, splice = "mean")
+```
+
+## References
