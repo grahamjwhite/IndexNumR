@@ -142,7 +142,7 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
       else {
         oldGEKS <- newGEKS
       }
-      
+
       # fetch the next window of data
       xWindow <- x[x[[pervar]]>=i & x[[pervar]] < i + window,]
 
@@ -189,5 +189,5 @@ meanSplice <- function(x,oldGEK,newGEK){
   for(l in 1:(w-1)){
     pvector[l,1] <- (newGEK[w]/newGEK[l])/(oldGEK[w]/oldGEK[l])
   }
-  return(geomean(pvector))
+  return(x*geomean(pvector))
 }

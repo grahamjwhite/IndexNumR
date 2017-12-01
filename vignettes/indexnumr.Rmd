@@ -182,21 +182,23 @@ which recovers the value of $\sigma$ used to construct the dataset. There is one
 
 ## Multilateral index numbers
 
-Multilateral index number methods use data from multiple periods to compute the index. *IndexNumR* provides the function `GEKSIndex` to use the GEKS multilateral index number method. The GEKS method is attributable to Gini, Eltito and Koves, and Szulc in the cross-sectional context. It has been adapted to the time series context by Balk, and developed further by Ivancic, Diewert and Fox. 
+Multilateral index number methods use data from multiple periods to compute each term in the index. *IndexNumR* provides the function `GEKSIndex` to use the GEKS multilateral index number method. The GEKS method is attributable to Gini, Eltito and Koves, and Szulc in the cross-sectional context. It has been adapted to the time series context by Balk, and developed further by Ivancic, Diewert and Fox. 
 
-The basic method followed by the function `GEKSIndex` is as follows. Choose an initial window over which to apply the GEKS method, denote this as $w$. Choose a period, denoted period $k$, within the window as the base period. Calculate a bilateral index number between period $k$ and every other period in the window.  Repeat this for all possible choices of $k$. This gives a matrix of size $w\times w$ of bilateral indexes between all possible pairs of periods. Then compute the GEKS index over the window as, 
+The user must choose the size of the window over which to apply the GEKS method, typically one or two years of data plus one period to account for seasonality. Denote this as $w$.The basic method followed by the function `GEKSIndex` is as follows. Choose a period, denoted period $k$, within the window as the base period. Calculate a bilateral index number between period $k$ and every other period in the window.  Repeat this for all possible choices of $k$. This gives a matrix of size $w\times w$ of bilateral indexes between all possible pairs of periods within the window. Then compute the GEKS indexes for the first $w$ periods as, 
 \begin{equation}
   \left[ \prod_{k=1}^{w}P^{k,1} \right]^{1/w}, \left[ \prod_{k=1}^{w}P^{k,2} \right]^{1/w}, \cdots, \left[ \prod_{k=1}^{w}P^{k,w} \right]^{1/w},
 \end{equation}
 where the term $P^{k,t}$ is the bilateral index between period $t$ and base period $k$. *IndexNumR* offers the Fisher and Tornqvist index number methods for the index $P$ via the `indexMethod` option. The Tornqvist index method is the default. The $w\times w$ matrix of bilateral indexes is as follows,
-\[
+\[P =
 \begin{pmatrix}
   P^{1,1} & \cdots & P^{1,w} \\
   \vdots & \ddots & \vdots \\
   P^{w,1} & \cdots & P^{w,w}
 \end{pmatrix}
 \]
-So that the first term of the GEKS index is the geometric mean of the elements in the first column of the above matrix, the second term is the geometric mean of the second column, and so on. These indexes are then normalised by dividing by the first term, to give an index for the first $w$ periods that starts at 1. If the index only covers $w$ periods then no further calculation is required. However, if there are $T>w$ periods in the dataset then the index must be extended.  
+So that the first term of the GEKS index is the geometric mean of the elements in the first column of the above matrix, the second term is the geometric mean of the second column, and so on. Note that `IndexNumR` makes use of two facts about the matrix above to speed up computation: it is (inversely) symmetric so that $P(1,2) = 1/P(2,1)$, etc; and the diagonal elements are 1. 
+
+The indexes are then normalised by dividing by the first term, to give an index for the first $w$ periods that starts at 1. If the index only covers $w$ periods then no further calculation is required. However, if there are $T>w$ periods in the dataset then the index must be extended.  
 
 ### Extending the GEKS index
 
