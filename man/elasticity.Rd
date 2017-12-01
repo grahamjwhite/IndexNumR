@@ -4,8 +4,8 @@
 \alias{elasticity}
 \title{Computes the elasticity of substitution}
 \usage{
-elasticity(x, pvar, qvar, pervar, prodID, compIndex = "lloydMoulton",
-  lower = -20, upper = 20, indexType = "pop")
+elasticity(x, pvar, qvar, pervar, prodID, compIndex = "ces", lower = -20,
+  upper = 20, indexType = "pop")
 }
 \arguments{
 \item{x}{A dataframe}

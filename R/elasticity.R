@@ -27,7 +27,7 @@
 #' prodID = "prodID",indexType = "pop")
 #' @export
 elasticity <- function(x, pvar, qvar, pervar, prodID,
-                          compIndex = "lloydMoulton", lower = -20, upper = 20,
+                          compIndex = "ces", lower = -20, upper = 20,
                           indexType = "pop"){
 
   # initialise some things
@@ -82,10 +82,10 @@ elasticity <- function(x, pvar, qvar, pervar, prodID,
 #' A function, with a root at zero, that computes the difference between
 #' the CES index and a comparison index.
 #' @keywords internal
-indexDiff <- function(sigma,p0,p1,q0,q1,compIndex="lloydmoulton"){
+indexDiff <- function(sigma,p0,p1,q0,q1,compIndex="ces"){
   lloyd0 <- lloydMoulton_t0(p0,p1,q0,sigma)
   switch (tolower(compIndex),
-          lloydmoulton = {diff <- lloyd0 - lloydMoulton_tc(p0,p1,q1,sigma)},
+          ces = {diff <- lloyd0 - lloydMoulton_tc(p0,p1,q1,sigma)},
           fisher = {diff <- lloyd0 - fisher_t(p0,p1,q0,q1)},
           satovartia = {diff <- lloyd0 - satoVartia_t(p0,p1,q0,q1)}
   )
