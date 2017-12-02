@@ -196,7 +196,7 @@ where the term $P^{k,t}$ is the bilateral index between period $t$ and base peri
   P^{w,1} & \cdots & P^{w,w}
 \end{pmatrix}
 \]
-So that the first term of the GEKS index is the geometric mean of the elements in the first column of the above matrix, the second term is the geometric mean of the second column, and so on. Note that `IndexNumR` makes use of two facts about the matrix above to speed up computation: it is (inversely) symmetric so that $P^{1,2} = 1/P{2,1}$, etc; and the diagonal elements are 1. 
+So that the first term of the GEKS index is the geometric mean of the elements in the first column of the above matrix, the second term is the geometric mean of the second column, and so on. Note that `IndexNumR` makes use of two facts about the matrix above to speed up computation: it is (inversely) symmetric so that $P^{j,k} = 1/P^{k,j}$; and the diagonal elements are 1. 
 
 The indexes are then normalised by dividing by the first term, to give an index for the first $w$ periods that starts at 1. If the index only covers $w$ periods then no further calculation is required. However, if there are $T>w$ periods in the dataset then the index must be extended.  
 
