@@ -177,7 +177,7 @@ movementSplice <- function(x,NewGEK){
 
 # window splice using the first and last observations of the new GEKS
 windowSplice <- function(x,oldGEK,NewGEK){
-  spliceFactor <- (NewGEK[length(NewGEK)]/NewGEK[1])/(oldGEK[length(oldGEK)]/oldGEK[1])
+  spliceFactor <- (NewGEK[length(NewGEK)]/NewGEK[1])/(oldGEK[length(oldGEK)]/oldGEK[2])
   return(x*spliceFactor)
 }
 
@@ -187,7 +187,7 @@ meanSplice <- function(x,oldGEK,newGEK){
   pvector <- matrix(0,nrow=w-1,ncol=1)
 
   for(l in 1:(w-1)){
-    pvector[l,1] <- (newGEK[w]/newGEK[l])/(oldGEK[w]/oldGEK[l])
+    pvector[l,1] <- (newGEK[w]/newGEK[l])/(oldGEK[w]/oldGEK[l+1])
   }
   return(x*geomean(pvector))
 }

@@ -214,20 +214,20 @@ That is, the movement between the final two periods of the GEKS index computed o
 
 * Window splice [@krsinich:2016]
 \begin{equation}
-  P_{GEKS}^{w+1} = P_{GEKS}^{w} \times \frac{P_{NEW}^{w+1}/P_{NEW}^{2}}{P_{OLD}^{w}/P_{OLD}^{1}}
+  P_{GEKS}^{w+1} = P_{GEKS}^{w} \times \frac{P_{NEW}^{w+1}/P_{NEW}^{2}}{P_{OLD}^{w}/P_{OLD}^{2}}
 \end{equation}
 In this case, the ratio of the movement between the first and last periods computed using the new window, to the movement between the first and last periods using the old window is used to extend the original index. 
 
 * Mean splice [@idf:2011]
 \begin{equation}
-  P_{GEKS}^{w+1} = P_{GEKS}^{w} \times \left( \prod_{t=1}^{w-1} \frac{P_{NEW}^{w+1}/P_{NEW}^{t+1}}{P_{OLD}^{w}/P_{OLD}^{t}} \right)^{\frac{1}{(w-1)}} 
+  P_{GEKS}^{w+1} = P_{GEKS}^{w} \times \left( \prod_{t=1}^{w-1} \frac{P_{NEW}^{w+1}/P_{NEW}^{t+1}}{P_{OLD}^{w}/P_{OLD}^{t+1}} \right)^{\frac{1}{(w-1)}} 
 \end{equation}
 The mean splice uses the geometric mean of the movements between the last period and every other period in the window to extend the original index.   
 
 The splicing methods are used in this fashion to extend the series up to period $T$. 
 
 ```{r} 
-GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = "Fisher", window=5, splice = "mean")
+GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = "tornqvist", window=11, splice = "mean")
 ```
 
 ## References
