@@ -117,7 +117,7 @@ weekIndex <- function(x){
   # get the year of each date in 'week-year' format. see ?strptime
   weekYears <- as.numeric(format(x,"%G"))
 
-  # initialise a maxtrix for our final week index
+  # initialise a matrix for our final week index
   week <- matrix(0, nrow=length(x), ncol=1)
 
   # get the week of the first date in our sample, we'll use this to
@@ -126,7 +126,7 @@ weekIndex <- function(x){
 
   # compute the week index as the week's number in the current year, plus the
   # number of elapsed weeks in prior years, normalised to start at week 1.
-  for(i in 1:length(x)){
+  for(i in seq_along(x)){
     week[i,1] <- weeks[i] + cumWeeks[years==weekYears[i]] - cumWeeks[1] - (firstWeek-1)
   }
 

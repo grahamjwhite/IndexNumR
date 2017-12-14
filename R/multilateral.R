@@ -157,37 +157,31 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
   return(pGEKS)
 }
 
-
 # function to pass the correct values to splice helper functions
 splice_t <- function(x,oldGEK,newGEK,method="mean"){
   switch(method,
-         movement = {pt <- movementSplice(x,newGEK)},
-         window = {pt <- windowSplice(x,oldGEK,newGEK)},
-         mean = {pt <- meanSplice(x,oldGEK,newGEK)}
+         movement = {pt <- x*splice(length(newGEK)-1,oldGEK,newGEK)},
+         window = {pt <- x*splice(1,oldGEK,newGEK)},
+         mean = {pt <- x*meanSplice(oldGEK,newGEK)}
   )
   return(pt)
 }
 
-# functions to splice datapoints onto a GEKS index
-# movement splice using the final two periods of the new GEKS index
-movementSplice <- function(x,NewGEK){
-  spliceFactor <- NewGEK[length(NewGEK)]/NewGEK[length(NewGEK)-1]
-  return(x*spliceFactor)
-}
-
-# window splice using the first and last observations of the new GEKS
-windowSplice <- function(x,oldGEK,NewGEK){
-  spliceFactor <- (NewGEK[length(NewGEK)]/NewGEK[1])/(oldGEK[length(oldGEK)]/oldGEK[2])
-  return(x*spliceFactor)
+# generic function to compute the splice factor for any overlapping period
+splice <- function(period, oldGEK, newGEK){
+  w <- length(newGEK)
+  spliceFactor <- (newGEK[w]/newGEK[period])/(oldGEK[w]/oldGEK[period+1])
 }
 
 # mean splicing using the geometric mean of all overlapping periods
-meanSplice <- function(x,oldGEK,newGEK){
-  w = length(newGEK)
+meanSplice <- function(oldGEK,newGEK){
+  w <- length(newGEK)
   pvector <- matrix(0,nrow=w-1,ncol=1)
 
   for(l in 1:(w-1)){
-    pvector[l,1] <- (newGEK[w]/newGEK[l])/(oldGEK[w]/oldGEK[l+1])
+    pvector[l,1] <- splice(l, oldGEK, newGEK)
   }
-  return(x*geomean(pvector))
+  return(geomean(pvector))
 }
+
+

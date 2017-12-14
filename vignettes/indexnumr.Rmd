@@ -156,7 +156,7 @@ Estimating multiple different index numbers on the same data is straight-forward
 ```{r}
 methods <- c("laspeyres","paasche","fisher","tornqvist")
 prices <- lapply(methods, function(x) {priceIndex(CES_sigma_2,pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = x, output = "chained")})
-as.data.frame(prices, col.names = c("laspeyres","paasche","fisher","tornqvist"))
+as.data.frame(prices, col.names = methods)
 ```
 This illustrates the Laspeyres index's substantial positive bias, the Paasche index's substantial negative bias, and the similar estimates produced by the Fisher and Tornqvist superlative index numbers.   
 
@@ -224,7 +224,7 @@ In this case, the ratio of the movement between the first and last periods compu
 \end{equation}
 The mean splice uses the geometric mean of the movements between the last period and every other period in the window to extend the original index.   
 
-The splicing methods are used in this fashion to extend the series up to period $T$. 
+The splicing methods are used in this fashion to extend the series up to the final period in the data. 
 
 ```{r} 
 GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = "tornqvist", window=11, splice = "mean")
