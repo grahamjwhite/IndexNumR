@@ -1,7 +1,10 @@
 # IndexNumR
+
+[![Build Status](https://travis-ci.org/grahamjwhite/IndexNumR.svg?branch=master)](https://travis-ci.org/grahamjwhite/IndexNumR)
+
 An R package for computation of index numbers
 
-IndexNumR provides a set of functions for computing various bilateral and multilateral indices. It is designed to compute price or quantity indices over time. Bilateral indices include Laspeyres, Paasche, Fisher, Tornqvist, Sato-Vartia and CES, as well as elementary indices Dutot, Carli, Harmonic mean, CSWD and Jevons. All of these bilateral indices can be computed as period-on-period, fixed-base or chained. 
+IndexNumR provides a set of functions for computing various bilateral and multilateral indices. It is designed to compute price or quantity indices over time. Bilateral indices include Laspeyres, Paasche, Fisher, Tornqvist, Sato-Vartia, Walsh and CES, as well as elementary indices Dutot, Carli, Harmonic mean, CSWD and Jevons. All of these bilateral indices can be computed as period-on-period, fixed-base or chained. 
 
 Multilateral indices can be computed in the time series context using the GEKS methodology, and updating is provided via the window, movement or mean splice methods. The GEKS method is computed using either the Fisher or Tornqvist superlative index number methods.
 
