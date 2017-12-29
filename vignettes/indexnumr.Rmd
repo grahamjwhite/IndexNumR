@@ -244,4 +244,8 @@ The splicing methods are used in this fashion to extend the series up to the fin
 GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = "tornqvist", window=11, splice = "mean")
 ```
 
-## References
+# Development
+
+*IndexNumR* is hosted on Github at [https://github.com/grahamjwhite/IndexNumR](https://github.com/grahamjwhite/IndexNumR). There users can find instructions to install the development version directly from Github, as well as report and view bugs or improvements. 
+
+# References
