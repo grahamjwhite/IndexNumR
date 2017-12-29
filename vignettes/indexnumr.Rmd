@@ -14,9 +14,23 @@ vignette: >
 library(IndexNumR)
 ```
 
+# Introduction
+
+*IndexNumR* is a package for computing indices of aggregate prices or quantities using information on the prices and quantities on multiple products over multiple time periods. Such numbers are routinely computed by statistical agencies to measure, for example, the general change in the level of prices, production inputs and productivity for an economy. Well known examples are consumer price indices and producer price indices.
+
+In recent years, advances have been made in index number theory to address biases in many well known and widely used index number methods. One potential solution to some of these problems is the adaptation of multilateral methods that have commonly been used in cross-sectional comparisons to the time series context. This involves more computational complexity than earlier methods, but generally requires similar inputs. *IndexNumR* provides functions that make it easy to estimate indices using common index number methods, as well as the multilateral GEKS method.   
+
+## Packages providing related functionality
+
+* micEconIndex: produces price or quantity indices using the Paasche, Laspeyres or Fisher index methods.
+* multilaterals: provides multilateral indices for cross-section and panel data.Can also produce bilateral indices using Paasche, Laspeyres, Fisher and Tornqvist methods. 
+* productivity: calculates indices of productivity and profitability using common index number methods. 
+
+## Detailed description of *IndexNumR*
+
 ## Data organisation
 
-This first section covers the inputs into the main index number functions are how the data are to be organised to use these functions. 
+This first section covers the inputs into the main index number functions and how the data are to be organised to use these functions. 
 
 ### Index number input dataframe
 
@@ -27,7 +41,7 @@ The index number functions `priceIndex`, `quantityIndex` and `GEKSIndex` all tak
 * a time period variable (more on this below)
 * a product identifier that uniquely identifies each product.
 
-The dataframe must have column names, since character strings are used in other arguments to the index number functions to specify which columns contain these pieces of data. Column names can be set with the `colnames` function of base R. The dataset CES_sigma_2 is an example of the minimum dataframe required to compute an index.  
+The dataframe must have column names, since character strings are used in other arguments to the index number functions to specify which columns contain the data listed above. Column names can be set with the `colnames` function of base R. The dataset CES_sigma_2 is an example of the minimum dataframe required to compute an index.  
 
 ```{r}
 head(CES_sigma_2)
