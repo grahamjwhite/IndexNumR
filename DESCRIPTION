@@ -4,7 +4,7 @@ Title: Index Number Calculation
 Version: 0.1.0
 Author: Graham White
 Maintainer: Graham White <g.white@unswalumni.com>
-Description: IndexNumR is a package for computing bilateral and multilateral
+Description: A package for computing bilateral and multilateral
     index numbers. It has support for several standard bilateral indices as well as
     the GEKS multilateral index number methods. It also supports updating of GEKS
     indices using several splicing methods.
