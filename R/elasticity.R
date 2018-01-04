@@ -15,8 +15,6 @@
 #' index with the 'current period' lloyd-moulton index.
 #' @param lower lower limit to search for sigma.
 #' @param upper upper limit to search for sigma.
-#' @param indexType either pop to use period-on-period indexes or fixedbase
-#' to use fixed base indexes.
 #' @return A list with three elements: sigma (the average elasticity
 #' over all time periods); allsigma (a T-1 by 1 matrix of the estimated
 #' elasticities for each time period, except period one); and diff
@@ -24,11 +22,10 @@
 #' for all time periods).
 #' @examples
 #' elasticity(CES_sigma_2,pvar="prices",qvar="quantities",pervar="time",
-#' prodID = "prodID",indexType = "pop")
+#' prodID = "prodID")
 #' @export
 elasticity <- function(x, pvar, qvar, pervar, prodID,
-                          compIndex = "ces", lower = -20, upper = 20,
-                          indexType = "pop"){
+                          compIndex = "ces", lower = -20, upper = 20){
 
   # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)
@@ -37,15 +34,11 @@ elasticity <- function(x, pvar, qvar, pervar, prodID,
   diff <- matrix(0,nrow=n-1,ncol=1)
 
   # if fixed base requested, set xt0 to the first period data
-  if(tolower(indexType)=="fixedbase"){
-    xt0 <- x[x[[pervar]]==1,]
-  }
+  xt0 <- x[x[[pervar]]==1,]
 
   for(i in 2:n){
     # if pop requested then set xt0 to the previous period
-    if(tolower(indexType) == "pop"){
-      xt0 <- x[x[[pervar]]==i-1,]
-    }
+    xt0 <- x[x[[pervar]]==i-1,]
 
     # set xt1 to current period data
     xt1 <- x[x[[pervar]]==i,]
