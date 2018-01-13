@@ -143,7 +143,7 @@ where $s^{t}_{n} = \frac{p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}$ 
 \end{equation*}
 where the weights are normalised to sum to one, 
 \begin{equation*}
-	w_{n} = \frac{w^{*}}{\sum_{n=1}^{N}w^{*}}
+	w_{n} = \frac{w^{*}_{n}}{\sum_{n=1}^{N}w^{*}_{n}}
 \end{equation*}
 and $w^{*}_{n}$ is the logarithmic mean of the shares,
 \begin{equation*}
@@ -192,6 +192,74 @@ The dataset available with *IndexNumR*, CES_sigma_2, was calculated assuming a C
 elasticity(CES_sigma_2, pvar="prices",qvar="quantities",pervar="time",prodID="prodID",compIndex="ces")
 ```
 which recovers the value of $\sigma$ used to construct the dataset. There is one additional item of output labelled 'diff'. This is the value of the difference between the CES index and the comparison index and is returned so that the user can check that the value of this difference is indeed zero. If it is non-zero then it may indicate that `uniroot` was not able to find a solution, within the specified upper and lower bounds for $\sigma$. These bounds can be changed with the options `upper` and `lower` of the `elasticity` function. The defaults are 20 and -20 respectively.   
+
+## Chain-linked indices and the linking period problem
+
+One problem with chain-linked indices is that depending on the index number method chosen, the index will likely suffer from chain drift. Take an example where prices increase in one period and then return to their original level in the next period. An index suffering from chain-drift will increase when prices increase, but won't return to its original level when prices do. In the above examples, it was noted that there is substantial positive bias in the Laspeyres index and substantial negative bias in the Paasche index. Part of this is due to chain drift. 
+
+One way of reducing the amount of chain drift is to choose linking periods that are 'similar' in some sense (a way of eliminating chain-drift is to use the GEKS multilateral index discussed later). This method of linking has been mentioned by Diewert and Fox (2017), and Hill [@hill:2001] takes the concept further to choose the link period based on a minimum cost spanning tree. 
+
+To choose the linking period we need a measure of the similarity between two periods. For each period we have information on prices and quantities. The Hill (2001) method compares the two periods based on the Paasche-Laspeyres spread,
+
+\begin{equation}
+PL (p^{t},p^{T+1},q^{t},q^{T+1}) = \Bigg|{ln\Bigg(\frac{P_{T+1,t}^{L}}{P_{T+1,t}^{P}}\Bigg)}\Bigg|,
+\end{equation} 
+
+where $P^{L}$ is a Laspeyres price index and $P^{P}$ is a Paasche price index. Since the Laspeyres and Paasche indices are biased in opposite directions, this choice of similarity measure is designed to choose linking periods that minimise the influence of index number method choice. 
+
+Alternative measures exist for comparing the dissimilarity of two vectors. Two such measures, recommended by Diewert [@Diewert:2002] are the weighted log-quadratic index of relative price dissimilarity and the weighted asymptotically linear index of relative price dissimilarity, given by the following,
+\begin{align}
+LQ(p^{t},p^{T+1},q^{t},q^{T+1}) = \sum_{n=1}^{N}\frac{1}{2}&(s_{T+1,n} + s_{t,n})[ln(p_{T+1,n}/P(p^{t},p^{T+1},q^{t},q^{T+1})p_{t,n})]^{2} \label{eq:logQuadratic} \\
+AL(p^{t},p^{T+1},q^{t},q^{T+1}) = \sum_{n=1}^{N}\frac{1}{2}&(s_{T+1,n} +  s_{t,n})[(p_{T+1,n}/P(p^{t},p^{T+1},q^{t},q^{T+1})p_{t,n}) + \nonumber	\\
+& (P(p^{t},p^{T+1},q^{t},q^{T+1})p_{t,n}/p_{T+1,n}) - 2]
+\end{align}
+where $P(p^{t},p^{T+1},q^{t},q^{T+1})$ is a superlative index number.
+
+A final measure proposed by Fox, Hill and Diewert is a measure of absolute dissimilarity given by,
+
+\begin{equation}
+AD(x_{j},x_{k}) = \frac{1}{M+N}\sum_{l=1}^{M+N}\Bigg[ln\Bigg(\frac{x_{kl}}{x_{jl}}\Bigg) - \frac{1}{M+N}\sum_{i=1}^{M+N}ln\Bigg(\frac{x_{ki}}{x_{ji}}\Bigg)\Bigg]^{2} + \Bigg[\frac{1}{M+N}\sum_{i=1}^{M+N}ln\Bigg(\frac{x_{ki}}{x_{ji}}\Bigg)\Bigg]^{2},
+\end{equation}  
+where $M+N$ is the total number of items in the vector and $x_{j}$ and $x_{k}$ are the two vectors being compared. The authors use this in the context of detecting outliers, but it can be used to compare the price and quantity vectors of two time periods. One way to do this is to only use price information, or only use quantity information. There are two ways to use both price and quantity information: stack the price and quantity vectors for each time period into a single vector and compare the two `stacked' vectors; or calculate separate measures of absolute dissimilarity for prices and quantities before combining these into a single measure. The former method is simple to implement, but augments the price vector with a quantity vector that may be of considerably different magnitude and variance. Another option is to compute the absolute dissimilarity using prices and quantities separately, then combine them by taking the geometric average.
+
+
+*IndexNumR* provides two functions, enabling the estimation of all six dissimilarity measures above. The first function `relativeDissimilarity` calculates the Paasche-Laspeyres spread, log-quadratic and asymptotically linear measures, and the second function `mixScaleDissimilarity` computes the mix, scale and absolute measures of dissimilarity. Both functions provide the same output - a data frame with three columns containing the indices of the pairs of periods being compared in the first two columns and the value of the dissimilarity measure in the third column. 
+
+Once these have been computed, the function `maximiumSimilarityLinks` can take the output data frame from these two functions and compute the maximum similarity linking periods as follows,
+
+* Compute the measure of dissimilarity between all possible combinations of time periods.
+* Set the price index to 1 in the first period.
+* Compute the price index for the second period and chain it with the first period,
+	\begin{equation*}
+	P_{chain}^{2} = P_{chain}^{1} \times P(p^{1},p^{2},q^{1},q^{2}),
+	\end{equation*}
+	where $P(p^{1},p^{2},q^{1},q^{2})$ is any bilateral index number formula.
+* For each period $t$ from $3,\dots,T$, find the period $t^{min}$ with the minimum dissimilarity, comparing period $t$ to all periods $1, \dots, t-1$. 
+* Compute the similarity chain-linked index number,
+	\begin{equation*}
+	P_{chain}^{t} = P_{chain}^{t^{min}} \times P(p^{t^{min}},p^{t},q^{t^{min}},q^{t}) 
+	\end{equation*}
+	
+### Examples
+
+Using the log-quadratic measure of relative dissimilarity, the dissimilarity between the periods in the `CES_sigma_2` dataset is as follows,
+
+```{r}
+lq <- relativeDissimilarity(CES_sigma_2, pvar="prices", qvar="quantities", pervar = "time", prodID = "prodID", indexMethod = "fisher", similarityMethod = "logquadratic")
+head(lq)
+```
+
+The output from estimating the dissimilarity between periods can than be used to estimate the maximum similarity links,
+
+```{r}
+maximiumSimilarityLinks(lq)
+```
+
+To estimate a chained Laspeyres index linking together the periods with maximum similarity as estimated above,
+
+```{r}
+priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",pervar = "time",prodID = "prodID", indexMethod = "laspeyres", output = "chained", chainMethod = "logquadratic")
+```
 
 
 ## Multilateral index numbers
