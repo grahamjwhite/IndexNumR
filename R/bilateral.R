@@ -168,10 +168,17 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
                        sample="matched",output="pop",chainMethod="pop",
                        sigma=1.0001, ...){
 
+  # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
                     "paasche","fisher","tornqvist","satovartia","walsh","ces")
   if(!(tolower(indexMethod) %in% validMethods)){
     stop("Not a valid index number method.")
+  }
+
+  # check valid column names are given
+  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
+  if(colNameCheck$result == FALSE){
+    stop(colNameCheck$message)
   }
 
   # initialise some things

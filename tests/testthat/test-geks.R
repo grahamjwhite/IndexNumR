@@ -14,3 +14,12 @@ for(j in seq_along(splices)){
                  as.matrix(testData[[splices[j]]]))
   })
 }
+
+test_that("error is thrown when wrong column names are given",{
+  expect_error(GEKSIndex(CES_sigma_2,pvar = "price",qvar = "quantities",
+                          pervar = "time",prodID = "prodID",indexMethod = "tornqvist",
+                          sample="matched"),
+               "are not column names of the input data frame")
+})
+
+rm(testData)

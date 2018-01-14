@@ -19,6 +19,13 @@ for(i in seq_along(indexMethods)){
   }
 }
 
+test_that("error is thrown when wrong column names are given",{
+  expect_error(priceIndex(CES_sigma_2,pvar = "price",qvar = "quantities",
+                          pervar = "time",prodID = "prodID",indexMethod = "laspeyres",
+                          sample="matched", output = "chained"),
+               "are not column names of the input data frame")
+})
+
 rm(testData)
 
 
@@ -36,5 +43,12 @@ for(i in seq_along(indexMethods)){
     })
   }
 }
+
+test_that("error is thrown when wrong column names are given",{
+  expect_error(priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantitie",
+                          pervar = "time",prodID = "prodID",indexMethod = "laspeyres",
+                          sample="matched", output = "chained"),
+               "are not column names of the input data frame")
+})
 
 rm(testData)

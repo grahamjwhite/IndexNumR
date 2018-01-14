@@ -114,6 +114,12 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
     stop("Not a valid splicing method.")
   }
 
+  # check valid column names are given
+  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
+  if(colNameCheck$result == FALSE){
+    stop(colNameCheck$message)
+  }
+
   # get the number of periods
   n <- max(x[[pervar]],na.rm = TRUE)
   if(n<window){
