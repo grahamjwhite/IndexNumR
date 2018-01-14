@@ -197,7 +197,7 @@ which recovers the value of $\sigma$ used to construct the dataset. There is one
 
 One problem with chain-linked indices is that depending on the index number method chosen, the index will likely suffer from chain drift. Take an example where prices increase in one period and then return to their original level in the next period. An index suffering from chain-drift will increase when prices increase, but won't return to its original level when prices do. In the above examples, it was noted that there is substantial positive bias in the Laspeyres index and substantial negative bias in the Paasche index. Part of this is due to chain drift. 
 
-One way of reducing the amount of chain drift is to choose linking periods that are 'similar' in some sense (a way of eliminating chain-drift is to use the GEKS multilateral index discussed later). This method of linking has been mentioned by Diewert and Fox (2017), and Hill [@hill:2001] takes the concept further to choose the link period based on a minimum cost spanning tree. 
+One way of reducing the amount of chain drift is to choose linking periods that are 'similar' in some sense (a way of eliminating chain-drift is to use the GEKS multilateral index discussed later). This method of linking has been mentioned by Diewert and Fox [@df:2017], and Hill [@hill:2001] takes the concept further to choose the link period based on a minimum cost spanning tree. 
 
 To choose the linking period we need a measure of the similarity between two periods. For each period we have information on prices and quantities. The Hill (2001) method compares the two periods based on the Paasche-Laspeyres spread,
 
@@ -215,7 +215,7 @@ AL(p^{t},p^{T+1},q^{t},q^{T+1}) = \sum_{n=1}^{N}\frac{1}{2}&(s_{T+1,n} +  s_{t,n
 \end{align}
 where $P(p^{t},p^{T+1},q^{t},q^{T+1})$ is a superlative index number.
 
-A final measure proposed by Fox, Hill and Diewert is a measure of absolute dissimilarity given by,
+A final measure proposed by Fox, Hill and Diewert [@fhd:2004] is a measure of absolute dissimilarity given by,
 
 \begin{equation}
 AD(x_{j},x_{k}) = \frac{1}{M+N}\sum_{l=1}^{M+N}\Bigg[ln\Bigg(\frac{x_{kl}}{x_{jl}}\Bigg) - \frac{1}{M+N}\sum_{i=1}^{M+N}ln\Bigg(\frac{x_{ki}}{x_{ji}}\Bigg)\Bigg]^{2} + \Bigg[\frac{1}{M+N}\sum_{i=1}^{M+N}ln\Bigg(\frac{x_{ki}}{x_{ji}}\Bigg)\Bigg]^{2},
