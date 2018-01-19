@@ -1,6 +1,6 @@
 ## Test environments
 
-* local Windows 10 Pro install version 1703, R version 3.4.2 and R-devel
+* local Windows 10 Pro install version 1703, R version 3.4.3 and R-devel
 * Ubuntu 14.04.5 (on travis-ci), R version 3.4.2
 
 ## R CMD check results
@@ -8,4 +8,4 @@
 
 ## Downstream dependencies
 
-* None, this is a new package.
+* No downstream dependencies, this is a new package.
