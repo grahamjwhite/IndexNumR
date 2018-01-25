@@ -12,8 +12,22 @@
 #' There may be observations on multiple products for each time period.
 #' @return A dataframe containing columns for product identifier, time period,
 #' quantities, and unit values.
+#' @examples
+#' # suppose the CES_sigma_2 dataset contains 12 monthly observations
+#' # and suppose we want quarterly unit values.
+#' df <- CES_sigma_2
+#' # convert the monthly time variable into quarterly
+#' df$time <- ceiling(CES_sigma_2$time/3)
+#' # compute unit values using the quarterly time variable
+#' unitValues(df,pvar="prices",qvar="quantities",pervar="time",prodID="prodID")
 #' @export
 unitValues <- function(x,pvar,qvar,pervar,prodID){
+
+  # check valid column names are given
+  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
+  if(colNameCheck$result == FALSE){
+    stop(colNameCheck$message)
+  }
 
   # number of periods
   n <- max(x[[pervar]],na.rm = TRUE)
@@ -50,6 +64,13 @@ unitValues <- function(x,pvar,qvar,pervar,prodID){
 #' A function to create a month index variable
 #'
 #' @param x A vector or column of dates
+#' @examples
+#' # given a vector of dates
+#' df <- data.frame(date = as.Date(c("2017-01-01","2017-02-01","2017-03-01","2017-04-01"),
+#' format = "%Y-%m-%d"))
+#' # calculate the time period variable
+#' df$period <- monthIndex(df$date)
+#' df
 #' @export
 monthIndex <- function(x){
   firstDate <- min(x)
@@ -65,6 +86,13 @@ monthIndex <- function(x){
 #' A function to create a quarter index variable
 #'
 #' @param x A vector or column of dates
+#' @examples
+#' # given a vector of dates
+#' df <- data.frame(date = as.Date(c("2017-01-01","2017-04-01","2017-07-01","2017-08-01"),
+#' format = "%Y-%m-%d"))
+#' # calculate the time period variable
+#' df$period <- quarterIndex(df$date)
+#' df
 #' @export
 quarterIndex <- function(x){
   firstDate <- min(x)
@@ -80,6 +108,13 @@ quarterIndex <- function(x){
 #' Function to create a year index variable
 #'
 #' @param x A vector or column of dates
+#' @examples
+#' # given a vector of dates
+#' df <- data.frame(date = as.Date(c("2017-01-01","2018-04-01","2019-07-01","2019-08-01"),
+#' format = "%Y-%m-%d"))
+#' # calculate the time period variable
+#' df$period <- yearIndex(df$date)
+#' df
 #' @export
 yearIndex <- function(x){
   firstDate <- min(x)
@@ -97,6 +132,13 @@ yearIndex <- function(x){
 #' next week is week 1.
 #'
 #' @param x A vector of dates
+#' @examples
+#' # given a vector of dates
+#' df <- data.frame(date = as.Date(c("2016-12-20","2016-12-27","2017-01-01","2017-01-07"),
+#' format = "%Y-%m-%d"))
+#' # calculate the time period variable
+#' df$period <- weekIndex(df$date)
+#' df
 #' @export
 weekIndex <- function(x){
 

@@ -201,7 +201,7 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
                                                                  pervar=pervar,prodID=prodID,
                                                                  ...)})
     # use the similarity matrix to compute links
-    links <- maximiumSimilarityLinks(similarityMatrix)
+    links <- maximumSimilarityLinks(similarityMatrix)
   }
 
   # if fixed base requested, set xt0 to the first period data
@@ -297,6 +297,10 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
 #' @param sigma The elasticity of substitution for the CES index method.
 #' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
 #' function.
+#' @examples
+#' # chained Fisher quantity index for the CES_sigma_2 dataset
+#' quantityIndex(CES_sigma_2, pvar="prices", qvar="quantities", pervar="time",
+#' prodID = "prodID", indexMethod = "fisher", output="chained")
 #' @export
 quantityIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres", prodID,
                           sample="matched", output="pop", chainMethod="pop",

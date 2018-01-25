@@ -51,6 +51,16 @@ all possible values of the new index value are computed using all possible updat
 factors and then a geometric mean is computed over these possibilities to arrive
 at the final index value.
 }
+\examples{
+# compute a GEKS mutlilateral index with mean splicing
+GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+prodID = "prodID", indexMethod = "tornqvist", window=11, splice = "mean")
+
+# compute a GEKS multilateral index with window splicing and the Fisher index method
+GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+prodID = "prodID", indexMethod = "fisher", window=11, splice = "mean")
+
+}
 \references{
 Ivancic, L., W.E. Diewert and K.J. Fox (2011), "Scanner Data,
 Time Aggregation and the Construction of Price Indexes", Journal of

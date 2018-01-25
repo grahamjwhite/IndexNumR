@@ -13,11 +13,17 @@
 #' use in the calculation. Not relevent for similarityMethod = PLSpread.
 #' Supported methods are fisher and tornqvist. Default is Fisher.
 #' @param similarityMethod A string specifying the formula for calculating
-#' the relative dissimilarity. Valid options are logQuadratic, asymplinear
-#' and PLSpread. Default is the log quadratic.
+#' the relative dissimilarity. Valid options are logquadratic, asymplinear
+#' and PLSpread. Default is logquadratic.
 #' @return A matrix of dissimilarity measures.
 #' The first two columns are the possible combinations of bilateral
 #' comparisons and the third column is the dissimilarity measure.
+#' @examples
+#' # estimate the dissimilarity between periods in the CES_sigma_2 dataset
+#' # using the log quadratic measure of dissimilarity
+#' relativeDissimilarity(CES_sigma_2, pvar = "prices", qvar="quantities",
+#' pervar = "time", prodID = "prodID", indexMethod="fisher",
+#' similarityMethod = "logquadratic")
 #' @references Diewert, W.E. (2002). "Similarity and Dissimilarity Indexes:
 #' An Axiomatic Approach" Discussion Paper No. 0210, Department of Economics,
 #' University of British Columbia.
@@ -102,9 +108,16 @@ relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
 #' the geometric mean of these.
 #' @return A matrix where the first two columns are the possible combinations
 #' of periods and the third column is the dissimilarity measure.
+#' @examples
+#' # estimate the dissimilarity between periods in the CES_sigma_2 dataset
+#' # using the absolute measure of dissimilarity and the geometric mean
+#' # to combine price and quantity information.
+#' mixScaleDissimilarity(CES_sigma_2, pvar = "prices", qvar = "quantities",
+#' pervar = "time", prodID = "prodID", measure = "absolute",
+#' combine = "geomean")
 #' @references Fox, K.J., R.J. Hill and W.E. Diewert (2004),
 #' "Identifying outliers in multi-output models", Journal of
-#' Productivity Analysis, 22, 7394, 2004.
+#' Productivity Analysis, 22, 73-94, 2004.
 #' @export
 mixScaleDissimilarity <- function(x, pvar, qvar, prodID, pervar,
                                   measure="absolute", combine="geomean"){
@@ -187,8 +200,15 @@ adstar <- function(x,y){
 #' @param x a matrix containing a dissimilarity measure where
 #' the first two columns are the indices and the third column
 #' is the dissimilarity measure.
+#' @examples
+#' # find the linking periods in the CES_sigma_2 dataset that maximise
+#' # the similarity between periods, using the absolute dissimilarity measure.
+#' disMat <- mixScaleDissimilarity(CES_sigma_2, pvar = "prices", qvar = "quantities",
+#' pervar = "time", prodID = "prodID", measure = "absolute",
+#' combine = "geomean")
+#' maximumSimilarityLinks(disMat)
 #' @export
-maximiumSimilarityLinks <- function(x){
+maximumSimilarityLinks <- function(x){
 
   # initialise some matrices
   periods <- nrow(x[x$period_i==1,])+1

@@ -24,7 +24,7 @@ test_that("Dissimilarity measures return the correct values",{
 })
 
 test_that("maximum similarity links are estimated correctly",{
-  expect_equal(maximiumSimilarityLinks(testData$lq), testData$maxlinks)
+  expect_equal(maximumSimilarityLinks(testData$lq), testData$maxlinks)
 })
 
 test_that("similarity linked bilateral price index functions return the correct values",{

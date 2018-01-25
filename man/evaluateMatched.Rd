@@ -4,7 +4,7 @@
 \alias{evaluateMatched}
 \title{Evaluate product overlap between periods}
 \usage{
-evaluateMatched(x, pvar, qvar, pervar, prodID, output = "pop")
+evaluateMatched(x, pvar, qvar, pervar, prodID, output = "chained")
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier
@@ -22,7 +22,7 @@ There may be observations on multiple products for each time period.}
 
 \item{output}{A character string specifying whether the matching should be
 done assuming a chained index or a fixed base index. No index is actually computed,
-but the matching needs to know which periods are being compared.}
+but the matching needs to know which periods are being compared. Default is chained.}
 }
 \value{
 A list of two matrices, one for expenditures and one for counts. Each
@@ -45,4 +45,13 @@ have appeared.
 \description{
 Evaluate the counts and expenditure for each period with and without
 matching items across periods.
+}
+\examples{
+# create CES_sigma_2 dataset removing the observation in time period 4
+# on product 1
+df <- CES_sigma_2[!(CES_sigma_2$time==4 & CES_sigma_2$prodID==1),]
+# evaluate the overlap between periods for this dataset assuming
+# a chained index
+evaluateMatched(df, pvar="prices", qvar="quantities", pervar="time",
+prodID = "prodID", output="chained")
 }

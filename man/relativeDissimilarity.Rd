@@ -24,8 +24,8 @@ use in the calculation. Not relevent for similarityMethod = PLSpread.
 Supported methods are fisher and tornqvist. Default is Fisher.}
 
 \item{similarityMethod}{A string specifying the formula for calculating
-the relative dissimilarity. Valid options are logQuadratic, asymplinear
-and PLSpread. Default is the log quadratic.}
+the relative dissimilarity. Valid options are logquadratic, asymplinear
+and PLSpread. Default is logquadratic.}
 }
 \value{
 A matrix of dissimilarity measures.
@@ -35,6 +35,13 @@ comparisons and the third column is the dissimilarity measure.
 \description{
 A function to compute the relative price dissimilarity
 between two vectors of prices.
+}
+\examples{
+# estimate the dissimilarity between periods in the CES_sigma_2 dataset
+# using the log quadratic measure of dissimilarity
+relativeDissimilarity(CES_sigma_2, pvar = "prices", qvar="quantities",
+pervar = "time", prodID = "prodID", indexMethod="fisher",
+similarityMethod = "logquadratic")
 }
 \references{
 Diewert, W.E. (2002). "Similarity and Dissimilarity Indexes:

@@ -17,3 +17,11 @@ or more days in the new year, then it is considered week 1.
 Otherwise, it is the 53rd week of the previous year, and the
 next week is week 1.
 }
+\examples{
+# given a vector of dates
+df <- data.frame(date = as.Date(c("2016-12-20","2016-12-27","2017-01-01","2017-01-07"),
+format = "\%Y-\%m-\%d"))
+# calculate the time period variable
+df$period <- weekIndex(df$date)
+df
+}

@@ -252,7 +252,7 @@ head(lq)
 The output from estimating the dissimilarity between periods can than be used to estimate the maximum similarity links,
 
 ```{r}
-maximiumSimilarityLinks(lq)
+maximumSimilarityLinks(lq)
 ```
 
 To estimate a chained Laspeyres index linking together the periods with maximum similarity as estimated above,

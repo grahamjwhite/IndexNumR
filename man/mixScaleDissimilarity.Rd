@@ -34,8 +34,16 @@ of periods and the third column is the dissimilarity measure.
 This is a function to compute the Fox, Hill and Diewert 2004
 dissimilarity measures.
 }
+\examples{
+# estimate the dissimilarity between periods in the CES_sigma_2 dataset
+# using the absolute measure of dissimilarity and the geometric mean
+# to combine price and quantity information.
+mixScaleDissimilarity(CES_sigma_2, pvar = "prices", qvar = "quantities",
+pervar = "time", prodID = "prodID", measure = "absolute",
+combine = "geomean")
+}
 \references{
 Fox, K.J., R.J. Hill and W.E. Diewert (2004),
 "Identifying outliers in multi-output models", Journal of
-Productivity Analysis, 22, 7394, 2004.
+Productivity Analysis, 22, 73-94, 2004.
 }

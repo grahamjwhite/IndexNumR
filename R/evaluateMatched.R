@@ -13,7 +13,7 @@
 #' There may be observations on multiple products for each time period.
 #' @param output A character string specifying whether the matching should be
 #' done assuming a chained index or a fixed base index. No index is actually computed,
-#' but the matching needs to know which periods are being compared.
+#' but the matching needs to know which periods are being compared. Default is chained.
 #' @return A list of two matrices, one for expenditures and one for counts. Each
 #' matrix has eight columns. The first four columns present the base period information
 #' base_index (the index of the base period), base (base period expenditure or count),
@@ -30,8 +30,16 @@
 #' Therefore, a base period share that is less than 1 indicates that products have
 #' disappeared, while a current period share less than 1 indicates that new products
 #' have appeared.
+#' @examples
+#' # create CES_sigma_2 dataset removing the observation in time period 4
+#' # on product 1
+#' df <- CES_sigma_2[!(CES_sigma_2$time==4 & CES_sigma_2$prodID==1),]
+#' # evaluate the overlap between periods for this dataset assuming
+#' # a chained index
+#' evaluateMatched(df, pvar="prices", qvar="quantities", pervar="time",
+#' prodID = "prodID", output="chained")
 #' @export
-evaluateMatched <- function(x,pvar,qvar,pervar,prodID,output="pop"){
+evaluateMatched <- function(x,pvar,qvar,pervar,prodID,output="chained"){
 
   # initialise some things
   n <- max(x[[pervar]], na.rm=TRUE)

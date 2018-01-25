@@ -49,3 +49,8 @@ function.}
 \description{
 A function to compute a quantity index given data on products over time
 }
+\examples{
+# chained Fisher quantity index for the CES_sigma_2 dataset
+quantityIndex(CES_sigma_2, pvar="prices", qvar="quantities", pervar="time",
+prodID = "prodID", indexMethod = "fisher", output="chained")
+}
