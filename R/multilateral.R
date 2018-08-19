@@ -129,6 +129,13 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
     stop(colNameCheck$message)
   }
 
+  # check that the time period variable is continuous
+  timeCheck <- isContinuous(x[[pervar]])
+  if(timeCheck$result == FALSE){
+    stop(paste("The time period variable is not continuous.",
+               "Missing periods:", timeCheck$missing))
+  }
+
   # get the number of periods
   n <- max(x[[pervar]],na.rm = TRUE)
   if(n<window){

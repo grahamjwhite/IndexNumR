@@ -23,3 +23,16 @@ test_that("error is thrown when wrong column names are given",{
 })
 
 rm(testData)
+
+#load CES_sigma_2 and make period 3 missing
+dat <- CES_sigma_2
+dat$time[dat$time==3] = 2
+
+test_that("error is thrown when a time period is missing",{
+  expect_error(GEKSIndex(dat, pvar="prices",qvar="quantities", pervar = "time",
+                          prodID = "prodID", indexMethod = "tornqvist",
+                          window = 12),
+               "The time period variable is not continuous. Missing periods: 3")
+})
+
+rm(dat)

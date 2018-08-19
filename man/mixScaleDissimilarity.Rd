@@ -4,8 +4,8 @@
 \alias{mixScaleDissimilarity}
 \title{Computes mix, scale and absolute dissimilarity measures}
 \usage{
-mixScaleDissimilarity(x, pvar, qvar, prodID, pervar, measure = "absolute",
-  combine = "geomean")
+mixScaleDissimilarity(x, pvar, qvar, prodID, pervar,
+  measure = "absolute", combine = "geomean")
 }
 \arguments{
 \item{x}{A dataframe}

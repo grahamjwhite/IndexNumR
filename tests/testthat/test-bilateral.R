@@ -26,8 +26,34 @@ test_that("error is thrown when wrong column names are given",{
                "are not column names of the input data frame")
 })
 
+test_that("error is thrown when wrong index method is specified",{
+  expect_error(priceIndex(CES_sigma_2,pvar = "price",qvar = "quantities",
+                          pervar = "time",prodID = "prodID",indexMethod = "wrong_method",
+                          sample="matched", output = "chained"),
+               "Not a valid index number method.")
+})
+
+test_that("error is thrown when output method is specified",{
+  expect_error(priceIndex(CES_sigma_2,pvar = "price",qvar = "quantities",
+                          pervar = "time",prodID = "prodID",indexMethod = "laspeyres",
+                          sample="matched", output = "wrong_output"),
+               "Not a valid output type. Please choose from chained, fixedbase or pop.")
+})
+
 rm(testData)
 
+#load CES_sigma_2 and make period 3 missing
+dat <- CES_sigma_2
+dat$time[dat$time==3] = 2
+
+test_that("error is thrown when a time period is missing",{
+  expect_error(priceIndex(dat, pvar="prices",qvar="quantities", pervar = "time",
+                          prodID = "prodID", indexMethod = "laspeyres",
+                          output = "chained"),
+               "The time period variable is not continuous. Missing periods: 3")
+})
+
+rm(dat)
 
 load(system.file("testdata","testData_bilateral_quantity.RData",package = "IndexNumR"))
 

@@ -32,3 +32,27 @@ checkNames <- function(x, namesVector){
     return(list(result=TRUE))
   }
 }
+
+#' isContinuous
+#'
+#' checks if a numeric vector has gaps.
+#' @param x Vector to check
+#' @return a list where the first element contains the
+#' result of the check and the second element contains
+#' the list of missing elements.
+#' @keywords internal
+isContinuous <- function(x){
+
+  check <- all(min(x):max(x) %in% unique(x))
+
+  if(!check){
+    missing <- setdiff(min(x):max(x), unique(x))
+    err <- paste("The following elements are missing: ",
+                 missing)
+    return(list(result = FALSE, missing = missing))
+  }
+  else {
+    return(list(result = TRUE))
+  }
+
+}
