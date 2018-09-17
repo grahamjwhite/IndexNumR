@@ -41,6 +41,12 @@
 #' @export
 evaluateMatched <- function(x,pvar,qvar,pervar,prodID,output="chained"){
 
+  # check that a valid output type is chosen
+  validOutput <- c("chained","fixedbase")
+  if(!(tolower(output) %in% validOutput)){
+    stop("Not a valid output type. Please choose from chained or fixedbase.")
+  }
+
   # initialise some things
   n <- max(x[[pervar]], na.rm=TRUE)
   colheads <- c("base_index","base","base_matched","base_share",

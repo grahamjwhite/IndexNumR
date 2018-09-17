@@ -1,3 +1,6 @@
+## Second resubmission
+* Fixed format of DOI in description field of DESCRIPTION file. 
+
 ## Resubmission
 * Added reference to GEKS multilateral indexes in the description 
 field of the DESCRIPTION file.
