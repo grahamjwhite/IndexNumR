@@ -19,8 +19,7 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 
   # for every period in the window...
   for(j in 1:window){
-    # set the period pi(j) = base period
-    xt0 <- x[x[[pervar]] == pi[j],]
+    
     # for every period in the window...
     for(k in 1:window){
       # if j=k then the index is 1
@@ -33,6 +32,8 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
         pindices[j,k] <- 1/pindices[k,j]
       }
       else {
+        # set the period pi(j) = base period
+        xt0 <- x[x[[pervar]] == pi[j],]
         # set the period pi(k) = period '1'
         xt1 <- x[x[[pervar]] == pi[k],]
 
