@@ -64,6 +64,13 @@ unitValues <- function(x,pvar,qvar,pervar,prodID){
 #' A function to create a month index variable
 #'
 #' @param x A vector or column of dates
+#' @param overlapWeeks Tells monthIndex how to deal with weeks that
+#' cross over two adjacent months. Options are "naive", "majority" or "fourWeek".
+#' "naive" simply takes the month number of the observation, ignoring where
+#' the week of that observation falls. "majority" will allocate the observation
+#' to the month that owns the majority of days in that week. "fourWeek"
+#' first calculates a week index, then calculates the month index assuming
+#' that there are four weeks in each month. Default is naive.
 #' @examples
 #' # given a vector of dates
 #' df <- data.frame(date = as.Date(c("2017-01-01","2017-02-01","2017-03-01","2017-04-01"),
@@ -72,12 +79,22 @@ unitValues <- function(x,pvar,qvar,pervar,prodID){
 #' df$period <- monthIndex(df$date)
 #' df
 #' @export
-monthIndex <- function(x){
-  firstDate <- min(x)
-  month <- as.numeric(format(x,"%m"))+
-    (as.numeric(format(x,"%Y"))-
-       as.numeric(format(firstDate,"%Y")))*12-
-    (as.numeric(format(firstDate,"%m"))-1)
+monthIndex <- function(x, overlapWeeks = "naive"){
+  switch (overlapWeeks,
+    naive = {
+      firstDate <- min(x)
+      adj = (as.numeric(format(firstDate,"%m"))-1)
+      month <- as.numeric(format(x,"%m"))+
+        (as.numeric(format(x,"%Y"))-
+           as.numeric(format(firstDate,"%Y")))*12-adj
+    },
+    majority = {
+
+    },
+    fourWeek = {
+
+    }
+  )
   return(month)
 }
 
