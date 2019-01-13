@@ -14,3 +14,8 @@ for(i in seq_along(weekMethods)){
     })
   }
 }
+
+test_that("error is thrown when wrong option for overlapWeeks is given",{
+  expect_error(monthIndex(testData$date_wed, overlapWeeks = "wrong option"),
+               "Not a valid option for parameter overlapWeeks.")
+})

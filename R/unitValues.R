@@ -82,6 +82,12 @@ unitValues <- function(x,pvar,qvar,pervar,prodID){
 #' df
 #' @export
 monthIndex <- function(x, overlapWeeks = "naive"){
+
+  validMethods <- c("naive","majority","wholeOnly","fourWeek")
+  if (!(overlapWeeks %in% validMethods)) {
+    stop("Not a valid option for parameter overlapWeeks. See helpfile ?monthIndex for valid options.")
+  }
+
   switch (overlapWeeks,
     naive = {
       firstDate <- min(x)
