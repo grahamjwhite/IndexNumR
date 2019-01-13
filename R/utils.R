@@ -56,3 +56,32 @@ isContinuous <- function(x){
   }
 
 }
+
+#' daysInMonth
+#'
+#' calculate the number of days in the month that the given date falls
+#' @param x A date
+#' @return The number of days in the month in which x falls
+#' @keywords internal
+daysInMonth <- function(x){
+  month <- format(x,"%m")
+  switch (month,
+    "01" = return(31),
+    "02" = {
+      year <- format(x,"%Y")
+      return(as.numeric(as.Date(paste0("01-03-",year),format="%d-%m-%Y") -
+                     as.Date(paste0("01-02-",year),format="%d-%m-%Y")))
+    },
+    "03" = return(31),
+    "04" = return(30),
+    "05" = return(31),
+    "06" = return(30),
+    "07" = return(31),
+    "08" = return(31),
+    "09" = return(30),
+    "10" = return(31),
+    "11" = return(30),
+    "12" = return(31)
+  )
+
+}
