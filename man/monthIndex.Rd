@@ -13,11 +13,12 @@ monthIndex(x, overlapWeeks = "naive")
 cross over two adjacent months. Options are "naive", "majority", "wholeOnly" or "fourWeek".
 "naive" simply takes the month number of the observation, ignoring where
 the week of that observation falls. "majority" will allocate the observation
-to the month that owns the majority of days in that week. "fourWeek"
-first calculates a week index, then calculates the month index assuming
-that there are four weeks in each month. "wholeOnly" will return NA for any dates
-falling inside a week that overlaps two adjacent months; that is, only weeks that
-are wholly within a month are given an index value. The default is "naive".}
+to the month that owns the majority of days in that week, assuming
+that Monday is day one of the week. "fourWeek" first calculates a week index,
+then calculates the month index assuming that there are four weeks in each month.
+"wholeOnly" will return NA for any dates falling inside a week that overlaps two
+adjacent months; that is, only weeks that are wholly within a month
+are given an index value. The default is "naive".}
 }
 \description{
 A function to create a month index variable
