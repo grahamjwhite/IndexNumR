@@ -1,20 +1,17 @@
-## Second resubmission
-* Fixed format of DOI in description field of DESCRIPTION file. 
+## Package update 0.1.0 -> 0.1.1
 
-## Resubmission
-* Added reference to GEKS multilateral indexes in the description 
-field of the DESCRIPTION file.
-* Added more small executable examples so that every exported function
-has at least one executable example. 
+- Added additional argument "overlapWeeks" to monthIndex
+- Added more checks for correct parameter names in functions
+- Fixed bug in GEKSIndex function
 
 ## Test environments
 
-* local Windows 10 Pro install, R version 3.4.3 and R-devel
-* Ubuntu 14.04.5 (on travis-ci), R version 3.4.2
+* local Windows 10 Pro install, R version 3.5.2 and R-devel
+* Ubuntu 14.04.5 (on travis-ci), R version 3.5.2
 
 ## R CMD check results
-0 errors | 0 warnings 
+0 errors v | 0 warnings v | 0 notes v 
 
 ## Downstream dependencies
 
-* No downstream dependencies, this is a new package.
+* No downstream dependencies.
