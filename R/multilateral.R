@@ -19,7 +19,7 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 
   # for every period in the window...
   for(j in 1:window){
-    
+
     # for every period in the window...
     for(k in 1:window){
       # if j=k then the index is 1
@@ -90,14 +90,8 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 #' available without changing prior index values. The window and movement splicing methods
 #' first calculate an 'update factor' by calculating the ratio of the final index value
 #' in the new GEKS window to some base period and then multiply the relevant old GEKS
-#' index value by the update factor. If splice=window, the base period is the first
-#' observation of the new GEKS window, and the update factor is multiplied by the
-#' second observation in the old GEKS window. If splice=movement then the base period
-#' is the second to last observation of the new GEKS window, and the update factor is
-#' multiplied by the final observation in the old GEKS window. If splice=mean then
-#' all possible values of the new index value are computed using all possible update
-#' factors and then a geometric mean is computed over these possibilities to arrive
-#' at the final index value.
+#' index value by the update factor. Alternatives are "window","movement","half", and "mean".
+#' See the package vignette for more information.
 #' @examples
 #' # compute a GEKS mutlilateral index with mean splicing
 #' GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
@@ -185,7 +179,8 @@ splice_t <- function(x,oldGEK,newGEK,method="mean"){
   switch(method,
          movement = {pt <- x*splice(length(newGEK)-1,oldGEK,newGEK)},
          window = {pt <- x*splice(1,oldGEK,newGEK)},
-         mean = {pt <- x*meanSplice(oldGEK,newGEK)}
+         mean = {pt <- x*meanSplice(oldGEK,newGEK)},
+         half = {pt <- x*splice(length((newGEK)-1)/2,oldGEK, newGEK)}
   )
   return(pt)
 }
