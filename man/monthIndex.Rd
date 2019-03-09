@@ -4,10 +4,21 @@
 \alias{monthIndex}
 \title{Generate an index of months}
 \usage{
-monthIndex(x)
+monthIndex(x, overlapWeeks = "naive")
 }
 \arguments{
 \item{x}{A vector or column of dates}
+
+\item{overlapWeeks}{Tells monthIndex how to deal with weeks that
+cross over two adjacent months. Options are "naive", "majority", "wholeOnly" or "fourWeek".
+"naive" simply takes the month number of the observation, ignoring where
+the week of that observation falls. "majority" will allocate the observation
+to the month that owns the majority of days in that week, assuming
+that Monday is day one of the week. "fourWeek" first calculates a week index,
+then calculates the month index assuming that there are four weeks in each month.
+"wholeOnly" will return NA for any dates falling inside a week that overlaps two
+adjacent months; that is, only weeks that are wholly within a month
+are given an index value. The default is "naive".}
 }
 \description{
 A function to create a month index variable
@@ -17,6 +28,6 @@ A function to create a month index variable
 df <- data.frame(date = as.Date(c("2017-01-01","2017-02-01","2017-03-01","2017-04-01"),
 format = "\%Y-\%m-\%d"))
 # calculate the time period variable
-df$period <- monthIndex(df$date)
+df$period <- monthIndex(df$date, overlapWeeks = "naive")
 df
 }
