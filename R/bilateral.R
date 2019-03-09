@@ -131,6 +131,8 @@ lloydMoulton_tc <- function(p0,p1,q,sigma){
 #' @param pervar A character string for the name of the time variable. This variable
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
 #' There may be observations on multiple products for each time period.
+#' @param dates a vector of dates that will be used to convert the
+#' output index into a time series.
 #' @param indexMethod A character string to select the index number method. Valid index
 #' number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
 #' harmonic, tornqvist, satovartia, walsh and CES.
@@ -164,7 +166,7 @@ lloydMoulton_tc <- function(p0,p1,q,sigma){
 #' prodID = "prodID", indexMethod = "tornqvist", output="chained",
 #' chainMethod = "logquadratic")
 #' @export
-priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
+priceIndex <- function(x,pvar,qvar,pervar,dates,indexMethod="laspeyres",prodID,
                        sample="matched",output="pop",chainMethod="pop",
                        sigma=1.0001, ...){
 
@@ -277,6 +279,18 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
     result <- plist
   }
 
+  # add information
+  # about the parameters used
+  if(!missing(dates)){
+    freq <- getFrequency(dates)
+    attributes(result) <- list(indexMethod = indexMethod,
+                               sample = sample,
+                               frequency = freq,
+                               output = output,
+                               class = "index",
+                               dimnames=list(as.character(dates)),
+                               dim = dim(result))
+  }
   return(result)
 }
 
