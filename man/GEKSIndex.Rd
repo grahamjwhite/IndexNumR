@@ -42,14 +42,8 @@ The splicing methods are used to update the price index when new data become
 available without changing prior index values. The window and movement splicing methods
 first calculate an 'update factor' by calculating the ratio of the final index value
 in the new GEKS window to some base period and then multiply the relevant old GEKS
-index value by the update factor. If splice=window, the base period is the first
-observation of the new GEKS window, and the update factor is multiplied by the
-second observation in the old GEKS window. If splice=movement then the base period
-is the second to last observation of the new GEKS window, and the update factor is
-multiplied by the final observation in the old GEKS window. If splice=mean then
-all possible values of the new index value are computed using all possible update
-factors and then a geometric mean is computed over these possibilities to arrive
-at the final index value.
+index value by the update factor. Alternatives are "window","movement","half", and "mean".
+See the package vignette for more information.
 }
 \examples{
 # compute a GEKS mutlilateral index with mean splicing

@@ -97,15 +97,3 @@ getFrequency <- function(x){
   return(round(365/((x[3]-x[1])/2)),0)
 }
 
-#' print.index
-#'
-#' a custom print method for the index class
-#' @param x index object to print
-#' @export
-print.index <- function(x){
-  s <- paste0("Index","\n","Method: ",attr(x,"indexMethod"), "\n",
-              "Sample: ", attr(x, "sample"), "\n",
-              "Frequency: ", attr(x, "frequency"))
-  print(s)
-
-}

@@ -4,8 +4,8 @@
 \alias{priceIndex}
 \title{Computes a bilateral price index}
 \usage{
-priceIndex(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
-  sample = "matched", output = "pop", chainMethod = "pop",
+priceIndex(x, pvar, qvar, pervar, dates, indexMethod = "laspeyres",
+  prodID, sample = "matched", output = "pop", chainMethod = "pop",
   sigma = 1.0001, ...)
 }
 \arguments{
@@ -19,6 +19,9 @@ and a product identifier. It must have column names.}
 \item{pervar}{A character string for the name of the time variable. This variable
 must contain integers starting at period 1 and increasing in increments of 1 period.
 There may be observations on multiple products for each time period.}
+
+\item{dates}{a vector of dates that will be used to convert the
+output index into a time series.}
 
 \item{indexMethod}{A character string to select the index number method. Valid index
 number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
