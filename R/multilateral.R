@@ -43,21 +43,29 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
           xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
         }
 
-        # set the price and quantity vectors
-        p0 <- xt0[[pvar]]
-        p1 <- xt1[[pvar]]
-        q0 <- xt0[[qvar]]
-        q1 <- xt1[[qvar]]
+        # set the price index element to NA if there are no
+        # matches
+        if(length(xt1)==0){
+          pindices[j,k] <- NA
+        }
+        else{
+          # set the price and quantity vectors
+          p0 <- xt0[[pvar]]
+          p1 <- xt1[[pvar]]
+          q0 <- xt0[[qvar]]
+          q1 <- xt1[[qvar]]
 
-        # calculate the price index for 'base' period j and 'next' period k
-        switch(tolower(indexMethod),
-               fisher = {pindices[j,k] <- fisher_t(p0,p1,q0,q1)},
-               tornqvist = {pindices[j,k] <- tornqvist_t(p0,p1,q0,q1)})
+          # calculate the price index for 'base' period j and 'next' period k
+          switch(tolower(indexMethod),
+                 fisher = {pindices[j,k] <- fisher_t(p0,p1,q0,q1)},
+                 tornqvist = {pindices[j,k] <- tornqvist_t(p0,p1,q0,q1)})
+        }
+
       }
     }
   }
   # compute the geometric mean of each column of the price indices matrix
-  pgeo <- apply(pindices,2,geomean)
+  pgeo <- apply(pindices, 2, geomean, na.rm = TRUE)
 
   # normalise to the first period
   pgeo <- pgeo/pgeo[1]
