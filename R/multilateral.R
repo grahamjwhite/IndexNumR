@@ -17,6 +17,9 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
   # get the vector of period indices that are inside the window
   pi <- unique(x[[pervar]])
 
+  # initialise a vector for storing NA pair information
+  naPairs <- character()
+
   # for every period in the window...
   for(j in 1:window){
 
@@ -45,8 +48,9 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 
         # set the price index element to NA if there are no
         # matches
-        if(length(xt1)==0){
+        if(nrow(xt1)==0){
           pindices[j,k] <- NA
+          naPairs <- paste0(naPairs, paste0("(",j,",",k,")"), collapse = ",")
         }
         else{
           # set the price and quantity vectors
@@ -70,7 +74,7 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
   # normalise to the first period
   pgeo <- pgeo/pgeo[1]
 
-  return(pgeo)
+  return(list(pgeo=pgeo, naPairs=naPairs))
 }
 
 #' Compute a GEKS multilateral index
@@ -154,8 +158,17 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
   xWindow <- x[x[[pervar]] >= 1 & x[[pervar]] <= window,]
 
   # call GEKS_w on first window
-  pGEKS[1:window,1] <- GEKS_w(xWindow,pvar,qvar,pervar,indexMethod,prodID,
-                              sample)
+  tempGEK <- GEKS_w(xWindow,pvar,qvar,pervar,indexMethod,prodID,
+                    sample)
+  pGEKS[1:window,1] <- tempGEK$pgeo
+
+  # initiate a vector of warnings for NAs
+  if(length(tempGEK$naPairs) > 0){
+    naWarn <- paste0("1 to ",window,": ",tempGEK$naPairs,"\n")
+  }
+  else{
+    naWarn <- character()
+  }
 
   # use a splicing method to compute the rest of the index
   if(n>window){
@@ -172,13 +185,26 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
       xWindow <- x[x[[pervar]]>=i & x[[pervar]] < i + window,]
 
       # call GEKS_w on this window
-      newGEKS <- GEKS_w(xWindow,pvar,qvar,pervar,indexMethod,prodID,
-                         sample)
+      tempGEK <- GEKS_w(xWindow,pvar,qvar,pervar,indexMethod,prodID,
+                        sample)
+      newGEKS <- tempGEK$pgeo
+      if(length(tempGEK$naPairs) > 0){
+        naWarn <- paste0(naWarn, i, " to ",i+window-1,": ",
+                         tempGEK$naPairs, "\n")
+      }
 
       # splice the new datapoint on
       pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1],oldGEKS,newGEKS,method=splice)
     }
   }
+
+  # if there were periods where there were no overlapping products then
+  # print a warning
+  if(length(naWarn) > 0){
+    warning(paste0("The following windows contained bilateral comparisons where no overlapping products were found: \n",
+                   "Window: Pairs \n",naWarn))
+  }
+
   return(pGEKS)
 }
 
