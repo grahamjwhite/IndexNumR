@@ -136,8 +136,9 @@ lloydMoulton_tc <- function(p0,p1,q,sigma){
 #' harmonic, tornqvist, satovartia, walsh and CES.
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
-#' @param output A character string specifying whether a chained, fixed base or
-#' period-on-period price index numbers should be returned. Default is period-on-period.
+#' @param output A character string specifying whether a chained (output="chained")
+#' , fixed base (output="fixedBase") or period-on-period (output="pop")
+#' price index numbers should be returned. Default is period-on-period.
 #' @param chainMethod A character string specifying the method of chain linking
 #' to use if the output option is set to "chained".
 #' Valid options are "pop" for period-on-period, and similarity chain linked
@@ -197,6 +198,7 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
   # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)
   plist <- matrix(1, nrow = n, ncol = 1)
+  naElements <- character()
 
   # if similarity chaining was requested, get the similarity measure
   if(tolower(output)=="chained" & !(tolower(chainMethod)=="pop")){
@@ -242,31 +244,39 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
       xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
     }
 
-    # set p and q
-    p0 <- xt0[[pvar]]
-    p1 <- xt1[[pvar]]
-    q0 <- xt0[[qvar]]
-    q1 <- xt1[[qvar]]
+    # set the price index element to NA if there are no
+    # matches
+    if(nrow(xt1)==0){
+      plist[i,1] <- NA
+      naElements <- paste0(naElements, i, sep = ",")
+    }
+    else{
+      # set p and q
+      p0 <- xt0[[pvar]]
+      p1 <- xt1[[pvar]]
+      q0 <- xt0[[qvar]]
+      q1 <- xt1[[qvar]]
 
-    # compute the index
-    switch(tolower(indexMethod),
-           dutot = {plist[i,1] <- dutot_t(p0,p1)},
-           carli = {plist[i,1] <- carli_t(p0,p1)},
-           jevons = {plist[i,1] <- jevons_t(p0,p1)},
-           harmonic = {plist[i,1] <- harmonic_t(p0,p1)},
-           cswd = {plist[i,1] <- cswd_t(p0,p1)},
-           laspeyres = {plist[i,1] <- fixed_t(p0,p1,q0)},
-           paasche = {plist[i,1] <- fixed_t(p0,p1,q1)},
-           fisher = {plist[i,1] <- fisher_t(p0,p1,q0,q1)},
-           tornqvist = {plist[i,1] <- tornqvist_t(p0,p1,q0,q1)},
-           satovartia = {plist[i,1] <- satoVartia_t(p0,p1,q0,q1)},
-           walsh = {plist[i,1] <- walsh_t(p0,p1,q0,q1)},
-           ces = {plist[i,1] <- lloydMoulton_t0(p0,p1,q0,sigma = sigma)}
-           )
+      # compute the index
+      switch(tolower(indexMethod),
+             dutot = {plist[i,1] <- dutot_t(p0,p1)},
+             carli = {plist[i,1] <- carli_t(p0,p1)},
+             jevons = {plist[i,1] <- jevons_t(p0,p1)},
+             harmonic = {plist[i,1] <- harmonic_t(p0,p1)},
+             cswd = {plist[i,1] <- cswd_t(p0,p1)},
+             laspeyres = {plist[i,1] <- fixed_t(p0,p1,q0)},
+             paasche = {plist[i,1] <- fixed_t(p0,p1,q1)},
+             fisher = {plist[i,1] <- fisher_t(p0,p1,q0,q1)},
+             tornqvist = {plist[i,1] <- tornqvist_t(p0,p1,q0,q1)},
+             satovartia = {plist[i,1] <- satoVartia_t(p0,p1,q0,q1)},
+             walsh = {plist[i,1] <- walsh_t(p0,p1,q0,q1)},
+             ces = {plist[i,1] <- lloydMoulton_t0(p0,p1,q0,sigma = sigma)}
+      )
 
-    # if similarity chain linking then multiply the index by the link period index
-    if(tolower(output) == "chained" & !(tolower(chainMethod) == "pop")){
-      plist[i,1] = plist[i,1]*plist[links[links$xt==i,2],1]
+      # if similarity chain linking then multiply the index by the link period index
+      if(tolower(output) == "chained" & !(tolower(chainMethod) == "pop")){
+        plist[i,1] = plist[i,1]*plist[links[links$xt==i,2],1]
+      }
     }
   }
 
@@ -275,6 +285,10 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
   }
   else{
     result <- plist
+  }
+
+  if(length(naElements)>0){
+    warning(paste0("The following elements of the index were set to zero because there were no matched products in the two comparison periods: ", naElements))
   }
 
   return(result)

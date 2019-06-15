@@ -4,7 +4,7 @@
 \alias{geomean}
 \title{geomean}
 \usage{
-geomean(x)
+geomean(x, na.rm = TRUE)
 }
 \arguments{
 \item{x}{a numeric vector}
