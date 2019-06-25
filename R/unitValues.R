@@ -59,87 +59,6 @@ unitValues <- function(x,pvar,qvar,pervar,prodID){
   return(as.data.frame(result_it))
 }
 
-#' Generate an index of months
-#'
-#' A function to create a month index variable
-#'
-#' @param x A vector or column of dates
-#' @param overlapWeeks Tells monthIndex how to deal with weeks that
-#' cross over two adjacent months. Options are "naive", "majority", "wholeOnly" or "fourWeek".
-#' "naive" simply takes the month number of the observation, ignoring where
-#' the week of that observation falls. "majority" will allocate the observation
-#' to the month that owns the majority of days in that week, assuming
-#' that Monday is day one of the week. "fourWeek" first calculates a week index,
-#' then calculates the month index assuming that there are four weeks in each month.
-#' "wholeOnly" will return NA for any dates falling inside a week that overlaps two
-#' adjacent months; that is, only weeks that are wholly within a month
-#' are given an index value. The default is "naive".
-#' @examples
-#' # given a vector of dates
-#' df <- data.frame(date = as.Date(c("2017-01-01","2017-02-01","2017-03-01","2017-04-01"),
-#' format = "%Y-%m-%d"))
-#' # calculate the time period variable
-#' df$period <- monthIndex(df$date, overlapWeeks = "naive")
-#' df
-#' @export
-monthIndex <- function(x, overlapWeeks = "naive"){
-
-  validMethods <- c("naive","majority","wholeOnly","fourWeek")
-  if (!(overlapWeeks %in% validMethods)) {
-    stop("Not a valid option for parameter overlapWeeks. See helpfile ?monthIndex for valid options.")
-  }
-
-  switch (overlapWeeks,
-    naive = {
-      firstDate <- min(x)
-      firstYear <- as.numeric(format(firstDate,"%Y"))
-      adj = as.numeric(format(firstDate,"%m"))-1
-
-      month <- as.numeric(format(x,"%m"))+
-        (as.numeric(format(x,"%Y"))-
-           firstYear)*12-adj
-    },
-    majority = {
-      month <- monthIndex(x, overlapWeeks = "naive")
-      for (i in 1:length(month)) {
-        d <- as.numeric(format(x[i],"%d")) # day of the month
-        wd <- as.numeric(format(x[i],"%u")) # day of the week, Monday = 1
-        # if the week overlapped slightly into next month, push it back by 1
-        if (d < 4 & wd > 4 &
-            as.numeric(format(as.Date(paste0(1,"-",format(x[i],"%m"),"-",format(x[i],"%Y")),
-                                      format="%d-%m-%Y"),"%u")) > 4) {
-          month[i] <- month[i] - 1
-        }
-        # if the week overlapped slightly into previous month, push it forward by 1
-        else if (d > 25) {
-          lastDay <- daysInMonth(x[i])
-          if (lastDay - d < 3 & wd < 4 &
-              as.numeric(format(as.Date(paste0(lastDay,"-",format(x[i],"%m"),"-",format(x[i],"%Y")),
-                             format="%d-%m-%Y"),"%u")) < 4) {
-            month[i] <- month[i] + 1
-          }
-        }
-      }
-    },
-    fourWeek = {
-      week <- weekIndex(x)
-      month <- ceiling(week/4)
-    },
-    wholeOnly = {
-      month <- monthIndex(x, "naive")
-      for(i in 1:length(month)){
-        wd <- as.numeric(format(x[i],"%u")) # day of the week, Monday = 1
-        sowMonth <- as.numeric(format(x[i]-wd+1,"%m"))
-        eowMonth <- as.numeric(format(x[i]-wd+7,"%m"))
-        if(!(sowMonth == eowMonth)){
-          month[i] = NA
-        }
-      }
-    }
-  )
-  return(month)
-}
-
 #' Generate an index of quarters
 #'
 #' A function to create a quarter index variable
@@ -232,4 +151,85 @@ weekIndex <- function(x){
   }
 
   return(as.vector(week))
+}
+
+#' Generate an index of months
+#'
+#' A function to create a month index variable
+#'
+#' @param x A vector or column of dates
+#' @param overlapWeeks Tells monthIndex how to deal with weeks that
+#' cross over two adjacent months. Options are "naive", "majority", "wholeOnly" or "fourWeek".
+#' "naive" simply takes the month number of the observation, ignoring where
+#' the week of that observation falls. "majority" will allocate the observation
+#' to the month that owns the majority of days in that week, assuming
+#' that Monday is day one of the week. "fourWeek" first calculates a week index,
+#' then calculates the month index assuming that there are four weeks in each month.
+#' "wholeOnly" will return NA for any dates falling inside a week that overlaps two
+#' adjacent months; that is, only weeks that are wholly within a month
+#' are given an index value. The default is "naive".
+#' @examples
+#' # given a vector of dates
+#' df <- data.frame(date = as.Date(c("2017-01-01","2017-02-01","2017-03-01","2017-04-01"),
+#' format = "%Y-%m-%d"))
+#' # calculate the time period variable
+#' df$period <- monthIndex(df$date, overlapWeeks = "naive")
+#' df
+#' @export
+monthIndex <- function(x, overlapWeeks = "naive"){
+
+  validMethods <- c("naive","majority","wholeOnly","fourWeek")
+  if (!(overlapWeeks %in% validMethods)) {
+    stop("Not a valid option for parameter overlapWeeks. See helpfile ?monthIndex for valid options.")
+  }
+
+  switch (overlapWeeks,
+          naive = {
+            firstDate <- min(x)
+            firstYear <- as.numeric(format(firstDate,"%Y"))
+            adj = as.numeric(format(firstDate,"%m"))-1
+
+            month <- as.numeric(format(x,"%m"))+
+              (as.numeric(format(x,"%Y"))-
+                 firstYear)*12-adj
+          },
+          majority = {
+            month <- monthIndex(x, overlapWeeks = "naive")
+
+            d <- as.numeric(format(x, "%d"))
+            wd <- as.numeric(format(x, "%u"))
+            m <- as.numeric(format(x, "%m"))
+            y <- as.numeric(format(x, "%Y"))
+
+            for (i in 1:length(month)) {
+              # if the week overlapped slightly into next month, push it back by 1
+              if (d[i] < 4 & wd[i] > 4 &
+                  as.numeric(format(as.Date(paste0(1, "-", m[i], "-", y[i]),
+                                            format="%d-%m-%Y"),"%u")) > 4) {
+                month[i] <- month[i] - 1
+              }
+              # if the week overlapped slightly into previous month, push it forward by 1
+              else if (d[i] > 25) {
+                lastDay <- daysInMonth(x[i])
+                if (lastDay - d[i] < 3 & wd[i] < 4 &
+                    as.numeric(format(as.Date(paste0(lastDay, "-", m[i], "-", y[i]),
+                                              format="%d-%m-%Y"),"%u")) < 4) {
+                  month[i] <- month[i] + 1
+                }
+              }
+            }
+          },
+          fourWeek = {
+            week <- weekIndex(x)
+            month <- ceiling(week/4)
+          },
+          wholeOnly = {
+            month <- monthIndex(x, "naive")
+            wd <- as.numeric(format(x, "%u")) # day of the week, Monday = 1
+            sowMonth <- as.numeric(format(x - wd + 1, "%m"))
+            eowMonth <- as.numeric(format(x - wd + 7, "%m"))
+            month[!(sowMonth == eowMonth)] <- NA
+          }
+  )
+  return(month)
 }
