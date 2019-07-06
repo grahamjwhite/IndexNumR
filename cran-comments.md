@@ -1,13 +1,13 @@
-## Package update 0.1.0 -> 0.1.1
+## Package update 0.1.1 -> 0.1.2
 
-- Added additional argument "overlapWeeks" to monthIndex
-- Added more checks for correct parameter names in functions
-- Fixed bug in GEKSIndex function
+- monthIndex() performance improvements
+- matched samples now handle the case where there are no matches
+for both bilateral and multilateral indices. 
 
 ## Test environments
 
-* local Windows 10 Pro install, R version 3.5.2 and R-devel
-* Ubuntu 14.04.5 (on travis-ci), R version 3.5.2
+* local Windows 10 Pro install, R version 3.6.1 and R-devel
+* Ubuntu 14.04.5 (on travis-ci), R version 3.6.0
 
 ## R CMD check results
 0 errors v | 0 warnings v | 0 notes v 

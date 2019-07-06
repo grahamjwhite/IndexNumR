@@ -41,3 +41,6 @@ A GEKS index with mean splicing and an 11 period window is estimated as follows,
 GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = "tornqvist", window=11, splice = "mean")
 ```
 More examples are contained in the package vignette. 
+```R
+vignette("indexnumr", package = "IndexNumR")
+```
