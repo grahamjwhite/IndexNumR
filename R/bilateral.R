@@ -288,7 +288,7 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
   }
 
   if(length(naElements)>0){
-    warning(paste0("The following elements of the index were set to zero because there were no matched products in the two comparison periods: ", naElements))
+    warning(paste0("The following elements of the index were set to NA because there were no matched products in the two comparison periods: ", naElements))
   }
 
   return(result)
