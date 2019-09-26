@@ -148,6 +148,9 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
   if(n<window){
     stop("The window length exceeds the number of periods in the data")
   }
+  
+  # sort the dataset by time period and product ID
+  x <- x[order(x[[pervar]], x[[prodID]]),]
 
   # initialise some matrices
   # final price index
