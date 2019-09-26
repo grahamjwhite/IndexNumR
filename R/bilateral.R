@@ -194,6 +194,9 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
   if(colNameCheck$result == FALSE){
     stop(colNameCheck$message)
   }
+  
+  # sort the dataset by time period and product ID
+  x <- x[order(x[[pervar]], x[[prodID]]),]
 
   # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)
