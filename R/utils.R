@@ -3,6 +3,7 @@
 #' function for the geometric mean of a vector
 #' @param x a numeric vector
 #' @keywords internal
+#' @noRd
 geomean <- function(x, na.rm = TRUE){
   if(na.rm == TRUE){
     x <- x[!is.na(x)]
@@ -21,6 +22,7 @@ geomean <- function(x, na.rm = TRUE){
 #' element with an error message that contains a list of the
 #' names not contained in the column of x.
 #' @keywords internal
+#' @noRd
 checkNames <- function(x, namesVector){
   goodNames <- colnames(x)
   badNames <- namesVector[!(namesVector %in% goodNames)]
@@ -36,6 +38,64 @@ checkNames <- function(x, namesVector){
   }
 }
 
+#' checkTypes
+#'
+#' checks that the columns of the input matrix are right
+#' @param x the dataframe to check
+#' @param pvar name of price variable
+#' @param qvar name of quantity variable
+#' @param pervar name of time period variable
+#' @return if all checks pass, the original dataframe. If some
+#' columns are the wrong type then either an error, or the
+#' input dataframe coerced to the correct types.
+#' @keywords internal
+#' @noRd
+checkTypes <- function(x, pvar, qvar, pervar){
+
+  check <- TRUE
+
+  if(!inherits(x[[pervar]], "numeric")){
+    coerced <- try(as.numeric(x[[pervar]]), silent = TRUE)
+    if(inherits(coerced, "try-error")){
+      check = FALSE
+      message("Time period variable is not numeric and cannot be coerced to numeric")
+    }
+    else {
+      x[[pervar]] <- coerced
+    }
+  }
+
+  if(!inherits(x[[pvar]], "numeric")){
+    coerced <- try(as.numeric(x[[pvar]]), silent = TRUE)
+    if(inherits(coerced, "try-error")){
+      check = FALSE
+      message("Price variable is not numeric and cannot be coerced to numeric")
+    }
+    else {
+      x[[pvar]] <- coerced
+    }
+  }
+
+  if(!inherits(x[[qvar]], "numeric")){
+    coerced <- try(as.numeric(x[[qvar]]), silent = TRUE)
+    if(inherits(coerced, "try-error")){
+      check = FALSE
+      message("Quantity variable is not numeric and cannot be coerced to numeric")
+    }
+    else {
+      x[[qvar]] <- coerced
+    }
+  }
+
+  if(check){
+    return(x)
+  }
+  else {
+    stop("Please correct input data types")
+  }
+
+}
+
 #' isContinuous
 #'
 #' checks if a numeric vector has gaps.
@@ -44,6 +104,7 @@ checkNames <- function(x, namesVector){
 #' result of the check and the second element contains
 #' the list of missing elements.
 #' @keywords internal
+#' @noRd
 isContinuous <- function(x){
 
   check <- all(min(x):max(x) %in% unique(x))
@@ -66,6 +127,7 @@ isContinuous <- function(x){
 #' @param x A date
 #' @return The number of days in the month in which x falls
 #' @keywords internal
+#' @noRd
 daysInMonth <- function(x){
   month <- format(x,"%m")
   switch (month,

@@ -3,6 +3,7 @@
 #' compute a bilateral Dutot index for a single period
 #'
 #' @keywords internal
+#' @noRd
 dutot_t <- function(p0,p1){
   M0 <- length(p0)
   M1 <- length(p1)
@@ -14,6 +15,7 @@ dutot_t <- function(p0,p1){
 #' compute a bilateral Carli index for a single period
 #'
 #' @keywords internal
+#' @noRd
 carli_t <- function(p0,p1){
   return((1/length(p0))*sum(p1/p0))
 }
@@ -23,6 +25,7 @@ carli_t <- function(p0,p1){
 #' compute a bilateral Jevons index for a single period
 #'
 #' @keywords internal
+#' @noRd
 jevons_t <- function(p0,p1){
   return(prod((p1/p0)^(1/length(p0))))
 }
@@ -32,6 +35,7 @@ jevons_t <- function(p0,p1){
 #' compute a bilateral Harmonic mean index for a single period
 #'
 #' @keywords internal
+#' @noRd
 harmonic_t <- function(p0,p1){
   return((1/length(p0)*sum((p1/p0)^-1))^-1)
 }
@@ -41,6 +45,7 @@ harmonic_t <- function(p0,p1){
 #'compute a bilateral CSWD index for a single period
 #'
 #' @keywords internal
+#' @noRd
 cswd_t <- function(p0,p1){
   return(sqrt((carli_t(p0,p1)*harmonic_t(p0,p1))))
 }
@@ -50,6 +55,7 @@ cswd_t <- function(p0,p1){
 #' compute a bilateral fixed base index for a single period
 #'
 #' @keywords internal
+#' @noRd
 fixed_t <- function(p0,p1,q){
   return(sum(p1*q)/sum(p0*q))
 }
@@ -59,6 +65,7 @@ fixed_t <- function(p0,p1,q){
 #' compute a bilateral Fisher index for a single period
 #'
 #' @keywords internal
+#' @noRd
 fisher_t <- function(p0,p1,q0,q1){
   las <- fixed_t(p0,p1,q0)
   pas <- fixed_t(p0,p1,q1)
@@ -70,6 +77,7 @@ fisher_t <- function(p0,p1,q0,q1){
 #' compute a bilateral Tornqvist index for a single period
 #'
 #' @keywords internal
+#' @noRd
 tornqvist_t <- function(p0,p1,q0,q1){
   exp0 <- sum(p0*q0)
   exp1 <- sum(p1*q1)
@@ -82,6 +90,7 @@ tornqvist_t <- function(p0,p1,q0,q1){
 #'
 #' compute a bilateral Sato-Vartia index
 #' @keywords internal
+#' @noRd
 satoVartia_t <- function(p0,p1,q0,q1){
   exp0 <- sum(p0*q0)
   exp1 <- sum(p1*q1)
@@ -97,6 +106,7 @@ satoVartia_t <- function(p0,p1,q0,q1){
 #' compute a bilateral Walsh index
 #'
 #' @keywords internal
+#' @noRd
 walsh_t <- function(p0,p1,q0,q1){
   return(sum(p1*sqrt(q0*q1))/sum(p0*sqrt(q0*q1)))
 }
@@ -104,6 +114,7 @@ walsh_t <- function(p0,p1,q0,q1){
 #' Lloyd-Moulton index, period 0 share
 #'
 #' @keywords internal
+#' @noRd
 lloydMoulton_t0 <- function(p0,p1,q,sigma){
   e <- sum(p0*q)
   s0 <- (p0*q)/e
@@ -113,6 +124,7 @@ lloydMoulton_t0 <- function(p0,p1,q,sigma){
 #' Lloyd-Moulton index, current period share
 #'
 #' @keywords internal
+#' @noRd
 lloydMoulton_tc <- function(p0,p1,q,sigma){
   e <- sum(p1*q)
   s1 <- (p1*q)/e
@@ -194,7 +206,10 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
   if(colNameCheck$result == FALSE){
     stop(colNameCheck$message)
   }
-  
+
+  # check column types
+  x <- checkTypes(x, pvar, qvar, pervar)
+
   # sort the dataset by time period and product ID
   x <- x[order(x[[pervar]], x[[prodID]]),]
 
