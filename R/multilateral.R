@@ -142,6 +142,9 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
     stop(paste("The time period variable is not continuous.",
                "Missing periods:", timeCheck$missing))
   }
+  
+  # check that columns are the right class
+  x <- checkTypes(x, pvar, qvar, pervar)
 
   # get the number of periods
   n <- max(x[[pervar]],na.rm = TRUE)
