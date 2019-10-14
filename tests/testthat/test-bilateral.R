@@ -78,3 +78,37 @@ test_that("error is thrown when wrong column names are given",{
 })
 
 rm(testData)
+
+# setup a random ordering of the 4 products for 4 periods
+v1 <- 1:4
+v2 <- rev(v1)
+v3 <- c(4,2,1,3)
+v4 <- rev(v3)
+
+CESUnordered <- as.data.frame(matrix(NA, nrow = 16, ncol = 4))
+# bind the 4 periods of data in the order defined by v1-v4
+CESUnordered[1:4,] <- CES_sigma_2[CES_sigma_2$time == 1,][v1,]
+CESUnordered[5:8,] <- CES_sigma_2[CES_sigma_2$time == 2,][v2,]
+CESUnordered[9:12,] <- CES_sigma_2[CES_sigma_2$time == 3,][v3,]
+CESUnordered[13:16,] <- CES_sigma_2[CES_sigma_2$time == 4,][v4,]
+
+colnames(CESUnordered) <- colnames(CES_sigma_2)
+
+CESOrdered <- CES_sigma_2[CES_sigma_2$time %in% 1:4,]
+
+test_that("Indices return the same answer regardless of product ordering",{
+
+  doIndex <- function(dataset, method){
+    priceIndex(dataset, pvar = "prices", qvar = "quantities", prodID = "prodID",
+               pervar = "time", indexMethod = method)
+  }
+
+  indexEqual <- function(dataset1, method, dataset2){
+    expect_equal(doIndex(dataset1, method), doIndex(dataset2, method))
+  }
+
+  for(i in seq_along(indexMethods)){
+    indexEqual(CESOrdered, indexMethods[i], CESUnordered)
+  }
+
+})
