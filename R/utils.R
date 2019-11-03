@@ -3,7 +3,10 @@
 #' function for the geometric mean of a vector
 #' @param x a numeric vector
 #' @keywords internal
-geomean <- function(x){
+geomean <- function(x, na.rm = TRUE){
+  if(na.rm == TRUE){
+    x <- x[!is.na(x)]
+  }
   return(exp(mean(log(x))))
 }
 
@@ -86,14 +89,4 @@ daysInMonth <- function(x){
 
 }
 
-#' getFrequency
-#'
-#' get the frequency of a vector of dates
-#' @param x a vector of dates
-#' @return an integer indicating the number of
-#' periods per year.
-#' @keywords internal
-getFrequency <- function(x){
-  return(round(365/((x[3]-x[1])/2)),0)
-}
 

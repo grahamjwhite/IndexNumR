@@ -1,3 +1,11 @@
+## Package update 0.1.0 -> 0.1.2
+
+### Improvements
+- Performance improvements to the monthIndex function for overlapWeeks = "majority" or "wholeOnly".  
+
+### Bug fixes
+- When matched sample is requested and no matches are found between the two periods, then for a bilateral index the corresponding element of the index is set to NA, and for a GEKS index the corresponding element of the bilateral comparison matrix is set to NA. A warning message tells the user which periods were set to NA. 
+
 ## Package update 0.1.0 -> 0.1.1
 
 ### Improvements
