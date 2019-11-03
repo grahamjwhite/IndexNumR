@@ -6,42 +6,32 @@
 #' index
 #' @param sample whether matching was requested
 #' @param output whether period-on-period or chained output was chosen
+#' @param dates dates to be set as rownames for the IndexNum_R object
 #' @param chainMethod the method of chaining chosen.  The default
 #' is "" if the chainMethod is not specified
 #' @param sigma the value of sigma for a CES index, default is NA
 #' @keywords internal
-new_IndexNumR_index <- function(x, method, sample, output, chainMethod = "",
+#' @noRd
+IndexNumR_index <- function(x, method, sample, output, dates, chainMethod = "",
                       sigma = NA){
+
   stopifnot(is.matrix(x))
 
-  return(structure(list(index=x, method=method, sample=sample,
-                        output=output, chainMethod=chainMethod,
-                        sigma=sigma), class=c("IndexNumR_index")))
-}
+  if(all(is.na(dates))){
+    rowDim <- 1:nrow(x)
+  }
+  else {
+    rowDim <- format(dates, "%d-%m-%Y")
+  }
 
-#' validate an IndexNumR_index object
-#'
-#' @param x an IndexNumR_index
-#' @keywords internal
-validate_IndexNumR_index <- function(x){
-  # do some checks here...
-  x
-}
-
-#' Create a new object of class 'IndexNumR_index'
-#'
-#' @param x an n by 1 matrix containing the price or quantity index
-#' @param method the index number method used to compute the
-#' index
-#' @param sample whether matching was requested
-#' @param output whether period-on-period or chained output was chosen
-#' @param chainMethod the method of chaining chosen. The default
-#' is "" if the chainMethod is not specified
-#' @param sigma the value of sigma for a CES index, default is NA
-#' @export
-IndexNumR_index <- function(x, method, sample, output, chainMethod = "",
-                  sigma = NA){
-  new_IndexNumR_index(x, method, sample, output, chainMethod, sigma)
+  return(structure(.Data = x,
+                   class = c('IndexNumR_index'),
+                   dimnames = list(rowDim, 'index'),
+                   method = method,
+                   sample = sample,
+                   output = output,
+                   chainMethod = chainMethod,
+                   sigma = sigma))
 }
 
 #' data frame conversion
@@ -52,88 +42,11 @@ IndexNumR_index <- function(x, method, sample, output, chainMethod = "",
 #' @param ... additional parameters to be passed to functions
 #' @method as.data.frame IndexNumR_index
 #' @export
+#' @noRd
 as.data.frame.IndexNumR_index <- function(x, row.names=NULL, optional=FALSE, ...){
-  UseMethod("as.data.frame", x$index)
+  UseMethod("as.data.frame", indexData(x))
 }
 
-#' IndexNumR_index subsetting
-#'
-#' Overrides the subset behaviour so that it acts on the index element
-#' of the IndexNumR_index object
-#' @param x an IndexNumR_index object
-#' @param i row number
-#' @param j column number
-#' @param ... other parameters
-#' @export
-`[.IndexNumR_index` <- function(x, i, j, ...){
-  x = x$index
-  NextMethod()
-}
-
-#' IndexNumR_index subset assign
-#'
-#' Overrides the subset assign behaviour so that it acts on the index element
-#' of the IndexNumR_index object
-#'
-#' @param x an IndexNumR_index object
-#' @param i row number
-#' @param j column number
-#' @param ... other parameters
-#' @param value value to be assigned
-#' @export
-`[<-.IndexNumR_index` <- function(x, i, j, ..., value){
-  x = x$index
-  NextMethod()
-}
-
-#' IndexNumR_index dimension
-#'
-#' Overrides the dim function so that it acts on the index element
-#' of the IndexNumR_index object
-#'
-#' @param x an IndexNumR_index object
-#' @export
-dim.IndexNumR_index <- function(x){
-  x = x$index
-  NextMethod()
-}
-
-#' IndexNumR_index transpose
-#'
-#' Overrides the transpose function so that it acts on the index element
-#' of the IndexNumR_index object
-#'
-#' @param x an IndexNumR_index object
-#' @export
-t.IndexNumR_index <- function(x){
-  x = x$index
-  NextMethod()
-}
-
-#' IndexNumR_index dimnames
-#'
-#' Overrides the dimnames function so that it acts on the index element
-#' of the IndexNumR_index object
-#'
-#' @param x an IndexNumR_index object
-#' @export
-dimnames.IndexNumR_index <- function(x){
-  x = x$index
-  NextMethod()
-}
-
-#' IndexNumR_index dimnames assignment
-#'
-#' Overrides the dimnames function to assign names to the index element
-#' of the IndexNumR_index class
-#'
-#' @param x an IndexNumR_index object
-#' @param value value to assign
-#' @export
-`dimnames<-.IndexNumR_index` <- function(x, value){
-  x = x$index
-  NextMethod()
-}
 
 #' IndexNumR_index print
 #'
@@ -143,43 +56,36 @@ dimnames.IndexNumR_index <- function(x){
 #' @param x an IndexNumR_index object
 #' @param ... other arguments
 #' @export
+#' @noRd
 print.IndexNumR_index <- function(x, ...){
-  print(x$index)
+  cat(paste("A", attributes(x)$method, "index of length", nrow(x), "\n"))
+  print(indexData(x))
 }
 
-#' IndexNumR_index Math
+#' IndexData
 #'
-#' Overrides the math functions so that they act on the index element
-#' of the IndexNumR_index object. For affected functions see ?groupGeneric.
+#' Gets the index data as a numeric vector without the IndexNumR attributes
 #'
-#' @param x an IndexNumR_index object
-#' @param ... other arguments
+#' @param x an IndexNumR_Index
 #' @export
-Math.IndexNumR_index <- function(x, ...){
-  get(.Generic)(x$index)
+indexData <- function(x){
+  UseMethod("indexData")
 }
 
-#' IndexNumR_index Ops
+#' IndexData.IndexNumR_Index generic
 #'
-#' Overrides the Ops functions so that they act on the index element
-#' of the IndexNumR_index object. For affected functions see ?groupGeneric.
+#' Gets the index data as a numeric vector without the IndexNumR attributes
 #'
-#' @param e1 an IndexNumR_index object
-#' @param e2 an IndexNumR_index object
+#' @param x an IndexNumR_index
+#' @method indexData IndexNumR_index
 #' @export
-Ops.IndexNumR_index <- function(e1,e2){
-  get(.Generic)(e1$index,e2$index)
+#' @noRd
+indexData.IndexNumR_index <- function(x){
+
+  retVal <- x
+  attributes(retVal) <- list(dim = dim(x), dimnames = dimnames(x))
+
+  return(retVal)
 }
 
 
-#' IndexNumR_index Summary functions
-#'
-#' Overrides the Summary group generic functions so that they act on
-#' the index element of the IndexNumR_index object. For affected functions see ?groupGeneric.
-#'
-#' @param ... further arguments
-#' @param na.rm logical: should missing values be removed? Default = FALSE
-#' @export
-Summary.IndexNumR_index <- function(x, ..., na.rm = FALSE){
-  get(.Generic)(x$index, ..., na.rm = FALSE)
-}

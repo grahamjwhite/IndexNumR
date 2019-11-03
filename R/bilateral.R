@@ -166,9 +166,9 @@ lloydMoulton_tc <- function(p0,p1,q,sigma){
 #' prodID = "prodID", indexMethod = "tornqvist", output="chained",
 #' chainMethod = "logquadratic")
 #' @export
-priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
-                       sample="matched",output="pop",chainMethod="pop",
-                       sigma=1.0001,dates=NA, ...){
+priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
+                       sample = "matched", output = "pop", chainMethod = "pop",
+                       sigma = 1.0001, dates = NA, ...){
 
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
@@ -279,9 +279,13 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
     result <- plist
   }
 
-  return(IndexNumR_index(result, method=indexMethod, sample=sample,
-               output=output, chainMethod=chainMethod,
-               sigma=sigma))
+  return(IndexNumR_index(result,
+                         method = indexMethod,
+                         sample = sample,
+                         output = output,
+                         dates = dates,
+                         chainMethod = chainMethod,
+                         sigma = sigma))
 }
 
 #' Computes a bilateral quantity index
