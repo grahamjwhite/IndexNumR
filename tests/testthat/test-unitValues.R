@@ -19,3 +19,4 @@ test_that("correct indices are returned if dates are reversed",{
   expect_equal(monthIndex(rev(dat_month)),rev(c(1,2,2,3)))
   expect_equal(weekIndex(rev(dat_week)),rev(c(1,2,3,4,1)))
 })
+

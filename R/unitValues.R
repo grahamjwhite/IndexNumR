@@ -56,7 +56,7 @@ unitValues <- function(x,pvar,qvar,pervar,prodID){
   })
   # bind results for all 'i' into a matrix
   result_it <- do.call(rbind,means_it)
-  return(as.data.frame(result_it))
+  return(as.data.frame(result_it, stringsAsFactors = FALSE))
 }
 
 #' Generate an index of quarters

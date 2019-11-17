@@ -142,12 +142,18 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
     stop(paste("The time period variable is not continuous.",
                "Missing periods:", timeCheck$missing))
   }
+  
+  # check that columns are the right class
+  x <- checkTypes(x, pvar, qvar, pervar)
 
   # get the number of periods
   n <- max(x[[pervar]],na.rm = TRUE)
   if(n<window){
     stop("The window length exceeds the number of periods in the data")
   }
+  
+  # sort the dataset by time period and product ID
+  x <- x[order(x[[pervar]], x[[prodID]]),]
 
   # initialise some matrices
   # final price index

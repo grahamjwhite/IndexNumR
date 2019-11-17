@@ -1,4 +1,12 @@
-## Package update 0.1.0 -> 0.1.2
+## Package update 0.1.2 -> 0.1.3
+
+### Improvements
+- The column types of the input dataframe (for the time period, prices and quantities) are checked and converted to numeric if they aren't already.  
+
+### Bug fixes
+- The input data frame is now sorted prior to calculation. This solves an error where the products are passed to the priceIndex function in a different order in each time period, resulting in incorrectly matched product data when computing the index. 
+
+## Package update 0.1.1 -> 0.1.2
 
 ### Improvements
 - Performance improvements to the monthIndex function for overlapWeeks = "majority" or "wholeOnly".  
