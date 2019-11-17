@@ -14,3 +14,15 @@ test_that("gaps in a vector are detected",{
   expect_equal(isContinuous(gaps3),list(result=FALSE,
                                         missing=as.integer(c(3,4))))
 })
+
+
+test_that("checkTypes converts factor columns to numeric", {
+
+  testData <- CES_sigma_2
+  testData$time <- as.factor(testData$time)
+
+  testData <- checkTypes(testData, pervar = "time", pvar = "prices", qvar = "quantities")
+
+  expect_equal(inherits(testData$time, "numeric"), TRUE)
+
+})

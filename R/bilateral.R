@@ -194,13 +194,6 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
     stop("Not a valid output type. Please choose from chained, fixedbase or pop.")
   }
 
-  # check that the time period variable is continuous
-  timeCheck <- isContinuous(x[[pervar]])
-  if(timeCheck$result == FALSE){
-    stop(paste("The time period variable is not continuous.",
-                "Missing periods:", timeCheck$missing))
-  }
-
   # check valid column names are given
   colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
   if(colNameCheck$result == FALSE){
@@ -209,6 +202,13 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
 
   # check column types
   x <- checkTypes(x, pvar, qvar, pervar)
+
+  # check that the time period variable is continuous
+  timeCheck <- isContinuous(x[[pervar]])
+  if(timeCheck$result == FALSE){
+    stop(paste("The time period variable is not continuous.",
+                "Missing periods:", timeCheck$missing))
+  }
 
   # sort the dataset by time period and product ID
   x <- x[order(x[[pervar]], x[[prodID]]),]
