@@ -1,7 +1,8 @@
 ## Package update 0.1.2 -> 0.1.3
 
 ### Improvements
-- The column types of the input dataframe (for the time period, prices and quantities) are checked and converted to numeric if they aren't already.  
+- The column types of the input dataframe (for the time period, prices and quantities) are checked and converted to numeric if they aren't already.
+- The output data frame of the unitValues function no longer returns factors (i.e., stringsAsFactors = FALSE).
 
 ### Bug fixes
 - The input data frame is now sorted prior to calculation. This solves an error where the products are passed to the priceIndex function in a different order in each time period, resulting in incorrectly matched product data when computing the index. 
