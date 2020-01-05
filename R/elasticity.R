@@ -93,6 +93,7 @@ elasticity <- function(x, pvar, qvar, pervar, prodID,
 #' A function, with a root at zero, that computes the difference between
 #' the CES index and a comparison index.
 #' @keywords internal
+#' @noRd
 indexDiff <- function(sigma,p0,p1,q0,q1,compIndex="ces"){
   lloyd0 <- lloydMoulton_t0(p0,p1,q0,sigma)
   switch (tolower(compIndex),
