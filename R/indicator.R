@@ -62,7 +62,12 @@ indMontgomery_t <- function(p0, p1, q0, q1){
 
 #' Calculate a price indicator
 #'
-#' This calculates a price indicator
+#' This calculates a price indicator. This is calculated using the
+#' differences approach to index number theory, where the change
+#' in prices and quantities from one period to the next is additive.
+#' Therefore, the change in total value is the sum of the change
+#' in prices and the change in quantities. Such a value decomposition
+#' can be obtained using \link{\code{valueDecomposition}}}.
 #'
 #' @param x data frame with input data
 #' @param pvar character string for the name of the price column
@@ -103,7 +108,7 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 
   # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)
-  plist <- matrix(0, nrow = n, ncol = 1)
+  plist <- matrix(NA, nrow = n, ncol = 1)
   naElements <- character()
 
   # for each time period
@@ -172,10 +177,12 @@ volumeIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 
 }
 
-#' indicatorDecomposition
+#' valueDecomposition
 #'
 #' Perform a decomposition of value change using price
-#' and volume indicators.
+#' and volume indicators. This is an additive decomposition
+#' so that change due to price plus change due to quantity
+#' equals the total value change.
 #'
 #' @param x data frame with input data
 #' @param pvar character string for the name of the price column

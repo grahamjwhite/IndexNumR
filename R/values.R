@@ -32,12 +32,15 @@
 #' should be used.
 #' @param matchPeriod A character string specifying which period is used
 #' to determine the set of products used for matching. Options are
-#' "following", "previous" or "fixedbase". "following" calculates the expenditures in the current period,
+#' "following" or "previous". "following" calculates the expenditures in the current period,
 #' filtering out any products that do not appear in the following period.
-#' "fixedbase" calculates current period expenditures, filtering out the products
-#' that did not appear in the first period. "previous" is calculated similarly,
-#' using the set of products in the previous period to filter the current period sample.
+#' "previous" is calculated similarly, using the set of products in the
+#' previous period to filter the current period sample.
 #' @export
+#' @examples
+#' values(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+#' prodID = "prodID", matchPeriod = "previous")
+#'
 values <- function(x, pvar, qvar, pervar, prodID, sample = "matched",
                    matchPeriod = "previous"){
 
@@ -45,6 +48,11 @@ values <- function(x, pvar, qvar, pervar, prodID, sample = "matched",
   colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
   if(colNameCheck$result == FALSE){
     stop(colNameCheck$message)
+  }
+
+  # check valid matchPeriod methods are given
+  if(!(matchPeriod %in% c("following", "previous"))){
+    stop("Not a valid matchPeriod argument, must be 'previous' or 'following'")
   }
 
   # check column types
@@ -80,8 +88,7 @@ values <- function(x, pvar, qvar, pervar, prodID, sample = "matched",
         # set the match period
         switch(matchPeriod,
                following = {xtmatch <- x[x[[pervar]] == i + 1,]},
-               previous = {xtmatch <- x[x[[pervar]] == i - 1,]},
-               fixedbase = {xtmatch <- x[x[[pervar]] == 1,]})
+               previous = {xtmatch <- x[x[[pervar]] == i - 1,]})
 
         # filter the products using the match period
         xt <- xt[xt[[prodID]] %in% unique(xtmatch[[prodID]]),]
@@ -111,7 +118,7 @@ values <- function(x, pvar, qvar, pervar, prodID, sample = "matched",
   }
 
   if(length(naElements)>0){
-    warning(paste0("The following elements of the index were set to NA because there were no matched products in the two comparison periods: ", naElements))
+    warning(paste0("The following elements of the values were set to NA because there were no products matched with the comparison period: ", naElements))
   }
 
   return(plist)
