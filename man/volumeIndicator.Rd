@@ -27,6 +27,19 @@ are "laspeyres", "paasche", "bennet", or "montgomery".}
 an nx1 matrix containing the indicator
 }
 \description{
-This computes an indicator of the change in volume,
-using the differences approach to measuring change.
+This calculates a volume indicator. This is calculated using the
+differences approach to index number theory, where the change
+in prices and quantities (volumes) from one period to the next is additive.
+Therefore, the change in total value is the sum of the change
+in prices and the change in quantities. Such a value decomposition
+can be obtained using \code{valueDecomposition}.
+
+See the vignette for more information on the calculations.
+
+\code{vignette(topic = "indexnumr", package = "IndexNumR")}
+}
+\examples{
+# compute a volume indicator using the Bennet method
+volumeIndicator(CES_sigma_2, pvar = "prices", qvar = "quantities",
+prodID = "prodID", pervar = "time", method = "bennet")
 }
