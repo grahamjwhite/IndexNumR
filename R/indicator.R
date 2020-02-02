@@ -88,7 +88,7 @@ indMontgomery_t <- function(p0, p1, q0, q1){
 #' @examples
 #' # compute a price indicator using the Montgomery method
 #' priceIndicator(CES_sigma_2, pvar = "prices", qvar = "quantities",
-#' prodID = "prodID", pervar = "time", method = "montgomery")
+#' prodID = "prodID", pervar = "time", priceMethod = "montgomery")
 priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
                            sample = "matched"){
 
@@ -182,7 +182,7 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 #' @param qvar character string for the name of the quantity column
 #' @param pervar character string for the name of the time period variable
 #' @param prodID character string for the name of the product ID column
-#' @param method character string for the indicator method. Valid options
+#' @param volumeMethod character string for the volume indicator method. Valid options
 #' are "laspeyres", "paasche", "bennet", or "montgomery".
 #' @param sample whether to use a matched sample (sample = "matched")
 #' @return an nx1 matrix containing the indicator
@@ -190,12 +190,12 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 #' @examples
 #' # compute a volume indicator using the Bennet method
 #' volumeIndicator(CES_sigma_2, pvar = "prices", qvar = "quantities",
-#' prodID = "prodID", pervar = "time", method = "bennet")
-volumeIndicator <- function(x, pvar, qvar, pervar, prodID, method,
+#' prodID = "prodID", pervar = "time", volumeMethod = "bennet")
+volumeIndicator <- function(x, pvar, qvar, pervar, prodID, volumeMethod,
                             sample = "matched"){
 
   # call priceIndicator and switch prices/quantites
-  priceIndicator(x, pvar = qvar, qvar = pvar, pervar, prodID, method,
+  priceIndicator(x, pvar = qvar, qvar = pvar, pervar, prodID, volumeMethod,
                  sample)
 
 }
@@ -212,7 +212,7 @@ volumeIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 #' @param qvar character string for the name of the quantity column
 #' @param pervar character string for the name of the time period variable
 #' @param prodID character string for the name of the product ID column
-#' @param method character string for the indicator method. Valid options
+#' @param priceMethod character string for the price indicator method. Valid options
 #' are "laspeyres", "paasche", "bennet", or "montgomery". This parameter also
 #' determines the method used for the volume indicator. If a laspeyres price
 #' indicator is chosen, then a paasche volume indicator is used.
@@ -227,7 +227,7 @@ volumeIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 #' # decompose the value changes in the CES_sigma_2 dataset using the Bennet method
 #' valueDecomposition(CES_sigma_2, pvar = "prices", qvar = "quantities",
 #' prodID = "prodID", pervar = "time", method = "bennet")
-valueDecomposition <- function(x, pvar, qvar, pervar, prodID, method,
+valueDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
                                   sample = "matched"){
 
   # initialise some things
@@ -235,10 +235,10 @@ valueDecomposition <- function(x, pvar, qvar, pervar, prodID, method,
   result <- matrix(NA, nrow = n, ncol = 4)
 
 
-  p <- priceIndicator(x, pvar, qvar, pervar, prodID, method,
+  p <- priceIndicator(x, pvar, qvar, pervar, prodID, priceMethod,
                       sample)
 
-  switch(method,
+  switch(priceMethod,
          laspeyres = {volumeMethod <- "paasche"},
          paasche = {volumeMethod <- "laspeyres"},
          bennet = {volumeMethod <- "bennet"},
