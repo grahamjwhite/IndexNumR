@@ -88,7 +88,7 @@ indMontgomery_t <- function(p0, p1, q0, q1){
 #' @examples
 #' # compute a price indicator using the Montgomery method
 #' priceIndicator(CES_sigma_2, pvar = "prices", qvar = "quantities",
-#' prodID = "prodID", pervar = "time", priceMethod = "montgomery")
+#' prodID = "prodID", pervar = "time", method = "montgomery")
 priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
                            sample = "matched"){
 
@@ -182,7 +182,7 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 #' @param qvar character string for the name of the quantity column
 #' @param pervar character string for the name of the time period variable
 #' @param prodID character string for the name of the product ID column
-#' @param quantityMethod character string for the quantity indicator method. Valid options
+#' @param method character string for the quantity indicator method. Valid options
 #' are "laspeyres", "paasche", "bennet", or "montgomery".
 #' @param sample whether to use a matched sample (sample = "matched")
 #' @return an nx1 matrix containing the indicator
@@ -190,7 +190,7 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 #' @examples
 #' # compute a quantity indicator using the Bennet method
 #' quantityIndicator(CES_sigma_2, pvar = "prices", qvar = "quantities",
-#' prodID = "prodID", pervar = "time", quantityMethod = "bennet")
+#' prodID = "prodID", pervar = "time", method = "bennet")
 quantityIndicator <- function(x, pvar, qvar, pervar, prodID, method,
                             sample = "matched"){
 
@@ -226,7 +226,7 @@ quantityIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 #' @examples
 #' # decompose the value changes in the CES_sigma_2 dataset using the Bennet method
 #' valueDecomposition(CES_sigma_2, pvar = "prices", qvar = "quantities",
-#' prodID = "prodID", pervar = "time", method = "bennet")
+#' prodID = "prodID", pervar = "time", priceMethod = "bennet")
 valueDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
                                   sample = "matched"){
 

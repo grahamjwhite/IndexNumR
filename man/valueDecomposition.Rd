@@ -41,5 +41,5 @@ equals the total value change.
 \examples{
 # decompose the value changes in the CES_sigma_2 dataset using the Bennet method
 valueDecomposition(CES_sigma_2, pvar = "prices", qvar = "quantities",
-prodID = "prodID", pervar = "time", method = "bennet")
+prodID = "prodID", pervar = "time", priceMethod = "bennet")
 }

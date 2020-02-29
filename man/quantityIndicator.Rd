@@ -18,10 +18,10 @@ quantityIndicator(x, pvar, qvar, pervar, prodID, method,
 
 \item{prodID}{character string for the name of the product ID column}
 
-\item{sample}{whether to use a matched sample (sample = "matched")}
-
-\item{quantityMethod}{character string for the quantity indicator method. Valid options
+\item{method}{character string for the quantity indicator method. Valid options
 are "laspeyres", "paasche", "bennet", or "montgomery".}
+
+\item{sample}{whether to use a matched sample (sample = "matched")}
 }
 \value{
 an nx1 matrix containing the indicator
@@ -41,5 +41,5 @@ See the vignette for more information on the calculations.
 \examples{
 # compute a quantity indicator using the Bennet method
 quantityIndicator(CES_sigma_2, pvar = "prices", qvar = "quantities",
-prodID = "prodID", pervar = "time", quantityMethod = "bennet")
+prodID = "prodID", pervar = "time", method = "bennet")
 }

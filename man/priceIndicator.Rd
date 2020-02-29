@@ -40,5 +40,5 @@ See the vignette for more information on the calculations.
 \examples{
 # compute a price indicator using the Montgomery method
 priceIndicator(CES_sigma_2, pvar = "prices", qvar = "quantities",
-prodID = "prodID", pervar = "time", priceMethod = "montgomery")
+prodID = "prodID", pervar = "time", method = "montgomery")
 }

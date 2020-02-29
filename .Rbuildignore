@@ -5,3 +5,4 @@
 ^cran-comments.md
 ^news.md
 ^revdep
+^codecov\.yml$
