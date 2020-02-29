@@ -148,6 +148,26 @@ lloydMoulton_tc <- function(p0,p1,q,sigma){
   return(sum((s1*((p1/p0)^-(1-sigma))))^(-1/(1-sigma)))
 }
 
+#' Geometric laspeyres index
+#'
+#' @keywords internal
+#' @noRd
+geomLaspeyres_t <- function(p0, p1, q0, q1){
+  exp0 <- sum(p0*q0)
+  s0 <- (p0*q0)/exp0
+  return(prod(p1/p0^s0))
+}
+
+#' Geometric paasche index
+#'
+#' @keywords internal
+#' @noRd
+geomPaasche_t <- function(p0, p1, q0, q1){
+  exp1 <- sum(p1*q1)
+  s1 <- (p1*q1)/exp1
+  return(prod(p1/p0^s1))
+}
+
 #' Computes a bilateral price index
 #'
 #' A function to compute a price index given data on products over time

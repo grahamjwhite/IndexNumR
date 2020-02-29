@@ -28,7 +28,7 @@ an nx1 matrix containing the indicator
 \description{
 This calculates a price indicator. This is calculated using the
 differences approach to index number theory, where the change
-in prices and quantities (volume) from one period to the next is additive.
+in prices and quantities from one period to the next is additive.
 Therefore, the change in total value is the sum of the change
 in prices and the change in quantities. Such a value decomposition
 can be obtained using \code{valueDecomposition}.
@@ -40,5 +40,5 @@ See the vignette for more information on the calculations.
 \examples{
 # compute a price indicator using the Montgomery method
 priceIndicator(CES_sigma_2, pvar = "prices", qvar = "quantities",
-prodID = "prodID", pervar = "time", method = "montgomery")
+prodID = "prodID", pervar = "time", priceMethod = "montgomery")
 }

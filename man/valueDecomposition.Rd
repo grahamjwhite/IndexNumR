@@ -4,7 +4,7 @@
 \alias{valueDecomposition}
 \title{valueDecomposition}
 \usage{
-valueDecomposition(x, pvar, qvar, pervar, prodID, method,
+valueDecomposition(x, pvar, qvar, pervar, prodID, priceMethod,
   sample = "matched")
 }
 \arguments{
@@ -18,24 +18,24 @@ valueDecomposition(x, pvar, qvar, pervar, prodID, method,
 
 \item{prodID}{character string for the name of the product ID column}
 
-\item{method}{character string for the indicator method. Valid options
+\item{priceMethod}{character string for the price indicator method. Valid options
 are "laspeyres", "paasche", "bennet", or "montgomery". This parameter also
-determines the method used for the volume indicator. If a laspeyres price
-indicator is chosen, then a paasche volume indicator is used.
-If a paasche price indicator is used then a laspeyres volume indicator
+determines the method used for the quantity indicator. If a laspeyres price
+indicator is chosen, then a paasche quantity indicator is used.
+If a paasche price indicator is used then a laspeyres quantity indicator
 is used. For bennet and montgomery indicators, the same method is
-used for both the price and volume indicators.}
+used for both the price and quantity indicators.}
 
 \item{sample}{whether to use a matched sample (sample = "matched")}
 }
 \value{
-a dataframe containing the price indicator, volume indicator
+a dataframe containing the price indicator, quantity indicator
 the value change and the value level.
 }
 \description{
 Perform a decomposition of value change using price
-and volume indicators. This is an additive decomposition
-so that change due to price plus change due to quantity (volume)
+and quantity indicators. This is an additive decomposition
+so that change due to price plus change due to quantity
 equals the total value change.
 }
 \examples{

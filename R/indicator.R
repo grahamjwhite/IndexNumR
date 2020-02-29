@@ -66,7 +66,7 @@ indMontgomery_t <- function(p0, p1, q0, q1){
 #' @description
 #' This calculates a price indicator. This is calculated using the
 #' differences approach to index number theory, where the change
-#' in prices and quantities (volume) from one period to the next is additive.
+#' in prices and quantities from one period to the next is additive.
 #' Therefore, the change in total value is the sum of the change
 #' in prices and the change in quantities. Such a value decomposition
 #' can be obtained using \code{valueDecomposition}.
@@ -163,12 +163,12 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 
 }
 
-#' Compute a volume indicator
+#' Compute a quantity indicator
 #'
 #' @description
-#' This calculates a volume indicator. This is calculated using the
+#' This calculates a quantity indicator. This is calculated using the
 #' differences approach to index number theory, where the change
-#' in prices and quantities (volumes) from one period to the next is additive.
+#' in prices and quantities from one period to the next is additive.
 #' Therefore, the change in total value is the sum of the change
 #' in prices and the change in quantities. Such a value decomposition
 #' can be obtained using \code{valueDecomposition}.
@@ -182,20 +182,20 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 #' @param qvar character string for the name of the quantity column
 #' @param pervar character string for the name of the time period variable
 #' @param prodID character string for the name of the product ID column
-#' @param volumeMethod character string for the volume indicator method. Valid options
+#' @param quantityMethod character string for the quantity indicator method. Valid options
 #' are "laspeyres", "paasche", "bennet", or "montgomery".
 #' @param sample whether to use a matched sample (sample = "matched")
 #' @return an nx1 matrix containing the indicator
 #' @export
 #' @examples
-#' # compute a volume indicator using the Bennet method
-#' volumeIndicator(CES_sigma_2, pvar = "prices", qvar = "quantities",
-#' prodID = "prodID", pervar = "time", volumeMethod = "bennet")
-volumeIndicator <- function(x, pvar, qvar, pervar, prodID, volumeMethod,
+#' # compute a quantity indicator using the Bennet method
+#' quantityIndicator(CES_sigma_2, pvar = "prices", qvar = "quantities",
+#' prodID = "prodID", pervar = "time", quantityMethod = "bennet")
+quantityIndicator <- function(x, pvar, qvar, pervar, prodID, method,
                             sample = "matched"){
 
   # call priceIndicator and switch prices/quantites
-  priceIndicator(x, pvar = qvar, qvar = pvar, pervar, prodID, volumeMethod,
+  priceIndicator(x, pvar = qvar, qvar = pvar, pervar, prodID, method,
                  sample)
 
 }
@@ -203,8 +203,8 @@ volumeIndicator <- function(x, pvar, qvar, pervar, prodID, volumeMethod,
 #' valueDecomposition
 #'
 #' Perform a decomposition of value change using price
-#' and volume indicators. This is an additive decomposition
-#' so that change due to price plus change due to quantity (volume)
+#' and quantity indicators. This is an additive decomposition
+#' so that change due to price plus change due to quantity
 #' equals the total value change.
 #'
 #' @param x data frame with input data
@@ -214,13 +214,13 @@ volumeIndicator <- function(x, pvar, qvar, pervar, prodID, volumeMethod,
 #' @param prodID character string for the name of the product ID column
 #' @param priceMethod character string for the price indicator method. Valid options
 #' are "laspeyres", "paasche", "bennet", or "montgomery". This parameter also
-#' determines the method used for the volume indicator. If a laspeyres price
-#' indicator is chosen, then a paasche volume indicator is used.
-#' If a paasche price indicator is used then a laspeyres volume indicator
+#' determines the method used for the quantity indicator. If a laspeyres price
+#' indicator is chosen, then a paasche quantity indicator is used.
+#' If a paasche price indicator is used then a laspeyres quantity indicator
 #' is used. For bennet and montgomery indicators, the same method is
-#' used for both the price and volume indicators.
+#' used for both the price and quantity indicators.
 #' @param sample whether to use a matched sample (sample = "matched")
-#' @return a dataframe containing the price indicator, volume indicator
+#' @return a dataframe containing the price indicator, quantity indicator
 #' the value change and the value level.
 #' @export
 #' @examples
@@ -239,12 +239,12 @@ valueDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
                       sample)
 
   switch(priceMethod,
-         laspeyres = {volumeMethod <- "paasche"},
-         paasche = {volumeMethod <- "laspeyres"},
-         bennet = {volumeMethod <- "bennet"},
-         montgomery = {volumeMethod <- "montgomery"})
+         laspeyres = {quantityMethod <- "paasche"},
+         paasche = {quantityMethod <- "laspeyres"},
+         bennet = {quantityMethod <- "bennet"},
+         montgomery = {quantityMethod <- "montgomery"})
 
-  v <- volumeIndicator(x, pvar, qvar, pervar, prodID, volumeMethod,
+  v <- quantityIndicator(x, pvar, qvar, pervar, prodID, quantityMethod,
                        sample)
 
   if(sample == "matched"){
@@ -257,7 +257,7 @@ valueDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
     for(i in 2:n){
       # price
       result[i,1] <- p[i,1]
-      #volume
+      #quantity
       result[i,2] <- v[i,1]
       # value change
       result[i,3] <- previousMatched[i,1] - nextMatched[i-1,1]
@@ -273,7 +273,7 @@ valueDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
     for(i in 2:n){
       # price
       result[i,1] <- p[i,1]
-      # volume
+      # quantity
       result[i,2] <- v[i,1]
       # value change
       result[i,3] <- value[i,1] - value[i-1,1]
@@ -283,7 +283,7 @@ valueDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
   }
 
   result <- as.data.frame(result)
-  colnames(result) <- c("price", "volume", "changes", "values")
+  colnames(result) <- c("price", "quantity", "changes", "values")
 
   return(result)
 

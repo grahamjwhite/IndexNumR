@@ -118,6 +118,19 @@ P(p^{t-1},p^{t}) = \frac{1}{N}\sum_{n=1}^{N}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\
 	P(p^{t-1},p^{t},q^{t}) = \frac{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t-1}_{n}q^{t}_{n}}
 \end{equation*}
 
+* Geometric Laspeyres index
+\begin{equation*}
+	P(p^{t-1},p^{t},q^{t-1}) = \prod_{n=1}^{N}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)^{s^{t-1}_{n}},
+\end{equation*}
+where $s^{t}_{n} = \frac{p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}$ is the share of period $t$ expenditure on good $n$.
+
+* Geometric Paasche index
+\begin{equation*}
+	P(p^{t-1},p^{t},q^{t}) = \prod_{n=1}^{N}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)^{s^{t}_{n}},
+\end{equation*}
+where $s^{t}_{n}$ is defined as above for the geometric laspeyres index.
+
+
 ### Superlative indexes
 
 * Fisher index [@fisher:1921],
@@ -128,9 +141,9 @@ where $P_{P}$ is the Paasche index and $P_{L}$ is the Laspeyres index. The Fishe
 
 * Tornqvist index [@torn:1936; @torntorn:1937],
 \begin{equation*}
-	P(p^{t-1},p^{t},q^{t-1},q^{t}) = \prod_{n=1}^{N}\left(\frac{p^{t}}{p^{t-1}}\right)^{\left(s^{t-1}_{n}+s^{t}_{n}\right)/2},
+	P(p^{t-1},p^{t},q^{t-1},q^{t}) = \prod_{n=1}^{N}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)^{\left(s^{t-1}_{n}+s^{t}_{n}\right)/2},
 \end{equation*}
-where $s^{t}_{n} = \frac{p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}$ is the share of period $t$ expenditure on good $n$.
+where $s^{t}_{n}$ is defined as above for the geometric laspeyres index.
 
 * Walsh index,
 \begin{equation*}
@@ -311,6 +324,64 @@ The splicing methods are used in this fashion to extend the series up to the fin
 ```{r} 
 GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = "tornqvist", window=11, splice = "mean")
 ```
+
+## The differences approach to index numbers
+
+The above index number methods are derived based on a ratio approach, which decomposes the value change from one period to the next into the product of a price index and a quantity index. An alternative approach is to decompose value change into the sum of a price indicator and a quantity indicator. The theory dates back to the 1920s, and an excellent paper on this approach has been written by Diewert [@diewert:2005]. There are a number of methods available for computing the indicator, and `IndexNumR` exposes the following, via the `priceIndicator` function:
+
+* Laspeyres indicator
+\begin{equation}
+  I(p^{t-1}, p^{t}) = \sum_{n=1}^{N}q_{n}^{t-1}\times(p_{n}^{t}-p_{n}^{t-1})
+\end{equation}
+
+* Paasche indicator
+\begin{equation}
+  I(p^{t-1}, p^{t}) = \sum_{n=1}^{N}q_{n}^{t}\times(p_{n}^{t}-p_{n}^{t-1})
+\end{equation}
+
+* Bennet indicator
+\begin{equation}
+  I(p^{t-1}, p^{t}) = \sum_{n=1}^{N} \frac{(q_{n}^{t}+q_{n}^{t-1})}{2} \times(p_{n}^{t}-p_{n}^{t-1})
+\end{equation}
+
+* Montgomery indicator
+\begin{equation}
+  I(p^{t-1}, p^{t}) = \sum_{n=1}^{N} \frac{p_{n}^{1}q_{n}^{1}+p_{n}^{0}q_{n}^{0}}{log(p_{n}^{1}q_{n}^{1}) - log(p_{n}^{0}q_{n}^{0})} \times\left(\frac{p_{n}^{1}}{p_{n}^{0}}\right)
+\end{equation}
+
+### Examples
+
+Price indicators for the `CES_sigma_2` dataset are as follows:
+
+```{r indicators}
+
+methods <- c("laspeyres", "paasche", "bennet", "montgomery")
+
+p <- lapply(methods, function(x) {priceIndicator(CES_sigma_2, 
+                                                 pvar = "prices", 
+                                                 qvar = "quantities", 
+                                                 pervar = "time", 
+                                                 prodID = "prodID", 
+                                                 method = x)})
+
+as.data.frame(p, col.names = methods)
+
+```
+
+Quantity indicators can also be produced using the same methods as outlined above via the `quantityIndicator` function. This allows for the value change from one period to the next to be decomposed into price and quantity movements. To facilitate this, `IndexNumR` contains the `valueDecomposition` function, which can be used as follows to produce a decomposition of the value change for CES_sigma_2 using a Bennet indicator:
+
+```{r value}
+
+valueDecomposition(CES_sigma_2, 
+                   pvar = "prices",  
+                   qvar = "quantities",  
+                   pervar = "time",  
+                   prodID = "prodID",  
+                   priceMethod = "bennet")
+
+```
+
+Note that for this decomposition, the method is specified for the price indicator and `IndexNumR` uses the appropriate quantity indicator. For Bennet and Montgomery indicators the same method is used for the quantity indicator as for the price indicator. If a Laspeyres indicator is requested for the price indicator then the corresponding volume indicator is a Paasche indicator. The reverse is true if the Paasche indicator is used for prices.  
 
 # Development
 
