@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+
 #' indLaspeyres_t
 #'
 #' @param p1 numeric vector of prices in period 1
@@ -62,7 +63,17 @@ indMontgomery_t <- function(p0, p1, q0, q1){
 
 #' Calculate a price indicator
 #'
-#' This calculates a price indicator
+#' @description
+#' This calculates a price indicator. This is calculated using the
+#' differences approach to index number theory, where the change
+#' in prices and quantities from one period to the next is additive.
+#' Therefore, the change in total value is the sum of the change
+#' in prices and the change in quantities. Such a value decomposition
+#' can be obtained using \code{valueDecomposition}.
+#'
+#' See the vignette for more information on the calculations.
+#'
+#' \code{vignette(topic = "indexnumr", package = "IndexNumR")}
 #'
 #' @param x data frame with input data
 #' @param pvar character string for the name of the price column
@@ -74,6 +85,10 @@ indMontgomery_t <- function(p0, p1, q0, q1){
 #' @param sample whether to use a matched sample (sample = "matched")
 #' @return an nx1 matrix containing the indicator
 #' @export
+#' @examples
+#' # compute a price indicator using the Montgomery method
+#' priceIndicator(CES_sigma_2, pvar = "prices", qvar = "quantities",
+#' prodID = "prodID", pervar = "time", method = "montgomery")
 priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
                            sample = "matched"){
 
@@ -103,7 +118,7 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 
   # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)
-  plist <- matrix(0, nrow = n, ncol = 1)
+  plist <- matrix(NA, nrow = n, ncol = 1)
   naElements <- character()
 
   # for each time period
@@ -148,22 +163,35 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 
 }
 
-#' Compute a volume indicator
+#' Compute a quantity indicator
 #'
-#' This computes an indicator of the change in volume,
-#' using the differences approach to measuring change.
+#' @description
+#' This calculates a quantity indicator. This is calculated using the
+#' differences approach to index number theory, where the change
+#' in prices and quantities from one period to the next is additive.
+#' Therefore, the change in total value is the sum of the change
+#' in prices and the change in quantities. Such a value decomposition
+#' can be obtained using \code{valueDecomposition}.
+#'
+#' See the vignette for more information on the calculations.
+#'
+#' \code{vignette(topic = "indexnumr", package = "IndexNumR")}
 #'
 #' @param x data frame with input data
 #' @param pvar character string for the name of the price column
 #' @param qvar character string for the name of the quantity column
 #' @param pervar character string for the name of the time period variable
 #' @param prodID character string for the name of the product ID column
-#' @param method character string for the indicator method. Valid options
+#' @param method character string for the quantity indicator method. Valid options
 #' are "laspeyres", "paasche", "bennet", or "montgomery".
 #' @param sample whether to use a matched sample (sample = "matched")
 #' @return an nx1 matrix containing the indicator
 #' @export
-volumeIndicator <- function(x, pvar, qvar, pervar, prodID, method,
+#' @examples
+#' # compute a quantity indicator using the Bennet method
+#' quantityIndicator(CES_sigma_2, pvar = "prices", qvar = "quantities",
+#' prodID = "prodID", pervar = "time", method = "bennet")
+quantityIndicator <- function(x, pvar, qvar, pervar, prodID, method,
                             sample = "matched"){
 
   # call priceIndicator and switch prices/quantites
@@ -172,28 +200,34 @@ volumeIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 
 }
 
-#' indicatorDecomposition
+#' valueDecomposition
 #'
 #' Perform a decomposition of value change using price
-#' and volume indicators.
+#' and quantity indicators. This is an additive decomposition
+#' so that change due to price plus change due to quantity
+#' equals the total value change.
 #'
 #' @param x data frame with input data
 #' @param pvar character string for the name of the price column
 #' @param qvar character string for the name of the quantity column
 #' @param pervar character string for the name of the time period variable
 #' @param prodID character string for the name of the product ID column
-#' @param priceMethod character string for the indicator method. Valid options
+#' @param priceMethod character string for the price indicator method. Valid options
 #' are "laspeyres", "paasche", "bennet", or "montgomery". This parameter also
-#' determines the method used for the volume indicator. If a laspeyres price
-#' indicator is chosen, then a paasche volume indicator is used.
-#' If a paasche price indicator is used then a laspeyres volume indicator
+#' determines the method used for the quantity indicator. If a laspeyres price
+#' indicator is chosen, then a paasche quantity indicator is used.
+#' If a paasche price indicator is used then a laspeyres quantity indicator
 #' is used. For bennet and montgomery indicators, the same method is
-#' used for both the price and volume indicators.
+#' used for both the price and quantity indicators.
 #' @param sample whether to use a matched sample (sample = "matched")
-#' @return a dataframe containing the price indicator, volume indicator
+#' @return a dataframe containing the price indicator, quantity indicator
 #' the value change and the value level.
 #' @export
-indicatorDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
+#' @examples
+#' # decompose the value changes in the CES_sigma_2 dataset using the Bennet method
+#' valueDecomposition(CES_sigma_2, pvar = "prices", qvar = "quantities",
+#' prodID = "prodID", pervar = "time", priceMethod = "bennet")
+valueDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
                                   sample = "matched"){
 
   # initialise some things
@@ -205,12 +239,12 @@ indicatorDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
                       sample)
 
   switch(priceMethod,
-         laspeyres = {volumeMethod <- "paasche"},
-         paasche = {volumeMethod <- "laspeyres"},
-         bennet = {volumeMethod <- "bennet"},
-         montgomery = {volumeMethod <- "montgomery"})
+         laspeyres = {quantityMethod <- "paasche"},
+         paasche = {quantityMethod <- "laspeyres"},
+         bennet = {quantityMethod <- "bennet"},
+         montgomery = {quantityMethod <- "montgomery"})
 
-  v <- volumeIndicator(x, pvar, qvar, pervar, prodID, volumeMethod,
+  v <- quantityIndicator(x, pvar, qvar, pervar, prodID, quantityMethod,
                        sample)
 
   if(sample == "matched"){
@@ -223,7 +257,7 @@ indicatorDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
     for(i in 2:n){
       # price
       result[i,1] <- p[i,1]
-      #volume
+      #quantity
       result[i,2] <- v[i,1]
       # value change
       result[i,3] <- previousMatched[i,1] - nextMatched[i-1,1]
@@ -239,7 +273,7 @@ indicatorDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
     for(i in 2:n){
       # price
       result[i,1] <- p[i,1]
-      # volume
+      # quantity
       result[i,2] <- v[i,1]
       # value change
       result[i,3] <- value[i,1] - value[i-1,1]
@@ -249,7 +283,8 @@ indicatorDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
   }
 
   result <- as.data.frame(result)
-  colnames(result) <- c("price", "volume", "changes", "values")
+  colnames(result) <- c("price", "quantity", "changes", "values")
 
   return(result)
+
 }

@@ -2,7 +2,9 @@
 title: "IndexNumR: A Package for Index Number Calculation"
 author: "Graham White"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    toc: true
 bibliography: "indexnumrbib.bib"
 vignette: >
   %\VignetteIndexEntry{IndexNumR: A Package for Index Number Calculation}
@@ -18,15 +20,16 @@ library(IndexNumR)
 
 *IndexNumR* is a package for computing indices of aggregate prices or quantities using information on the prices and quantities on multiple products over multiple time periods. Such numbers are routinely computed by statistical agencies to measure, for example, the general change in the level of prices, production inputs and productivity for an economy. Well known examples are consumer price indices and producer price indices.
 
-In recent years, advances have been made in index number theory to address biases in many well known and widely used index number methods. One potential solution to some of these problems is the adaptation of multilateral methods that have commonly been used in cross-sectional comparisons to the time series context. This involves more computational complexity than earlier methods, but generally requires similar inputs. *IndexNumR* provides functions that make it easy to estimate indices using common index number methods, as well as the multilateral GEKS method.   
+In recent years, advances have been made in index number theory to address biases in many well known and widely used index number methods. One potential solution to some of these problems is the adaptation of multilateral methods that have commonly been used in cross-sectional comparisons to the time series context. This involves more computational complexity than earlier methods, but generally requires similar inputs. *IndexNumR* provides functions that make it easy to estimate indices using common index number methods, as well as the GEKS multilateral method.   
 
 ## Packages providing related functionality
 
 * micEconIndex: produces price or quantity indices using the Paasche, Laspeyres or Fisher index methods.
-* multilaterals: provides multilateral indices for cross-section and panel data.Can also produce bilateral indices using Paasche, Laspeyres, Fisher and Tornqvist methods. 
+* multilaterals: provides multilateral indices for cross-section and panel data. Can also produce bilateral indices using Paasche, Laspeyres, Fisher and Tornqvist methods. 
 * productivity: calculates indices of productivity and profitability using common index number methods. 
+* IndexNumber: calculates Laspeyres, Paasche or Fisher indexes. 
 
-## Detailed description of *IndexNumR*
+# The *IndexNumR* package
 
 ## Data organisation
 
@@ -118,6 +121,19 @@ P(p^{t-1},p^{t}) = \frac{1}{N}\sum_{n=1}^{N}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\
 	P(p^{t-1},p^{t},q^{t}) = \frac{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t-1}_{n}q^{t}_{n}}
 \end{equation*}
 
+* Geometric Laspeyres index
+\begin{equation*}
+	P(p^{t-1},p^{t},q^{t-1}) = \prod_{n=1}^{N}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)^{s^{t-1}_{n}},
+\end{equation*}
+where $s^{t}_{n} = \frac{p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}$ is the share of period $t$ expenditure on good $n$.
+
+* Geometric Paasche index
+\begin{equation*}
+	P(p^{t-1},p^{t},q^{t}) = \prod_{n=1}^{N}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)^{s^{t}_{n}},
+\end{equation*}
+where $s^{t}_{n}$ is defined as above for the geometric laspeyres index.
+
+
 ### Superlative indexes
 
 * Fisher index [@fisher:1921],
@@ -128,9 +144,9 @@ where $P_{P}$ is the Paasche index and $P_{L}$ is the Laspeyres index. The Fishe
 
 * Tornqvist index [@torn:1936; @torntorn:1937],
 \begin{equation*}
-	P(p^{t-1},p^{t},q^{t-1},q^{t}) = \prod_{n=1}^{N}\left(\frac{p^{t}}{p^{t-1}}\right)^{\left(s^{t-1}_{n}+s^{t}_{n}\right)/2},
+	P(p^{t-1},p^{t},q^{t-1},q^{t}) = \prod_{n=1}^{N}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\right)^{\left(s^{t-1}_{n}+s^{t}_{n}\right)/2},
 \end{equation*}
-where $s^{t}_{n} = \frac{p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}$ is the share of period $t$ expenditure on good $n$.
+where $s^{t}_{n}$ is defined as above for the geometric laspeyres index.
 
 * Walsh index,
 \begin{equation*}
@@ -163,18 +179,32 @@ where $\sigma$ is the elasticity of substitution.
 To estimate a simple chained Laspeyres price index,
 
 ```{r}
-priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",pervar = "time",prodID = "prodID", indexMethod = "laspeyres", output = "chained")
+priceIndex(CES_sigma_2,
+           pvar = "prices",
+           qvar = "quantities",
+           pervar = "time",
+           prodID = "prodID", 
+           indexMethod = "laspeyres", 
+           output = "chained")
 ```
 
 Estimating multiple different index numbers on the same data is straight-forward,
 ```{r}
 methods <- c("laspeyres","paasche","fisher","tornqvist")
-prices <- lapply(methods, function(x) {priceIndex(CES_sigma_2,pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = x, output = "chained")})
+prices <- lapply(methods, 
+                 function(x) {priceIndex(CES_sigma_2,
+                                         pvar = "prices", 
+                                         qvar = "quantities", 
+                                         pervar = "time", 
+                                         prodID = "prodID", 
+                                         indexMethod = x, 
+                                         output = "chained")})
+
 as.data.frame(prices, col.names = methods)
 ```
 This illustrates the Laspeyres index's substantial positive bias, the Paasche index's substantial negative bias, and the similar estimates produced by the Fisher and Tornqvist superlative index numbers.   
 
-## Elasticity of substitution
+## The elasticity of substitution parameter
 
 The CES index number method requires an elasticity of substitution parameter in order to be calculated. *IndexNumR* provides a function `elasticity` to estimate the elasticity of substitution parameter, following the method of [@balk:2000]. The basic method is to solve for the value of the elasticity of substitution that equates the CES index to a comparison index. One comparison index noted by Balk is the 'current period' CES index,
 \begin{equation}
@@ -188,9 +218,16 @@ Therefore, we numerically calculate the value of $\sigma$ that solves,
 This is done using the `uniroot` function of the *stats* package distributed with base R. Note that this equation can be used to solve for sigma for any $t=2,\cdots,T$, so there are $T-1$ potential estimates of sigma. The `elasticity` function will return all $T-1$ estimates as well as the arithmetic mean of the estimates. In addition to the current period CES index, Balk also notes that the Sato-Vartia index can be used, while [@idf:2010] note that a Fisher index could be used. Any of these three indexes can be used as the comparison index by specifying the `compIndex` option as either `"fisher"`, `"ces"` or `"satovartia"`. The current period CES index is the default.    
 
 The dataset available with *IndexNumR*, CES_sigma_2, was calculated assuming a CES cost function with an elasticity of substitution equal to 2. Running the `elasticity` function on this dataset, 
+
 ```{r}
-elasticity(CES_sigma_2, pvar="prices",qvar="quantities",pervar="time",prodID="prodID",compIndex="ces")
+elasticity(CES_sigma_2, 
+           pvar="prices",
+           qvar="quantities",
+           pervar="time",
+           prodID="prodID",
+           compIndex="ces")
 ```
+
 which recovers the value of $\sigma$ used to construct the dataset. There is one additional item of output labelled 'diff'. This is the value of the difference between the CES index and the comparison index and is returned so that the user can check that the value of this difference is indeed zero. If it is non-zero then it may indicate that `uniroot` was not able to find a solution, within the specified upper and lower bounds for $\sigma$. These bounds can be changed with the options `upper` and `lower` of the `elasticity` function. The defaults are 20 and -20 respectively.   
 
 ## Chain-linked indices and the linking period problem
@@ -245,7 +282,14 @@ Once these have been computed, the function `maximiumSimilarityLinks` can take t
 Using the log-quadratic measure of relative dissimilarity, the dissimilarity between the periods in the `CES_sigma_2` dataset is as follows,
 
 ```{r}
-lq <- relativeDissimilarity(CES_sigma_2, pvar="prices", qvar="quantities", pervar = "time", prodID = "prodID", indexMethod = "fisher", similarityMethod = "logquadratic")
+lq <- relativeDissimilarity(CES_sigma_2, 
+                            pvar="prices", 
+                            qvar="quantities", 
+                            pervar = "time", 
+                            prodID = "prodID", 
+                            indexMethod = "fisher", 
+                            similarityMethod = "logquadratic")
+
 head(lq)
 ```
 
@@ -258,13 +302,24 @@ maximumSimilarityLinks(lq)
 To estimate a chained Laspeyres index linking together the periods with maximum similarity as estimated above,
 
 ```{r}
-priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",pervar = "time",prodID = "prodID", indexMethod = "laspeyres", output = "chained", chainMethod = "logquadratic")
+priceIndex(CES_sigma_2,
+           pvar = "prices",
+           qvar = "quantities",
+           pervar = "time",
+           prodID = "prodID", 
+           indexMethod = "laspeyres", 
+           output = "chained", 
+           chainMethod = "logquadratic")
 ```
 
 
 ## Multilateral index numbers
 
-Multilateral index number methods use data from multiple periods to compute each term in the index. *IndexNumR* provides the function `GEKSIndex` to use the GEKS multilateral index number method. The GEKS method is attributable to Gini [@gini:1931], Eltito and Koves [@ek:1964], and Szulc [@szulc:1964] in the cross-sectional context. The idea of adapting the method to the time series context is due to Balk [@balk:1981], and developed further by Ivancic, Diewert and Fox [@idf:2011]. 
+Multilateral index number methods use data from multiple periods to compute each term in the index. *IndexNumR* provides the function `GEKSIndex` to use the GEKS multilateral index number method. 
+
+### The GEKS method
+
+The GEKS method is attributable to Gini [@gini:1931], Eltito and Koves [@ek:1964], and Szulc [@szulc:1964] in the cross-sectional context. The idea of adapting the method to the time series context is due to Balk [@balk:1981], and developed further by Ivancic, Diewert and Fox [@idf:2011]. 
 
 The user must choose the size of the window over which to apply the GEKS method, typically one or two years of data plus one period to account for seasonality. Denote this as $w$.The basic method followed by the function `GEKSIndex` is as follows. Choose a period, denoted period $k$, within the window as the base period. Calculate a bilateral index number between period $k$ and every other period in the window.  Repeat this for all possible choices of $k$. This gives a matrix of size $w\times w$ of bilateral indexes between all possible pairs of periods within the window. Then compute the GEKS indexes for the first $w$ periods as, 
 \begin{equation}
@@ -278,7 +333,7 @@ where the term $P^{k,t}$ is the bilateral index between period $t$ and base peri
   P^{w,1} & \cdots & P^{w,w}
 \end{pmatrix}
 \]
-So that the first term of the GEKS index is the geometric mean of the elements in the first column of the above matrix, the second term is the geometric mean of the second column, and so on. Note that `IndexNumR` makes use of two facts about the matrix above to speed up computation: it is (inversely) symmetric so that $P^{j,k} = 1/P^{k,j}$; and the diagonal elements are 1. 
+So that the first term of the GEKS index is the geometric mean of the elements in the first column of the above matrix, the second term is the geometric mean of the second column, and so on. Note that *IndexNumR* makes use of two facts about the matrix above to speed up computation: it is (inversely) symmetric so that $P^{j,k} = 1/P^{k,j}$; and the diagonal elements are 1. 
 
 The indexes are then normalised by dividing by the first term, to give an index for the first $w$ periods that starts at 1. If the index only covers $w$ periods then no further calculation is required. However, if there are $T>w$ periods in the dataset then the index must be extended.  
 
@@ -309,8 +364,73 @@ The mean splice uses the geometric mean of the movements between the last period
 The splicing methods are used in this fashion to extend the series up to the final period in the data. 
 
 ```{r} 
-GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = "tornqvist", window=11, splice = "mean")
+GEKSIndex(CES_sigma_2, 
+          pvar = "prices", 
+          qvar = "quantities", 
+          pervar = "time", 
+          prodID = "prodID", 
+          indexMethod = "tornqvist", 
+          window=11, 
+          splice = "mean")
 ```
+
+## The differences approach to index numbers
+
+The above index number methods are derived based on a ratio approach, which decomposes the value change from one period to the next into the product of a price index and a quantity index. An alternative approach is to decompose value change into the sum of a price indicator and a quantity indicator. The theory dates back to the 1920s, and an excellent paper on this approach has been written by Diewert [@diewert:2005]. There are a number of methods available for computing the indicator, and *IndexNumR* exposes the following, via the `priceIndicator` function:
+
+* Laspeyres indicator
+\begin{equation}
+  I(p^{t-1}, p^{t}) = \sum_{n=1}^{N}q_{n}^{t-1}\times(p_{n}^{t}-p_{n}^{t-1})
+\end{equation}
+
+* Paasche indicator
+\begin{equation}
+  I(p^{t-1}, p^{t}) = \sum_{n=1}^{N}q_{n}^{t}\times(p_{n}^{t}-p_{n}^{t-1})
+\end{equation}
+
+* Bennet indicator [@bennet:1920]
+\begin{equation}
+  I(p^{t-1}, p^{t}) = \sum_{n=1}^{N} \frac{(q_{n}^{t}+q_{n}^{t-1})}{2} \times(p_{n}^{t}-p_{n}^{t-1})
+\end{equation}
+
+* Montgomery indicator [@montgomery:1929]
+\begin{equation}
+  I(p^{t-1}, p^{t}) = \sum_{n=1}^{N} \frac{p_{n}^{t}q_{n}^{t}+p_{n}^{t-1}q_{n}^{t-1}}{log(p_{n}^{t}q_{n}^{t}) - log(p_{n}^{t-1}q_{n}^{t-1})} \times\left(\frac{p_{n}^{t}}{p_{n}^{t-1}}\right)
+\end{equation}
+
+### Examples
+
+Price indicators for the `CES_sigma_2` dataset are as follows:
+
+```{r indicators}
+
+methods <- c("laspeyres", "paasche", "bennet", "montgomery")
+
+p <- lapply(methods, function(x) {priceIndicator(CES_sigma_2, 
+                                                 pvar = "prices", 
+                                                 qvar = "quantities", 
+                                                 pervar = "time", 
+                                                 prodID = "prodID", 
+                                                 method = x)})
+
+as.data.frame(p, col.names = methods)
+
+```
+
+Quantity indicators can also be produced using the same methods as outlined above via the `quantityIndicator` function. This allows for the value change from one period to the next to be decomposed into price and quantity movements. To facilitate this, *IndexNumR* contains the `valueDecomposition` function, which can be used as follows to produce a decomposition of the value change for CES_sigma_2 using a Bennet indicator:
+
+```{r value}
+
+valueDecomposition(CES_sigma_2, 
+                   pvar = "prices",  
+                   qvar = "quantities",  
+                   pervar = "time",  
+                   prodID = "prodID",  
+                   priceMethod = "bennet")
+
+```
+
+Note that for this decomposition, the method is specified for the price indicator and *IndexNumR* uses the appropriate quantity indicator. For Bennet and Montgomery indicators the same method is used for the quantity indicator as for the price indicator. If a Laspeyres price indicator is requested  then the corresponding volume indicator is a Paasche indicator. The reverse is true if the Paasche indicator is used for prices.  
 
 # Development
 

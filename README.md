@@ -1,8 +1,14 @@
 # IndexNumR
 
+<!-- badges: start -->
+
 [![Build Status](https://travis-ci.org/grahamjwhite/IndexNumR.svg?branch=master)](https://travis-ci.org/grahamjwhite/IndexNumR)
 
+[![Codecov test coverage](https://codecov.io/gh/grahamjwhite/IndexNumR/branch/master/graph/badge.svg)](https://codecov.io/gh/grahamjwhite/IndexNumR?branch=master)
+
 [![Rdoc](http://www.rdocumentation.org/badges/version/IndexNumR)](http://www.rdocumentation.org/packages/IndexNumR)
+
+<!-- badges: end -->
 
 An R package for computation of index numbers
 
