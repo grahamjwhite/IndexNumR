@@ -6,3 +6,5 @@
 ^news.md
 ^revdep
 ^codecov\.yml$
+^doc$
+^Meta$

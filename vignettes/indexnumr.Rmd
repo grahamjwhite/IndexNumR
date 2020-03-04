@@ -29,7 +29,7 @@ In recent years, advances have been made in index number theory to address biase
 * productivity: calculates indices of productivity and profitability using common index number methods. 
 * IndexNumber: calculates Laspeyres, Paasche or Fisher indexes. 
 
-# Detailed description of *IndexNumR*
+# The *IndexNumR* package
 
 ## Data organisation
 
@@ -333,7 +333,7 @@ where the term $P^{k,t}$ is the bilateral index between period $t$ and base peri
   P^{w,1} & \cdots & P^{w,w}
 \end{pmatrix}
 \]
-So that the first term of the GEKS index is the geometric mean of the elements in the first column of the above matrix, the second term is the geometric mean of the second column, and so on. Note that `IndexNumR` makes use of two facts about the matrix above to speed up computation: it is (inversely) symmetric so that $P^{j,k} = 1/P^{k,j}$; and the diagonal elements are 1. 
+So that the first term of the GEKS index is the geometric mean of the elements in the first column of the above matrix, the second term is the geometric mean of the second column, and so on. Note that *IndexNumR* makes use of two facts about the matrix above to speed up computation: it is (inversely) symmetric so that $P^{j,k} = 1/P^{k,j}$; and the diagonal elements are 1. 
 
 The indexes are then normalised by dividing by the first term, to give an index for the first $w$ periods that starts at 1. If the index only covers $w$ periods then no further calculation is required. However, if there are $T>w$ periods in the dataset then the index must be extended.  
 
@@ -376,7 +376,7 @@ GEKSIndex(CES_sigma_2,
 
 ## The differences approach to index numbers
 
-The above index number methods are derived based on a ratio approach, which decomposes the value change from one period to the next into the product of a price index and a quantity index. An alternative approach is to decompose value change into the sum of a price indicator and a quantity indicator. The theory dates back to the 1920s, and an excellent paper on this approach has been written by Diewert [@diewert:2005]. There are a number of methods available for computing the indicator, and `IndexNumR` exposes the following, via the `priceIndicator` function:
+The above index number methods are derived based on a ratio approach, which decomposes the value change from one period to the next into the product of a price index and a quantity index. An alternative approach is to decompose value change into the sum of a price indicator and a quantity indicator. The theory dates back to the 1920s, and an excellent paper on this approach has been written by Diewert [@diewert:2005]. There are a number of methods available for computing the indicator, and *IndexNumR* exposes the following, via the `priceIndicator` function:
 
 * Laspeyres indicator
 \begin{equation}
@@ -388,14 +388,14 @@ The above index number methods are derived based on a ratio approach, which deco
   I(p^{t-1}, p^{t}) = \sum_{n=1}^{N}q_{n}^{t}\times(p_{n}^{t}-p_{n}^{t-1})
 \end{equation}
 
-* Bennet indicator
+* Bennet indicator [@bennet:1920]
 \begin{equation}
   I(p^{t-1}, p^{t}) = \sum_{n=1}^{N} \frac{(q_{n}^{t}+q_{n}^{t-1})}{2} \times(p_{n}^{t}-p_{n}^{t-1})
 \end{equation}
 
-* Montgomery indicator
+* Montgomery indicator [@montgomery:1929]
 \begin{equation}
-  I(p^{t-1}, p^{t}) = \sum_{n=1}^{N} \frac{p_{n}^{1}q_{n}^{1}+p_{n}^{0}q_{n}^{0}}{log(p_{n}^{1}q_{n}^{1}) - log(p_{n}^{0}q_{n}^{0})} \times\left(\frac{p_{n}^{1}}{p_{n}^{0}}\right)
+  I(p^{t-1}, p^{t}) = \sum_{n=1}^{N} \frac{p_{n}^{t}q_{n}^{t}+p_{n}^{t-1}q_{n}^{t-1}}{log(p_{n}^{t}q_{n}^{t}) - log(p_{n}^{t-1}q_{n}^{t-1})} \times\left(\frac{p_{n}^{t}}{p_{n}^{t-1}}\right)
 \end{equation}
 
 ### Examples
@@ -417,7 +417,7 @@ as.data.frame(p, col.names = methods)
 
 ```
 
-Quantity indicators can also be produced using the same methods as outlined above via the `quantityIndicator` function. This allows for the value change from one period to the next to be decomposed into price and quantity movements. To facilitate this, `IndexNumR` contains the `valueDecomposition` function, which can be used as follows to produce a decomposition of the value change for CES_sigma_2 using a Bennet indicator:
+Quantity indicators can also be produced using the same methods as outlined above via the `quantityIndicator` function. This allows for the value change from one period to the next to be decomposed into price and quantity movements. To facilitate this, *IndexNumR* contains the `valueDecomposition` function, which can be used as follows to produce a decomposition of the value change for CES_sigma_2 using a Bennet indicator:
 
 ```{r value}
 
@@ -430,7 +430,7 @@ valueDecomposition(CES_sigma_2,
 
 ```
 
-Note that for this decomposition, the method is specified for the price indicator and `IndexNumR` uses the appropriate quantity indicator. For Bennet and Montgomery indicators the same method is used for the quantity indicator as for the price indicator. If a Laspeyres price indicator is requested  then the corresponding volume indicator is a Paasche indicator. The reverse is true if the Paasche indicator is used for prices.  
+Note that for this decomposition, the method is specified for the price indicator and *IndexNumR* uses the appropriate quantity indicator. For Bennet and Montgomery indicators the same method is used for the quantity indicator as for the price indicator. If a Laspeyres price indicator is requested  then the corresponding volume indicator is a Paasche indicator. The reverse is true if the Paasche indicator is used for prices.  
 
 # Development
 
