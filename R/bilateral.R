@@ -155,7 +155,7 @@ lloydMoulton_tc <- function(p0,p1,q,sigma){
 geomLaspeyres_t <- function(p0, p1, q0, q1){
   exp0 <- sum(p0*q0)
   s0 <- (p0*q0)/exp0
-  return(prod(p1/p0^s0))
+  return(prod((p1/p0)^s0))
 }
 
 #' Geometric paasche index
@@ -165,7 +165,7 @@ geomLaspeyres_t <- function(p0, p1, q0, q1){
 geomPaasche_t <- function(p0, p1, q0, q1){
   exp1 <- sum(p1*q1)
   s1 <- (p1*q1)/exp1
-  return(prod(p1/p0^s1))
+  return(prod((p1/p0)^s1))
 }
 
 #' Computes a bilateral price index
@@ -182,7 +182,7 @@ geomPaasche_t <- function(p0, p1, q0, q1){
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
 #' number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-#' harmonic, tornqvist, satovartia, walsh and CES.
+#' harmonic, tornqvist, satovartia, walsh, CES, geomLaspeyres and geomPaasche.
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
 #' @param output A character string specifying whether a chained (output="chained")
@@ -214,13 +214,15 @@ geomPaasche_t <- function(p0, p1, q0, q1){
 #' prodID = "prodID", indexMethod = "tornqvist", output="chained",
 #' chainMethod = "logquadratic")
 #' @export
-priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
-                       sample="matched",output="pop",chainMethod="pop",
-                       sigma=1.0001, ...){
+priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
+                       sample = "matched", output = "pop", chainMethod = "pop",
+                       sigma = 1.0001, ...){
 
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
-                    "paasche","fisher","tornqvist","satovartia","walsh","ces")
+                    "paasche","fisher","tornqvist","satovartia","walsh","ces",
+                    "geomlaspeyres", "geompaasche")
+
   if(!(tolower(indexMethod) %in% validMethods)){
     stop("Not a valid index number method.")
   }
@@ -325,7 +327,9 @@ priceIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres",prodID,
              tornqvist = {plist[i,1] <- tornqvist_t(p0,p1,q0,q1)},
              satovartia = {plist[i,1] <- satoVartia_t(p0,p1,q0,q1)},
              walsh = {plist[i,1] <- walsh_t(p0,p1,q0,q1)},
-             ces = {plist[i,1] <- lloydMoulton_t0(p0,p1,q0,sigma = sigma)}
+             ces = {plist[i,1] <- lloydMoulton_t0(p0,p1,q0,sigma = sigma)},
+             geomlaspeyres = {plist[i,1] <- geomLaspeyres_t(p0, p1, q0, q1)},
+             geompaasche = {plist[i,1] <- geomPaasche_t(p0, p1, q0, q1)}
       )
 
       # if similarity chain linking then multiply the index by the link period index
