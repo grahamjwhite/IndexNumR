@@ -218,11 +218,7 @@ geomPaasche_t <- function(p0, p1, q0, q1){
 #' @export
 priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                        sample = "matched", output = "pop", chainMethod = "pop",
-<<<<<<< HEAD
                        sigma = 1.0001, dates = NA, ...){
-=======
-                       sigma = 1.0001, ...){
->>>>>>> master
 
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
