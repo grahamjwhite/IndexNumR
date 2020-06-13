@@ -115,7 +115,7 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 #' are removed prior to estimating the index for those periods.
 #' @param window An integer specifying the length of the GEKS window.
 #' @param splice A character string specifying the splicing method. Valid methods are
-#' window, movement or mean. The default is mean.
+#' window, movement, half or mean. The default is mean.
 #' @details The splicing methods are used to update the price index when new data become
 #' available without changing prior index values. The window and movement splicing methods
 #' first calculate an 'update factor' by calculating the ratio of the final index value
@@ -232,30 +232,69 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
   return(pGEKS)
 }
 
-# function to pass the correct values to splice helper functions
-splice_t <- function(x,oldGEK,newGEK,method="mean"){
-  switch(method,
-         movement = {pt <- x*splice(length(newGEK)-1,oldGEK,newGEK)},
-         window = {pt <- x*splice(1,oldGEK,newGEK)},
-         mean = {pt <- x*meanSplice(oldGEK,newGEK)},
-         half = {pt <- x*splice(length((newGEK)-1)/2,oldGEK, newGEK)}
-  )
+
+#' function to calculate the new spliced datapoint
+#'
+#' This function passes the right values to the
+#' splice function for the different types of splicing method.
+#'
+#' @param x the base by which we multiply the splice factor to
+#' get the new point. Usually this is the last period of the old
+#' window.
+#' @param oldWindow the previously computed window (i.e. the last w
+#' periods of the index that we are extending).
+#' @param newWindow the new window computed in order to extend the index
+#' @param method the splicing method to use. Possible options are
+#' 'movement', 'window', 'mean', 'half', or a number representing
+#' the period to use for the splice.
+#' @keywords internal
+#' @noRd
+splice_t <- function(x, oldWindow, newWindow, method="mean"){
+
+  if(is.numeric(method)){
+    pt <- x*splice(method, oldWindow, newWindow)
+  }
+  else {
+    switch(method,
+           movement = {pt <- x*splice(length(newWindow)-1, oldWindow, newWindow)},
+           window = {pt <- x*splice(1, oldWindow, newWindow)},
+           mean = {pt <- x*meanSplice(oldWindow, newWindow)},
+           half = {pt <- x*splice(length((newWindow)-1)/2, oldWindow, newWindow)}
+    )
+  }
+
   return(pt)
 }
 
-# generic function to compute the splice factor for any overlapping period
-splice <- function(period, oldGEK, newGEK){
-  w <- length(newGEK)
-  spliceFactor <- (newGEK[w]/newGEK[period])/(oldGEK[w]/oldGEK[period+1])
+
+#' compute the splice factor for any given overlapping period
+#'
+#' @param period the period to use for the overlap
+#' @param oldWindow the old window
+#' @param newWindow the new window
+#' @keywords internal
+#' @noRd
+splice <- function(period, oldWindow, newWindow){
+  w <- length(newWindow)
+  spliceFactor <- (newWindow[w]/newWindow[period])/(oldWindow[w]/oldWindow[period+1])
 }
 
-# mean splicing using the geometric mean of all overlapping periods
-meanSplice <- function(oldGEK,newGEK){
-  w <- length(newGEK)
+
+#' mean splicing using the geometric mean of all overlapping periods
+#'
+#' This is wrapper around \code{splice} to use the geometric mean
+#' of all possible combinations of overlap period.
+#'
+#' @param oldWindow the old window
+#' @param newWindow the new window
+#' @keywords internal
+#' @noRd
+meanSplice <- function(oldWindow, newWindow){
+  w <- length(newWindow)
   pvector <- matrix(0,nrow=w-1,ncol=1)
 
   for(l in 1:(w-1)){
-    pvector[l,1] <- splice(l, oldGEK, newGEK)
+    pvector[l,1] <- splice(l, oldWindow, newWindow)
   }
   return(geomean(pvector))
 }
