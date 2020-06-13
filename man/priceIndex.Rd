@@ -22,7 +22,7 @@ There may be observations on multiple products for each time period.}
 
 \item{indexMethod}{A character string to select the index number method. Valid index
 number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-harmonic, tornqvist, satovartia, walsh and CES.}
+harmonic, tornqvist, satovartia, walsh, CES, geomLaspeyres and geomPaasche.}
 
 \item{prodID}{A character string for the name of the product identifier}
 

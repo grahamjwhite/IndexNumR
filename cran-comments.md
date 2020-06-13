@@ -1,13 +1,15 @@
-## Package update 0.1.1 -> 0.1.2
+## Placeholder
 
-- monthIndex() performance improvements
-- matched samples now handle the case where there are no matches
-for both bilateral and multilateral indices. 
+### Improvements
+ 
+
+### Bug fixes
+
 
 ## Test environments
 
-* local Windows 10 Pro install, R version 3.6.1 and R-devel
-* Ubuntu 14.04.5 (on travis-ci), R version 3.6.0
+* local Windows 10 Pro install, R version 3.6.2 and R-devel
+* Ubuntu 16.04.6 (on travis-ci), R version 3.6.2
 
 ## R CMD check results
 0 errors v | 0 warnings v | 0 notes v 
