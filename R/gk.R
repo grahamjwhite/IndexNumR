@@ -4,11 +4,14 @@
 #' This is not exposed to the user since it only computes
 #' part of the index, and is called by GKIndex().
 #' @keywords internal
+#' @noRd
 gk_w <- function(x,pvar,qvar,pervar,prodID) {
 
   # set up some variables
+  # list of time periods
+  pers <- unique(x[[pervar]])
   # total time periods
-  obs <- max(x[[pervar]])
+  obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
   # list of products
   prods <- unique(x[[prodID]])
   # total number of products
@@ -30,7 +33,7 @@ gk_w <- function(x,pvar,qvar,pervar,prodID) {
 
     for(j in 1:obs){
 
-      qtemp <- temp[temp[[pervar]] == j,]
+      qtemp <- temp[temp[[pervar]] == pers[j],]
       # if the product doesn't exist then quantity
       # and expenditure = 0, else take qvar and pvar*qvar
       if(nrow(qtemp) == 0){
@@ -82,7 +85,7 @@ gk_w <- function(x,pvar,qvar,pervar,prodID) {
   pindex <- matrix(0, nrow = obs, ncol = 1)
   for(i in 1:obs){
 
-    temp <- x[x[[pervar]] == i,]
+    temp <- x[x[[pervar]] == pers[i],]
 
     pindex[i,1] <- (temp[[pvar]]%*%temp[[qvar]])/(t(b)%*%temp[[qvar]])
 
@@ -105,10 +108,11 @@ gk_w <- function(x,pvar,qvar,pervar,prodID) {
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
 #' There may be observations on multiple products for each time period.
 #' @param prodID A character string for the name of the product identifier
+#' @param window An integer specifying the length of the GEKS window.
 #' @param splice the splicing method to use to extend the index. Valid methods are
 #' window, movement, half or mean. The default is mean.
 #' @export
-GKIndex <- function(x, pvar, qvar, pervar, prodID){
+GKIndex <- function(x, pvar, qvar, pervar, prodID, window, splice = "mean"){
 
   # check valid column names are given
   colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
@@ -127,8 +131,8 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID){
   x <- checkTypes(x, pvar, qvar, pervar)
 
   # get the number of periods
-  n <- max(x[[pervar]],na.rm = TRUE)
-  if(n<window){
+  n <- max(x[[pervar]], na.rm = TRUE)
+  if(n < window){
     stop("The window length exceeds the number of periods in the data")
   }
 
@@ -147,7 +151,7 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID){
   pGK[1:window,1] <- gk_w(xWindow, pvar, qvar, pervar, prodID)
 
   # use a splicing method to compute the rest of the index
-  if(n>window){
+  if(n > window){
     for(i in 2:(n-window+1)){
       # set the old window
       if(i==2){

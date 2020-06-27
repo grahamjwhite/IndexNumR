@@ -22,6 +22,7 @@
 #' The window size is assumed to be the number of periods available in pervar.
 #' This is not exposed to the user because GEKSIndex calls this
 #' @keywords internal
+#' @noRd
 GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
                    sample="matched"){
 
