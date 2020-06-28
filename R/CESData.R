@@ -73,9 +73,11 @@ CESData <- function(sigma){
   }
 
   retVal <- data.frame(time = rep(1:12, 4),
-                       prodID = c(rep(1, 12), rep(2, 12), rep(3, 12), rep(4, 12)),
                        prices = pLong,
-                       quantities = qLong)
+                       quantities = qLong,
+                       prodID = c(rep(1, 12), rep(2, 12), rep(3, 12), rep(4, 12)))
+
+
 
   return(retVal)
 
