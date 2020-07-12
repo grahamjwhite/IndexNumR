@@ -20,7 +20,7 @@ library(IndexNumR)
 
 *IndexNumR* is a package for computing indices of aggregate prices or quantities using information on the prices and quantities on multiple products over multiple time periods. Such numbers are routinely computed by statistical agencies to measure, for example, the general change in the level of prices, production inputs and productivity for an economy. Well known examples are consumer price indices and producer price indices.
 
-In recent years, advances have been made in index number theory to address biases in many well known and widely used index number methods. One potential solution to some of these problems is the adaptation of multilateral methods that have commonly been used in cross-sectional comparisons to the time series context. This involves more computational complexity than earlier methods, but generally requires similar inputs. *IndexNumR* provides functions that make it easy to estimate indices using common index number methods, as well as the GEKS multilateral method.   
+In recent years, advances have been made in index number theory to address biases in many well known and widely used index number methods. One potential solution to some of these problems is the adaptation of multilateral methods that have commonly been used in cross-sectional comparisons to the time series context. This involves more computational complexity than earlier methods, but generally requires similar inputs. *IndexNumR* provides functions that make it easy to estimate indices using common index number methods, as well as multilateral methods.   
 
 ## Packages providing related functionality
 
@@ -37,14 +37,14 @@ This first section covers the inputs into the main index number functions and ho
 
 ### Index number input dataframe
 
-The index number functions `priceIndex`, `quantityIndex` and `GEKSIndex` all take a dataframe as their first argument. This dataframe should contain everything needed to compute the index. In general this includes columns for,
+The index number functions such as `priceIndex`, `quantityIndex` and `GEKSIndex` all take a dataframe as their first argument. This dataframe should contain everything needed to compute the index. In general this includes columns for,
 
 * prices
 * quantities
 * a time period variable (more on this below)
 * a product identifier that uniquely identifies each product.
 
-The dataframe must have column names, since character strings are used in other arguments to the index number functions to specify which columns contain the data listed above. Column names can be set with the `colnames` function of base R. The dataset CES_sigma_2 is an example of the minimum dataframe required to compute an index.  
+The dataframe must have column names, since character strings are used in other arguments to the index number functions to specify which columns contain the data listed above. Column names can be set with the `colnames` function of base R. The sample dataset CES_sigma_2 is an example of the minimum dataframe required to compute an index.  
 
 ```{r}
 head(CES_sigma_2)
@@ -74,6 +74,56 @@ A related issue is that of aggregating data collected at some higher frequency, 
   UV_{t} = \frac{\sum_{i=1}^{N}p^{t}_{n}q^{t}_{n}}{\sum_{i=1}^{N}q^{t}_{n}}
 \end{equation}
 That is, sum up total expenditure on each item over the required period, and divide by the total quantity. Provided that a time period variable as described above is available, the unit values can be computed using the function `unitValues`. This function returns the unit values, along with the aggregate quantities for each time period and each product. The output will also include the product identifier and time period variable so the output dataframe from the `unitvalues` function contains everything needed to compute an index number.  
+
+## Sample data
+
+*IndexNumR* provides a sample dataset, `CES_sigma_2` that contains prices and quantities on four products over twelve time periods that are consistent with consumers displaying CES preferences with an elasticity of substitution equal to two. This dataset is calculated using the method described in [@df:2017]. We start with prices for each of $n$ products in each of $T$ time periods, an n-dimensional vector of preference parameters $\alpha$, and a T-dimensional vector of total expenditures. Then calculate the expenditure shares for each product in each time period using,
+
+\begin{equation}
+  s_{tn} = \frac{\alpha_{n}p_{tn}^{1-\sigma}}{\sum_{n=1}^{N}\alpha_{n}p_{tn}^{1-\sigma}}
+\end{equation}
+and use these to calculate the quantities,
+
+\begin{equation}
+  q_{tn} = \frac{e_{tn}s_{tn}}{p_{tn}}
+\end{equation}
+
+*IndexNumR* provides the function `CESData` to produce CES datasets as above for any elasticity of substitution $\sigma$, using the prices, $\alpha$, and expenditure values assumed in [@df:2017], reproduced below.
+
+\begin{equation}
+  \alpha = \begin{bmatrix} 0.2 & 0.2 & 0.2 & 0.4 \end {bmatrix}
+\end{equation}
+
+
+: Prices and expenditure for sample CES datasets 
+
+-----------------------------------
+  t     p1    p2    p3    p4    e
+----- ----- ----- ----- ----- -----
+1     2.00  1.00  1.00  0.50  10
+
+2     1.75  0.50  0.95  0.55  13
+
+3     1.60  1.05  0.90  0.60  11
+
+4     1.50  1.10  0.85  0.65  12
+
+5     1.45  1.12  0.40  0.70  15
+
+6     1.40  1.15  0.80  0.75  13
+
+7     1.35  1.18  0.75  0.70  14
+
+8     1.30  0.60  0.72  0.65  17
+
+9     1.25  1.20  0.70  0.70  15
+
+10    1.20  1.25  0.40  0.75  18
+
+11    1.15  1.28  0.70  0.75  16
+
+12    1.10  1.30  0.65  0.80  17
+-----------------------------------
 
 
 ## Matched-sample indexes
@@ -315,7 +365,7 @@ priceIndex(CES_sigma_2,
 
 ## Multilateral index numbers
 
-Multilateral index number methods use data from multiple periods to compute each term in the index. *IndexNumR* provides the function `GEKSIndex` to use the GEKS multilateral index number method. 
+Multilateral index number methods use data from multiple periods to compute each term in the index. *IndexNumR* provides the functions `GEKSIndex` and `GKIndex` to use the GEKS or Geary-Khamis multilateral index number methods respectively. 
 
 ### The GEKS method
 
@@ -335,29 +385,81 @@ where the term $P^{k,t}$ is the bilateral index between period $t$ and base peri
 \]
 So that the first term of the GEKS index is the geometric mean of the elements in the first column of the above matrix, the second term is the geometric mean of the second column, and so on. Note that *IndexNumR* makes use of two facts about the matrix above to speed up computation: it is (inversely) symmetric so that $P^{j,k} = 1/P^{k,j}$; and the diagonal elements are 1. 
 
-The indexes are then normalised by dividing by the first term, to give an index for the first $w$ periods that starts at 1. If the index only covers $w$ periods then no further calculation is required. However, if there are $T>w$ periods in the dataset then the index must be extended.  
+The indexes are then normalised by dividing by the first term, to give an index for the first $w$ periods that starts at 1. If the index only covers $w$ periods then no further calculation is required. However, if there are $T>w$ periods in the dataset then the index must be extended. 
 
-### Extending the GEKS index
+### The Geary-Khamis method
 
-Extending a GEKS index can be done in a multitude of ways. Statistical agencies generally do not revise price indices like the consumer price index, so the methods offered by *IndexNumR* to extend the GEKS index are methods that do not lead to revisions. More specifically, these are called *splicing methods* and the three options available are the *movement*, *window* and *mean splice*. The idea is that we start by moving the window forward by one period and calculate a GEKS index for the new window. There will be $w-1$ overlapping periods between the initial GEKS index and the GEKS index computed on the window that has been rolled forward one period. Any one of these overlapping periods can be used to extend the GEKS index.  
+The Geary-Khamis, or GK method, was introduced by Geary [@geary:1958] and extended by Khamis [@khamis:1970; @khamis:1972]. This method involves calculating a set of quality adjustment factors, $b_{n}$, simultaneously with the price levels, $P_{t}$. The two equations that determine both of these are:
+\begin{equation}
+  b_{n} = \sum_{t=1}^{T}\left[\frac{q_{tn}}{q_{n}}\right]\left[\frac{p_{tn}}{P_{t}}\right]
+\end{equation}
 
-Let $P_{OLD}$ be the GEKS index computed over periods $1$ to $w$ and let $P_{NEW}$ be the GEKS index computed over the window rolled forward one period, from periods $2$ to $w+1$. Let the final GEKS index be $P_{GEKS}$. For the first $w$ periods $P_{GEKS} = P_{OLD}$, then $P_{GEKS}^{w+1}$ is computed using the splicing methods as follows.
+\begin{equation}
+  P_{t} = \frac{p^{t} \cdot q^{t}} {b \cdot q^{t}}
+\end{equation}
+
+These equations can be solved by an iterative method, where a set of $b_{n}$ are arbitrarily chosen, which can then be used to calculate an initial vector of price levels. This vector of prices is then used to generate a new $b$ vector, and so on until the changes become smaller than some threshold. `IndexNumR` instead uses an alternative method. 
+
+As discussed in [@df:2017] and following Diewert [@diewert:1999], the problem of finding the $b$ vector can be solved using the following system of equations:
+
+\begin{equation}
+  \left[I_{N} - C\right]b = 0_{N},
+\end{equation}
+where $I_{N}$ is the $N \times N$ identity matrix, $0_{N}$ is an n-dimensional vector of zeros and the $C$ matrix is given by,
+
+\begin{equation}
+  C = \hat{q}^{-1} \sum_{t=1}^{T}s^{t}q^{t\textbf{T}},
+\end{equation}
+where $\hat{q}^{-1}$ is the inverse of an $N \times N$ diagonal matrix $q$, where the diagonal elements are the total quantities purchased for each good over all time periods, $s^{t}$ is a vector of the expenditure shares for time period $t$, and $q^{t\textbf{T}}$ is the transpose of the vector of quantities purchased in time period $t$. It can be shown that the matrix $[I-C]$ is singular so a normalisation is required to solve for $b$. `IndexNumR` follows the method discussed by Irwin Collier Jr. in his comment on [@diewert:1999] and assumes the following normalisation,
+
+\begin{equation}
+  \sum_{n=1}^{N}b_{n}q_{n} = 1,
+\end{equation}
+which is, in matrix form,
+\begin{equation}
+  c = R\begin{bmatrix} b_{1}q_{1} \\ \vdots \\ b_{n}q_{n} \end{bmatrix},
+\end{equation}
+where $c$ is the $N \times 1$ vector $\begin{bmatrix} 1 & 0 & \dots & 0 \end{bmatrix}^{\textbf{T}}$,
+
+and $R$ is the $N \times N$ matrix,
+\begin{equation}
+  R = \begin{bmatrix} 1 & 1 & \dots & 1 \\ 0 & \dots & \dots & 0 \\ \vdots & & & \vdots \\ 0 & \dots & \dots & 0 \end{bmatrix}
+\end{equation}
+
+Adding the constraint to the original equation we now have the solution for $b$,
+\begin{equation}
+  b = [I_{N} - C + R]^{-1}c.
+\end{equation}
+
+Once the $b$ vector has been calculated, the price levels can be computed from the GK equations above. As with other multilateral methods applied to the time-series context, the index must be extended in real-time as new observations become available. Therefore, the GK index is calculated over some window of time $w$, and methods to extend the index beyond period $w$ are discussed below.  
+
+### Extending multilateral indexes
+
+Extending a multilateral index can be done in a multitude of ways. Statistical agencies generally do not revise price indices like the consumer price index, so the methods offered by *IndexNumR* to extend multilateral indexes are methods that do not lead to revisions. More specifically, these are called *splicing methods* and the four options available are the *movement*, *window*, *half* and *mean splice*. The idea is that we start by moving the window forward by one period and calculate the index for the new window. There will be $w-1$ overlapping periods between the initial index and the index computed on the window that has been rolled forward one period. Any one of these overlapping periods can be used to extend the multilateral index.  
+
+Let $P_{OLD}$ be the index computed over periods $1$ to $w$ and let $P_{NEW}$ be the index computed over the window rolled forward one period, from periods $2$ to $w+1$. Let the final index simply be $P$. For the first $w$ periods $P = P_{OLD}$, then $P^{w+1}$ is computed using the splicing methods as follows.
 
 * Movement splice [@idf:2011] 
 \begin{equation}
-  P_{GEKS}^{w+1} = P_{GEKS}^{w} \times \frac{P_{NEW}^{w+1}}{P_{NEW}^{w}}
+  P^{w+1} = P^{w} \times \frac{P_{NEW}^{w+1}}{P_{NEW}^{w}}
 \end{equation}
-That is, the movement between the final two periods of the GEKS index computed over the new window is used to extend the original index from period $w$ to $w+1$.
+That is, the movement between the final two periods of the index computed over the new window is used to extend the original index from period $w$ to $w+1$.
 
 * Window splice [@krsinich:2016]
 \begin{equation}
-  P_{GEKS}^{w+1} = P_{GEKS}^{w} \times \frac{P_{NEW}^{w+1}/P_{NEW}^{2}}{P_{OLD}^{w}/P_{OLD}^{2}}
+  P^{w+1} = P^{w} \times \frac{P_{NEW}^{w+1}/P_{NEW}^{2}}{P_{OLD}^{w}/P_{OLD}^{2}}
 \end{equation}
 In this case, the ratio of the movement between the first and last periods computed using the new window, to the movement between the first and last periods using the old window is used to extend the original index. 
 
+* Half splice 
+\begin{equation}
+  P^{w+1} = P^{w} \times \frac{P_{NEW}^{w+1}/P_{NEW}^{\frac{w-1}{2}+1}}{P_{OLD}^{w}/P_{OLD}^{\frac{w-1}{2}+1}}
+\end{equation}
+The half splice uses the period in the middle of the window as the overlapping period to calculate the splice. 
+
 * Mean splice [@idf:2011]
 \begin{equation}
-  P_{GEKS}^{w+1} = P_{GEKS}^{w} \times \left( \prod_{t=1}^{w-1} \frac{P_{NEW}^{w+1}/P_{NEW}^{t+1}}{P_{OLD}^{w}/P_{OLD}^{t+1}} \right)^{\frac{1}{(w-1)}} 
+  P^{w+1} = P^{w} \times \left( \prod_{t=1}^{w-1} \frac{P_{NEW}^{w+1}/P_{NEW}^{t+1}}{P_{OLD}^{w}/P_{OLD}^{t+1}} \right)^{\frac{1}{(w-1)}} 
 \end{equation}
 The mean splice uses the geometric mean of the movements between the last period and every other period in the window to extend the original index.   
 
