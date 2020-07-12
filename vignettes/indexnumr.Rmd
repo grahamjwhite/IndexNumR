@@ -82,20 +82,20 @@ That is, sum up total expenditure on each item over the required period, and div
 \begin{equation}
   s_{tn} = \frac{\alpha_{n}p_{tn}^{1-\sigma}}{\sum_{n=1}^{N}\alpha_{n}p_{tn}^{1-\sigma}}
 \end{equation}
-and use these to calculate the quantities,
+and use those shares to calculate the quantities,
 
 \begin{equation}
-  q_{tn} = \frac{e_{tn}s_{tn}}{p_{tn}}
+  q_{tn} = \frac{e_{t}s_{tn}}{p_{tn}}
 \end{equation}
 
-*IndexNumR* provides the function `CESData` to produce CES datasets as above for any elasticity of substitution $\sigma$, using the prices, $\alpha$, and expenditure values assumed in [@df:2017], reproduced below.
+*IndexNumR* provides the function `CESData` to produce datasets assuming CES preferences as above for any elasticity of substitution $\sigma$, using the prices, $\alpha$, and expenditure values assumed in [@df:2017]. The vector $\alpha$ is,
 
 \begin{equation}
   \alpha = \begin{bmatrix} 0.2 & 0.2 & 0.2 & 0.4 \end {bmatrix}
 \end{equation}
 
+and the prices and expenditures are,
 
-: Prices and expenditure for sample CES datasets 
 
 -----------------------------------
   t     p1    p2    p3    p4    e
@@ -420,7 +420,7 @@ The Geary-Khamis, or GK method, was introduced by Geary [@geary:1958] and extend
   P_{t} = \frac{p^{t} \cdot q^{t}} {b \cdot q^{t}}
 \end{equation}
 
-These equations can be solved by an iterative method, where a set of $b_{n}$ are arbitrarily chosen, which can then be used to calculate an initial vector of price levels. This vector of prices is then used to generate a new $b$ vector, and so on until the changes become smaller than some threshold. `IndexNumR` instead uses an alternative method. 
+These equations can be solved by an iterative method, where a set of $b_{n}$ are arbitrarily chosen, which can then be used to calculate an initial vector of price levels. This vector of prices is then used to generate a new $b$ vector, and so on until the changes become smaller than some threshold. *IndexNumR* instead uses an alternative method. 
 
 As discussed in [@df:2017] and following Diewert [@diewert:1999], the problem of finding the $b$ vector can be solved using the following system of equations:
 
@@ -432,7 +432,7 @@ where $I_{N}$ is the $N \times N$ identity matrix, $0_{N}$ is an n-dimensional v
 \begin{equation}
   C = \hat{q}^{-1} \sum_{t=1}^{T}s^{t}q^{t\textbf{T}},
 \end{equation}
-where $\hat{q}^{-1}$ is the inverse of an $N \times N$ diagonal matrix $q$, where the diagonal elements are the total quantities purchased for each good over all time periods, $s^{t}$ is a vector of the expenditure shares for time period $t$, and $q^{t\textbf{T}}$ is the transpose of the vector of quantities purchased in time period $t$. It can be shown that the matrix $[I-C]$ is singular so a normalisation is required to solve for $b$. `IndexNumR` follows the method discussed by Irwin Collier Jr. in his comment on [@diewert:1999] and assumes the following normalisation,
+where $\hat{q}^{-1}$ is the inverse of an $N \times N$ diagonal matrix $q$, where the diagonal elements are the total quantities purchased for each good over all time periods, $s^{t}$ is a vector of the expenditure shares for time period $t$, and $q^{t\textbf{T}}$ is the transpose of the vector of quantities purchased in time period $t$. It can be shown that the matrix $[I-C]$ is singular so a normalisation is required to solve for $b$. *IndexNumR* follows the method discussed by Irwin Collier Jr. in his comment on [@diewert:1999] and assumes the following normalisation,
 
 \begin{equation}
   \sum_{n=1}^{N}b_{n}q_{n} = 1,
