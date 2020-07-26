@@ -170,27 +170,35 @@ geomPaasche_t <- function(p0, p1, q0, q1){
 
 #' time product dummy
 #'
-#' this formulation is from Eq.16 in the reference
-#'
-#' @references Jan de Haan & Frances Krsinich (2014)
-#' Scanner Data and the Treatment of Quality Change in Nonrevisable Price Indexes,
-#' Journal of Business & Economic Statistics,
-#' 32:3, 341-358, DOI: 10.1080/07350015.2014.880059
 #' @keywords internal
 #' @noRd
-tpd_t <- function(p0, p1, q0, q1, S0, S1){
-  # S0 and S1 are the shares of total expenditure covered
-  # by the matched sample in period 0 and 1 respectively
+tpd_t <- function(p0, p1, q0, q1){
 
   exp0 <- sum(p0*q0)
   exp1 <- sum(p1*q1)
   s0 <- (p0*q0)/exp0
   s1 <- (p1*q1)/exp1
 
-  g <- geomLaspeyres_t(p0, p1, q0, q1)
-  p <- geomPaasche_t(p0, p1, q0, q1)
+  df1 <- data.frame(lnP = log(p1),
+                    D = 1,
+                    s = s1,
+                    product = as.factor(seq_along(p1)))
 
-  return(g^(S0/(S0+S1))*p^(S1/(S0+S1)))
+  df0 <- data.frame(lnP = log(p0),
+                    D = 0,
+                    s = s0,
+                    product = as.factor(seq_along(p0)))
+
+  regData <- rbind(df0, df1)
+
+  reg <- lm(lnP ~ D + product, data = regData, weights = s)
+  coeffs <- coef(reg)
+  vars <- diag(vcov(reg))
+
+  b <- coeffs[which(names(coeffs) == "D")]
+  varB <- vars[which(names(vars) == "D")]
+
+  return(exp(b - 0.5*varB))
 }
 
 #' Computes a bilateral price index
@@ -323,18 +331,10 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
     # if matching requested then remove unmatched items
     if(sample=="matched"){
 
-      # for the TPD index, save the full sample expenditure
-      X1 <- xt1
-      X0 <- xt0
-
       # remove unmatched products
       xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
       xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
 
-      # for TPD index, calculate the share of expenditure remaining
-      # after matching
-      S0 <- sum(xt0[[pvar]]*xt0[[qvar]])/sum(X0[[pvar]]*X0[[qvar]])
-      S1 <- sum(xt1[[pvar]]*xt1[[qvar]])/sum(X1[[pvar]]*X1[[qvar]])
     }
 
     # set the price index element to NA if there are no
@@ -366,7 +366,7 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
              ces = {plist[i,1] <- lloydMoulton_t0(p0,p1,q0,sigma = sigma)},
              geomlaspeyres = {plist[i,1] <- geomLaspeyres_t(p0, p1, q0, q1)},
              geompaasche = {plist[i,1] <- geomPaasche_t(p0, p1, q0, q1)},
-             tpd = {plist[i,1] <- tpd_t(p0, p1, q0, q1, S0, S1)}
+             tpd = {plist[i,1] <- tpd_t(p0, p1, q0, q1)}
       )
 
       # if similarity chain linking then multiply the index by the link period index
