@@ -170,3 +170,17 @@ daysInMonth <- function(x){
 }
 
 
+#' kennedyBeta
+#'
+#' calculate the adjusted regression coefficients for a semi-log model
+#' @param x a regression object (e.g. the output from \code{lm})
+#' @keywords internal
+#' @noRd
+kennedyBeta <- function(x){
+
+  coeffs <- coef(reg)
+  vars <- diag(vcov(reg))
+
+  return(coeffs - 0.5*vars)
+
+}

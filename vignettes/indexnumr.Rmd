@@ -181,9 +181,9 @@ where $\sigma$ is the elasticity of substitution.
 This is a regression model approach where log prices are modelled as a function of time and product dummies. The regression equation is given by,
 
 \begin{equation*}
-  \log{p_{n}^{t}} = \alpha_{0} + \beta_{1} D^{t} + \sum_{i = 2}^{N}\beta_{i}D_{i} + \epsilon_{i}^{t},
+  \ln{p_{n}^{t}} = \alpha + \beta_{1} D^{t} + \sum_{n = 2}^{N}\beta_{n}D_{n} + \epsilon_{n}^{t},
 \end{equation*}
-where $D^{t}$ is equal to 1 in period $t$ and 0 in period $t-1$, and $D_{i}$ is equal to 1 if the product is product $i$ and 0 otherwise. The equation is estimated by weighted least squares, where the weights are the product expenditure shares.
+where $D^{t}$ is equal to 1 in period $t$ and 0 in period $t-1$, and $D_{i}$ is equal to 1 if the product is product $i$ and 0 otherwise. The equation is estimated by weighted least squares (as suggested by [@diewert:2005b]), where the weights are the product expenditure shares.
 
 The price index is then given by,
 \begin{equation*}
@@ -284,7 +284,7 @@ where $M+N$ is the total number of items in the vector and $x_{j}$ and $x_{k}$ a
 
 *IndexNumR* provides two functions, enabling the estimation of all six dissimilarity measures above. The first function `relativeDissimilarity` calculates the Paasche-Laspeyres spread, log-quadratic and asymptotically linear measures, and the second function `mixScaleDissimilarity` computes the mix, scale and absolute measures of dissimilarity. Both functions provide the same output - a data frame with three columns containing the indices of the pairs of periods being compared in the first two columns and the value of the dissimilarity measure in the third column. 
 
-Once these have been computed, the function `maximiumSimilarityLinks` can take the output data frame from these two functions and compute the maximum similarity linking periods as follows,
+Once these have been computed, the function `maximiumSimilarityLinks` can take the output data frame from these two functions and compute the maximum similarity linking periods. Those linking periods are then used by `priceIndex` as follows,
 
 * Compute the measure of dissimilarity between all possible combinations of time periods.
 * Set the price index to 1 in the first period.
@@ -398,7 +398,7 @@ GEKSIndex(CES_sigma_2,
 
 ## The differences approach to index numbers
 
-The above index number methods are derived based on a ratio approach, which decomposes the value change from one period to the next into the product of a price index and a quantity index. An alternative approach is to decompose value change into the sum of a price indicator and a quantity indicator. The theory dates back to the 1920s, and an excellent paper on this approach has been written by Diewert [@diewert:2005]. There are a number of methods available for computing the indicator, and *IndexNumR* exposes the following, via the `priceIndicator` function:
+The above index number methods are derived based on a ratio approach, which decomposes the value change from one period to the next into the product of a price index and a quantity index. An alternative approach is to decompose value change into the sum of a price indicator and a quantity indicator. The theory dates back to the 1920s, and an excellent paper on this approach has been written by Diewert [@diewert:2005a]. There are a number of methods available for computing the indicator, and *IndexNumR* exposes the following, via the `priceIndicator` function:
 
 * Laspeyres indicator
 \begin{equation}
