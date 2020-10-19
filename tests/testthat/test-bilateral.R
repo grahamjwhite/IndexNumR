@@ -1,24 +1,51 @@
 context("bilateral indices")
 
-load(system.file("testdata","testData_bilateral.RData",package = "IndexNumR"))
+load(system.file("testdata","testData_bilateral.RData", package = "IndexNumR"))
 
-indexMethods <- c("laspeyres","paasche","fisher","tornqvist","satovartia",
-                  "dutot","carli","jevons","harmonic","cswd","walsh","ces",
-                  "geomLaspeyres", "geomPaasche")
-outputTypes <- c("pop","chained","fixedbase")
+indexMethods <- c("laspeyres", "paasche", "fisher", "tornqvist", "satovartia",
+                  "dutot", "carli", "jevons", "harmonic", "cswd", "walsh", "ces",
+                  "geomLaspeyres", "geomPaasche", "tpd")
+outputTypes <- c("pop", "chained", "fixedbase")
 
-for(i in seq_along(indexMethods)){
-  for(j in seq_along(outputTypes)){
-    test_that("bilateral price index functions return the correct values",{
-      expect_equal(priceIndex(CES_sigma_2,pvar="prices",qvar="quantities",
-                              pervar="time",prodID = "prodID",
-                              indexMethod = indexMethods[i],
-                              sample = "matched",output=outputTypes[j],
-                              sigma=2),
-                   as.matrix(testData[[paste0(indexMethods[i],"_",outputTypes[j])]]))
-    })
-  }
+indexEqual <- function(pOrq, indexMethod, outputType, result){
+
+  switch(pOrq,
+         price = expect_equal(priceIndex(CES_sigma_2,
+                                                     pvar = "prices",
+                                                     qvar = "quantities",
+                                                     pervar = "time",
+                                                     prodID = "prodID",
+                                                     indexMethod = !!indexMethod,
+                                                     sample = "matched",
+                                                     output = !!outputType,
+                                                     sigma = 2),
+                                        !!result),
+         quantity = eval(bquote(expect_equal(quantityIndex(CES_sigma_2,
+                                                        pvar = "prices",
+                                                        qvar = "quantities",
+                                                        pervar = "time",
+                                                        prodID = "prodID",
+                                                        indexMethod = .(indexMethod),
+                                                        sample = "matched",
+                                                        output = .(outputType),
+                                                        sigma = 2),
+                                             .(result)))))
+
+
 }
+
+test_that("bilateral price index functions return the correct values",{
+  for(i in seq_along(indexMethods)){
+    for(j in seq_along(outputTypes)){
+
+      indexEqual("price",
+                 indexMethods[i],
+                 outputTypes[j],
+                 as.matrix(testData[[paste0(indexMethods[i],"_",outputTypes[j])]]))
+
+    }
+  }
+})
 
 test_that("error is thrown when wrong column names are given",{
   expect_error(priceIndex(CES_sigma_2,pvar = "price",qvar = "quantities",
@@ -28,14 +55,14 @@ test_that("error is thrown when wrong column names are given",{
 })
 
 test_that("error is thrown when wrong index method is specified",{
-  expect_error(priceIndex(CES_sigma_2,pvar = "price",qvar = "quantities",
+  expect_error(priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",
                           pervar = "time",prodID = "prodID",indexMethod = "wrong_method",
                           sample="matched", output = "chained"),
                "Not a valid index number method.")
 })
 
 test_that("error is thrown when output method is specified",{
-  expect_error(priceIndex(CES_sigma_2,pvar = "price",qvar = "quantities",
+  expect_error(priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",
                           pervar = "time",prodID = "prodID",indexMethod = "laspeyres",
                           sample="matched", output = "wrong_output"),
                "Not a valid output type. Please choose from chained, fixedbase or pop.")
@@ -58,18 +85,18 @@ rm(dat)
 
 load(system.file("testdata","testData_bilateral_quantity.RData",package = "IndexNumR"))
 
-for(i in seq_along(indexMethods)){
-  for(j in seq_along(outputTypes)){
-    test_that("bilateral quantity index functions return the correct values",{
-      expect_equal(quantityIndex(CES_sigma_2, pvar = "prices", qvar = "quantities",
-                              pervar = "time", prodID = "prodID",
-                              indexMethod = indexMethods[i],
-                              sample = "matched", output = outputTypes[j],
-                              sigma = 2),
-                   as.matrix(testData[[paste0(indexMethods[i],"_",outputTypes[j])]]))
-    })
+test_that("bilateral quantity index functions return the correct values",{
+
+  for(i in seq_along(indexMethods)){
+    for(j in seq_along(outputTypes)){
+      indexEqual("quantity",
+                 indexMethods[i],
+                 outputTypes[j],
+                 as.matrix(testData[[paste0(indexMethods[i],"_",outputTypes[j])]]))
+    }
   }
-}
+
+})
 
 test_that("error is thrown when wrong column names are given",{
   expect_error(priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantitie",
