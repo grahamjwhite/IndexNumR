@@ -22,6 +22,7 @@
 #' The window size is assumed to be the number of periods available in pervar.
 #' This is not exposed to the user because GEKSIndex calls this
 #' @keywords internal
+#' @noRd
 GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
                    sample="matched"){
 
@@ -80,7 +81,8 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
           # calculate the price index for 'base' period j and 'next' period k
           switch(tolower(indexMethod),
                  fisher = {pindices[j,k] <- fisher_t(p0,p1,q0,q1)},
-                 tornqvist = {pindices[j,k] <- tornqvist_t(p0,p1,q0,q1)})
+                 tornqvist = {pindices[j,k] <- tornqvist_t(p0,p1,q0,q1)},
+                 tpd = {pindices[j,k] <- tpd_t(p0,p1,q0,q1)})
         }
 
       }
@@ -108,7 +110,7 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
-#' number methods are fisher or tornqvist. The default is tornqvist.
+#' number methods are fisher, tornqvist or tpd. The default is tornqvist.
 #' @param sample A character string specifying whether matching is to be performed.
 #' The default is to use matching.
 #' If sample=matched then any products that are not present in comparison periods
@@ -139,7 +141,7 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
                       sample="matched",window=13,splice="mean"){
 
   # check that only valid index methods are chosen
-  if(!(tolower(indexMethod) %in% c("fisher","tornqvist"))){
+  if(!(tolower(indexMethod) %in% c("fisher","tornqvist", "tpd"))){
     stop("Not a valid index number method.")
   }
 

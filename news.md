@@ -1,5 +1,9 @@
-## Placeholder
+## Package update 0.1.3 -> 0.2
+
 ### Improvements
+
+- Added the bilateral time-product-dummy index method. This uses the Kennedy (1981) bias adjustment. 
+- The bilateral time-product-dummy method added as a valid bilateral index to use within the GEKS multilateral index number method.
 
 ### Bug fixes
 

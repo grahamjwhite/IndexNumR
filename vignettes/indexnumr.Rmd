@@ -12,7 +12,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r include=FALSE}
+```{r setup, include=FALSE}
 library(IndexNumR)
 ```
 
@@ -46,7 +46,7 @@ The index number functions `priceIndex`, `quantityIndex` and `GEKSIndex` all tak
 
 The dataframe must have column names, since character strings are used in other arguments to the index number functions to specify which columns contain the data listed above. Column names can be set with the `colnames` function of base R. The dataset CES_sigma_2 is an example of the minimum dataframe required to compute an index.  
 
-```{r}
+```{r head_CES}
 head(CES_sigma_2)
 ```
 
@@ -61,7 +61,7 @@ To be able to compute indices, the data need to be subset in order to extract al
 * continuous (that is, no gaps).
 
 The variable may, and in fact likely will, have many observations for a given time period, since there are generally multiple items with price and quantity information. For example, the CES_sigma_2 dataset has observations on 4 products for each time period. We can see this by observing the first few rows of the dataset sorted by the time period.
-```{r}
+```{r head_CES_ordered}
 head(CES_sigma_2[order(CES_sigma_2$time),])
 ```
 
@@ -174,11 +174,33 @@ and $w^{*}_{n}$ is the logarithmic mean of the shares,
 \end{equation*}
 where $\sigma$ is the elasticity of substitution. 
 
+### Time dummy methods
+
+* Time-product-dummy 
+
+This is a regression model approach where log prices are modelled as a function of time and product dummies. The regression equation is given by,
+
+\begin{equation*}
+  \ln{p_{n}^{t}} = \alpha + \beta_{1} D^{t} + \sum_{n = 2}^{N}\beta_{n}D_{n} + \epsilon_{n}^{t},
+\end{equation*}
+where $D^{t}$ is equal to 1 in period $t$ and 0 in period $t-1$, and $D_{i}$ is equal to 1 if the product is product $i$ and 0 otherwise. The equation is estimated by weighted least squares (as suggested by [@diewert:2005b]), where the weights are the product expenditure shares.
+
+The price index is then given by,
+\begin{equation*}
+  P(p^{t-1},p^{t},q^{t-1},q^{t}) = \exp({\hat{\beta_{1}}})
+\end{equation*}
+
+However, this is a biased estimate [@kennedy:1981], so *IndexNumR* calculates the following,
+
+\begin{equation*}
+  P(p^{t-1},p^{t},q^{t-1},q^{t}) = \exp({\hat{\beta_{1}} - 0.5 \times Var(\hat{\beta_{1}})})
+\end{equation*}
+
 ### Examples
 
 To estimate a simple chained Laspeyres price index,
 
-```{r}
+```{r bilateral_examples}
 priceIndex(CES_sigma_2,
            pvar = "prices",
            qvar = "quantities",
@@ -189,7 +211,7 @@ priceIndex(CES_sigma_2,
 ```
 
 Estimating multiple different index numbers on the same data is straight-forward,
-```{r}
+```{r multiple_bilateral}
 methods <- c("laspeyres","paasche","fisher","tornqvist")
 prices <- lapply(methods, 
                  function(x) {priceIndex(CES_sigma_2,
@@ -219,7 +241,7 @@ This is done using the `uniroot` function of the *stats* package distributed wit
 
 The dataset available with *IndexNumR*, CES_sigma_2, was calculated assuming a CES cost function with an elasticity of substitution equal to 2. Running the `elasticity` function on this dataset, 
 
-```{r}
+```{r elasticity}
 elasticity(CES_sigma_2, 
            pvar="prices",
            qvar="quantities",
@@ -262,7 +284,7 @@ where $M+N$ is the total number of items in the vector and $x_{j}$ and $x_{k}$ a
 
 *IndexNumR* provides two functions, enabling the estimation of all six dissimilarity measures above. The first function `relativeDissimilarity` calculates the Paasche-Laspeyres spread, log-quadratic and asymptotically linear measures, and the second function `mixScaleDissimilarity` computes the mix, scale and absolute measures of dissimilarity. Both functions provide the same output - a data frame with three columns containing the indices of the pairs of periods being compared in the first two columns and the value of the dissimilarity measure in the third column. 
 
-Once these have been computed, the function `maximiumSimilarityLinks` can take the output data frame from these two functions and compute the maximum similarity linking periods as follows,
+Once these have been computed, the function `maximiumSimilarityLinks` can take the output data frame from these two functions and compute the maximum similarity linking periods. Those linking periods are then used by `priceIndex` as follows,
 
 * Compute the measure of dissimilarity between all possible combinations of time periods.
 * Set the price index to 1 in the first period.
@@ -281,7 +303,7 @@ Once these have been computed, the function `maximiumSimilarityLinks` can take t
 
 Using the log-quadratic measure of relative dissimilarity, the dissimilarity between the periods in the `CES_sigma_2` dataset is as follows,
 
-```{r}
+```{r relative_dissimilarity}
 lq <- relativeDissimilarity(CES_sigma_2, 
                             pvar="prices", 
                             qvar="quantities", 
@@ -295,13 +317,13 @@ head(lq)
 
 The output from estimating the dissimilarity between periods can than be used to estimate the maximum similarity links,
 
-```{r}
+```{r similarity_links}
 maximumSimilarityLinks(lq)
 ```
 
 To estimate a chained Laspeyres index linking together the periods with maximum similarity as estimated above,
 
-```{r}
+```{r index_similarity}
 priceIndex(CES_sigma_2,
            pvar = "prices",
            qvar = "quantities",
@@ -325,7 +347,7 @@ The user must choose the size of the window over which to apply the GEKS method,
 \begin{equation}
   \left[ \prod_{k=1}^{w}P^{k,1} \right]^{1/w}, \left[ \prod_{k=1}^{w}P^{k,2} \right]^{1/w}, \cdots, \left[ \prod_{k=1}^{w}P^{k,w} \right]^{1/w},
 \end{equation}
-where the term $P^{k,t}$ is the bilateral index between period $t$ and base period $k$. *IndexNumR* offers the Fisher and Tornqvist index number methods for the index $P$ via the `indexMethod` option. The Tornqvist index method is the default. The $w\times w$ matrix of bilateral indexes is as follows,
+where the term $P^{k,t}$ is the bilateral index between period $t$ and base period $k$. *IndexNumR* offers the Fisher,  Tornqvist and time-product-dummy index number methods for the index $P$ via the `indexMethod` option. The Tornqvist index method is the default. The $w\times w$ matrix of bilateral indexes is as follows,
 \[P =
 \begin{pmatrix}
   P^{1,1} & \cdots & P^{1,w} \\
@@ -363,7 +385,7 @@ The mean splice uses the geometric mean of the movements between the last period
 
 The splicing methods are used in this fashion to extend the series up to the final period in the data. 
 
-```{r} 
+```{r geks_splicing} 
 GEKSIndex(CES_sigma_2, 
           pvar = "prices", 
           qvar = "quantities", 
@@ -376,7 +398,7 @@ GEKSIndex(CES_sigma_2,
 
 ## The differences approach to index numbers
 
-The above index number methods are derived based on a ratio approach, which decomposes the value change from one period to the next into the product of a price index and a quantity index. An alternative approach is to decompose value change into the sum of a price indicator and a quantity indicator. The theory dates back to the 1920s, and an excellent paper on this approach has been written by Diewert [@diewert:2005]. There are a number of methods available for computing the indicator, and *IndexNumR* exposes the following, via the `priceIndicator` function:
+The above index number methods are derived based on a ratio approach, which decomposes the value change from one period to the next into the product of a price index and a quantity index. An alternative approach is to decompose value change into the sum of a price indicator and a quantity indicator. The theory dates back to the 1920s, and an excellent paper on this approach has been written by Diewert [@diewert:2005a]. There are a number of methods available for computing the indicator, and *IndexNumR* exposes the following, via the `priceIndicator` function:
 
 * Laspeyres indicator
 \begin{equation}
