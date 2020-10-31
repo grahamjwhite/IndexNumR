@@ -4,6 +4,7 @@
 
 - Added the bilateral time-product-dummy index method. This uses the Kennedy (1981) bias adjustment. 
 - The bilateral time-product-dummy method added as a valid bilateral index to use within the GEKS multilateral index number method.
+- Added the Geary-Khamis multilateral method
 
 ### Bug fixes
 

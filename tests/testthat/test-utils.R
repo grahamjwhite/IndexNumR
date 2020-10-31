@@ -36,10 +36,10 @@ test_that("KennedyBeta calculates the correct adjustment", {
 
   reg <- lm(prices ~ D + prodID, data = dat)
 
-  expect_equal(kennedyBeta(reg), c(`(Intercept)` = 0.70562777968,
-                                   D = -0.2105345407,
-                                   prodID2 = -1.0026933120,
-                                   prodID3 = -0.6817663689,
-                                   prodID4 = -1.3016118124))
+  expect_equal(kennedyBeta(reg), c(`(Intercept)` = 1.95953776,
+                                   D = -0.194869792,
+                                   prodID2 = -1.139739583,
+                                   prodID3 = -0.914739583,
+                                   prodID4 = -1.364739583))
 
 })
