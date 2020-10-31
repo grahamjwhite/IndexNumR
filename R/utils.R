@@ -178,8 +178,8 @@ daysInMonth <- function(x){
 #' @noRd
 kennedyBeta <- function(x){
 
-  coeffs <- coef(reg)
-  vars <- diag(vcov(reg))
+  coeffs <- coef(x)
+  vars <- diag(vcov(x))
 
   return(coeffs - 0.5*vars)
 
