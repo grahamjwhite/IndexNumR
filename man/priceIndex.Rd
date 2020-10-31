@@ -6,7 +6,7 @@
 \usage{
 priceIndex(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   sample = "matched", output = "pop", chainMethod = "pop",
-  sigma = 1.0001, ...)
+  sigma = 1.0001, basePeriod = 1, ...)
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier
@@ -43,6 +43,9 @@ The default is period-on-period. Additional parameters can be passed to the
 mixScaleDissimilarity function using ...}
 
 \item{sigma}{The elasticity of substitution for the CES index method.}
+
+\item{basePeriod}{The period to be used as the base when 'fixedbase' output is
+chosen. Default is 1 (the first period).}
 
 \item{...}{this is used to pass additional parameters to the mixScaleDissimilarity
 function.}
