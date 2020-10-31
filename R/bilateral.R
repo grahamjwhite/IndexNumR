@@ -230,6 +230,8 @@ tpd_t <- function(p0, p1, q0, q1){
 #' The default is period-on-period. Additional parameters can be passed to the
 #' mixScaleDissimilarity function using ...
 #' @param sigma The elasticity of substitution for the CES index method.
+#' @param basePeriod The period to be used as the base when 'fixedbase' output is
+#' chosen. Default is 1 (the first period).
 #' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
 #' function.
 #' @examples
@@ -249,7 +251,7 @@ tpd_t <- function(p0, p1, q0, q1){
 #' @export
 priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                        sample = "matched", output = "pop", chainMethod = "pop",
-                       sigma = 1.0001, ...){
+                       sigma = 1.0001, basePeriod = 1, ...){
 
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
@@ -310,8 +312,8 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   }
 
   # if fixed base requested, set xt0 to the first period data
-  if(tolower(output)=="fixedbase"){
-    xt0 <- x[x[[pervar]]==1,]
+  if(tolower(output) == "fixedbase"){
+    xt0 <- x[x[[pervar]] == basePeriod,]
   }
 
   for(i in 2:n){
@@ -394,32 +396,7 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
 #'
 #' A function to compute a quantity index given data on products over time
 #'
-#' @param x A dataframe containing price, quantity, a time period identifier
-#' and a product identifier. It must have column names.
-#' @param pvar A character string for the name of the price variable
-#' @param qvar A character string for the name of the quantity variable
-#' @param prodID A character string for the name of the product identifier
-#' @param pervar A character string for the name of the time variable. This variable
-#' must contain integers starting at period 1 and increasing in increments of 1 period.
-#' There may be observations on multiple products for each time period.
-#' @param indexMethod A character string to select the index number method. Valid index
-#' number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-#' harmonic, tornqvist, satovartia, walsh and CES.
-#' @param sample A character string specifying whether a matched sample
-#' should be used.
-#' @param output A character string specifying whether a chained, fixed base or
-#' period-on-period price index numbers should be returned.
-#' @param chainMethod A character string specifying the method of chain linking
-#' to use if the output option is set to "chained".
-#' Valid options are "pop" for period-on-period, and similarity chain linked
-#' options "plspread" for the Paasche-Laspeyres spread, "asymplinear" for
-#' weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
-#' and "mixScale" for the mix, scale or absolute dissimilarity measures.
-#' The default is period-on-period. Additional parameters can be passed to the
-#' mixScaleDissimilarity function using ...
-#' @param sigma The elasticity of substitution for the CES index method.
-#' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
-#' function.
+#' @inheritParams priceIndex
 #' @examples
 #' # chained Fisher quantity index for the CES_sigma_2 dataset
 #' quantityIndex(CES_sigma_2, pvar="prices", qvar="quantities", pervar="time",
@@ -427,8 +404,8 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
 #' @export
 quantityIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres", prodID,
                           sample="matched", output="pop", chainMethod="pop",
-                          sigma=1.0001, ...){
+                          sigma=1.0001, basePeriod = 1, ...){
   return(priceIndex(x, pvar=qvar, qvar=pvar, pervar = pervar, indexMethod=indexMethod,
                     prodID = prodID, sample = sample, output = output,
-                    chainMethod = chainMethod, sigma = sigma, ... = ...))
+                    chainMethod = chainMethod, sigma = sigma, basePeriod = basePeriod, ... = ...))
 }
