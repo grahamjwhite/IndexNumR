@@ -9,11 +9,11 @@ gk_w <- function(x,pvar,qvar,pervar,prodID) {
 
   # set up some variables
   # list of time periods
-  pers <- unique(x[[pervar]])
+  pers <- sort(unique(x[[pervar]]))
   # total time periods
   obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
   # list of products
-  prods <- unique(x[[prodID]])
+  prods <- sort(unique(x[[prodID]]))
   # total number of products
   n <- length(prods)
 
@@ -108,9 +108,16 @@ gk_w <- function(x,pvar,qvar,pervar,prodID) {
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
 #' There may be observations on multiple products for each time period.
 #' @param prodID A character string for the name of the product identifier
-#' @param window An integer specifying the length of the GEKS window.
+#' @param window An integer specifying the length of the window.
 #' @param splice the splicing method to use to extend the index. Valid methods are
 #' window, movement, half or mean. The default is mean.
+#' @examples
+#' # compute a Geary-Khamis index with mean splicing
+#' GKIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+#' prodID = "prodID", window=11, splice = "mean")
+#' @references Ivancic, L., W.E. Diewert and K.J. Fox (2011), "Scanner Data,
+#' Time Aggregation and the Construction of Price Indexes", Journal of
+#' Econometrics 161, 24-35.
 #' @export
 GKIndex <- function(x, pvar, qvar, pervar, prodID, window, splice = "mean"){
 

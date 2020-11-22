@@ -3,6 +3,7 @@
 export(CESData)
 export(GEKSIndex)
 export(GKIndex)
+export(WTPDIndex)
 export(elasticity)
 export(evaluateMatched)
 export(maximumSimilarityLinks)

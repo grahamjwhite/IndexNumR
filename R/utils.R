@@ -184,3 +184,51 @@ kennedyBeta <- function(x){
   return(coeffs - 0.5*vars)
 
 }
+
+
+#' fillMissing
+#'
+#' fill in missing observations
+#' @param x the dataset
+#' @param pvar the price variable
+#' @param qvar the quantity variable
+#' @param pervar the time period variable
+#' @param prodID the product identifier
+#' @param priceReplace what to replace missing prices with
+#' @param quantityReplace what to replace missing quantities with
+#' @keywords internal
+#' @noRd
+fillMissing <- function(x, pvar, qvar, pervar, prodID, priceReplace, quantityReplace){
+
+  # list of time periods
+  pers <- sort(unique(x[[pervar]]))
+  # list of products
+  prods <- sort(unique(x[[prodID]]))
+
+  # fill out the gaps from missing/new products with replacement values.
+  available <- table(x[,c(prodID, pervar)])
+  if(sum(!(available == 0)) > 0){
+
+    # which products are not available
+    toAdd <- as.data.frame(which(available == 0, arr.ind = TRUE))
+
+    # generate the new observation row for price, quantity, time and product id
+    newObs <- data.frame(rep(priceReplace, nrow(toAdd)),
+                         rep(quantityReplace,nrow(toAdd)),
+                         prods[toAdd[[prodID]]],
+                         pers[toAdd[[pervar]]],
+                         stringsAsFactors = FALSE)
+
+    # set column names to the ones used in the input dataset
+    colnames(newObs) <- c(pvar, qvar, prodID, pervar)
+
+    # add the new observations onto the dataset
+    x <- merge(x, newObs, all.x = TRUE, all.y = TRUE)
+
+    # ensure dataset still sorted by time period and product ID
+    x <- x[order(x[[pervar]], x[[prodID]]),]
+  }
+
+  return(x)
+
+}
