@@ -15,54 +15,42 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 
-wtpd_w <- function(x, pvar, qvar, pervar, prodID){
+wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
 
-  # set up some variables
-  # list of time periods
-  pers <- sort(unique(x[[pervar]]))
   # total time periods
   obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
+
+  # if matching requested, keep only observations that occur through the whole sample
+  if(sample == "matched"){
+    tab <- table(x[[pervar]], x[[prodID]])
+    keep <- colnames(tab)[colSums(tab) == obs]
+    x <- x[x[[prodID]] %in% keep,]
+  }
+  else {
+    # fill out the gaps from missing/new products with NAs.
+    # we'll ignore them in the calcs, but it makes sure that the dimensions
+    # are correct to allow calculations to proceed.
+    x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = NA, quantityReplace = NA)
+  }
+
+  # list of time periods
+  pers <- sort(unique(x[[pervar]]))
   # list of products
   prods <- sort(unique(x[[prodID]]))
   # total number of products
   n <- length(prods)
 
-  # fill out the gaps from missing/new products with NAs.
-  # we'll ignore them in the calcs, but it makes sure that the dimensions
-  # are correct to allow calculations to proceed.
-  x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
-
   # share of expenditure on each product in each time period
   stn <- matrix(0, nrow = obs, ncol = n)
-  # quantities matrix
-  qtn <- matrix(0, nrow = obs, ncol = n)
   # expenditures matrix
   etn <- matrix(0, nrow = obs, ncol = n)
   # wnj
   wnj <- matrix(0, nrow = n, ncol = n)
 
-  # we need ftn, wtnj, wnk, stn
-  for(i in 1:n){
-
-    temp <- x[x[[prodID]] == prods[i],]
-
-    for(j in 1:obs){
-
-      qtemp <- temp[temp[[pervar]] == pers[j],]
-      # if the product doesn't exist then quantity
-      # and expenditure = 0, else take qvar and pvar*qvar
-      if(nrow(qtemp) == 0){
-
-        qtn[j, i] <- 0
-        etn[j, i] <- 0
-
-      }
-      else {
-        qtn[j, i] <- qtemp[[qvar]]
-        etn[j, i] <- qtemp[[qvar]]*qtemp[[pvar]]
-      }
-    }
-  }
+  pmat <- matrix(x[[pvar]], nrow = obs, byrow = TRUE)
+  qmat <- matrix(x[[qvar]], nrow = obs, byrow = TRUE)
+  etn <- Reduce(`*`, list(pmat, qmat))
+  etn <- replace(etn, is.na(etn), 0)
 
   # calculate expenditure shares
   et <- rowSums(etn, na.rm = TRUE)
@@ -150,6 +138,8 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID){
 #' @param pervar A character string for the name of the time variable. This variable
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
 #' There may be observations on multiple products for each time period.
+#' @param sample default = "matched". whether to only use products that occur
+#' across all periods in a given window.
 #' @param window An integer specifying the length of the window.
 #' @param splice A character string specifying the splicing method. Valid methods are
 #' window, movement, half or mean. The default is mean.
@@ -161,7 +151,7 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID){
 #' Time Aggregation and the Construction of Price Indexes", Journal of
 #' Econometrics 161, 24-35.
 #' @export
-WTPDIndex <- function(x, pvar, qvar, pervar, prodID, window = 13, splice = "mean"){
+WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "matched", window = 13, splice = "mean"){
 
   # check valid column names are given
   colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
@@ -197,7 +187,7 @@ WTPDIndex <- function(x, pvar, qvar, pervar, prodID, window = 13, splice = "mean
   xWindow <- x[x[[pervar]] >= 1 & x[[pervar]] <= window,]
 
   # call wtpd_w on first window
-  pWTPD[1:window,1] <- wtpd_w(xWindow, pvar, qvar, pervar, prodID)
+  pWTPD[1:window,1] <- wtpd_w(xWindow, pvar, qvar, pervar, prodID, sample)
 
   # use a splicing method to compute the rest of the index
   if(n > window){
