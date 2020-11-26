@@ -5,13 +5,27 @@
 #' part of the index, and is called by GKIndex().
 #' @keywords internal
 #' @noRd
-gk_w <- function(x,pvar,qvar,pervar,prodID) {
+gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
+
+  # total time periods
+  obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
+
+  # if matching requested, keep only products that occur through the whole window
+  if(sample == "matched"){
+    tab <- table(x[[pervar]], x[[prodID]])
+    keep <- colnames(tab)[colSums(tab) == obs]
+    x <- x[x[[prodID]] %in% keep,]
+  }
+  else {
+    # fill out the gaps from missing/new products with NAs.
+    # we'll ignore them in the calcs, but it makes sure that the dimensions
+    # are correct to allow calculations to proceed.
+    x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
+  }
 
   # set up some variables
   # list of time periods
   pers <- sort(unique(x[[pervar]]))
-  # total time periods
-  obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
   # list of products
   prods <- sort(unique(x[[prodID]]))
   # total number of products
@@ -24,30 +38,13 @@ gk_w <- function(x,pvar,qvar,pervar,prodID) {
   # expenditures matrix
   etn <- matrix(0, nrow = obs, ncol = n)
 
-  # we need q, st and qt to compute C, then we can solve
-  # the obs - 1 equations simultaneously for the b vector
-  # which can then be used to solve for P
-  for(i in 1:n){
+  pmat <- matrix(x[[pvar]], nrow = obs, byrow = TRUE)
+  qtn <- matrix(x[[qvar]], nrow = obs, byrow = TRUE)
+  etn <- Reduce(`*`, list(pmat, qtn))
 
-    temp <- x[x[[prodID]] == prods[i],]
-
-    for(j in 1:obs){
-
-      qtemp <- temp[temp[[pervar]] == pers[j],]
-      # if the product doesn't exist then quantity
-      # and expenditure = 0, else take qvar and pvar*qvar
-      if(nrow(qtemp) == 0){
-
-        qtn[j, i] <- 0
-        etn[j, i] <- 0
-
-      }
-      else {
-        qtn[j, i] <- qtemp[[qvar]]
-        etn[j, i] <- qtemp[[qvar]]*qtemp[[pvar]]
-      }
-    }
-  }
+  # replace NAs with zeros
+  etn <- replace(etn, is.na(etn), 0)
+  qtn <- replace(qtn, is.na(qtn), 0)
 
   # calculate expenditure shares
   et <- rowSums(etn)
@@ -108,6 +105,8 @@ gk_w <- function(x,pvar,qvar,pervar,prodID) {
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
 #' There may be observations on multiple products for each time period.
 #' @param prodID A character string for the name of the product identifier
+#' @param sample set to "matched" to only use products that occur
+#' across all periods in a given window. Default is not to match.
 #' @param window An integer specifying the length of the window.
 #' @param splice the splicing method to use to extend the index. Valid methods are
 #' window, movement, half or mean. The default is mean.
@@ -119,7 +118,7 @@ gk_w <- function(x,pvar,qvar,pervar,prodID) {
 #' Time Aggregation and the Construction of Price Indexes", Journal of
 #' Econometrics 161, 24-35.
 #' @export
-GKIndex <- function(x, pvar, qvar, pervar, prodID, window, splice = "mean"){
+GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice = "mean"){
 
   # check valid column names are given
   colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
@@ -155,7 +154,7 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, window, splice = "mean"){
   xWindow <- x[x[[pervar]] >= 1 & x[[pervar]] <= window,]
 
   # call gk_w on first window
-  pGK[1:window,1] <- gk_w(xWindow, pvar, qvar, pervar, prodID)
+  pGK[1:window,1] <- gk_w(xWindow, pvar, qvar, pervar, prodID, sample)
 
   # use a splicing method to compute the rest of the index
   if(n > window){

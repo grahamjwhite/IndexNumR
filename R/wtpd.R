@@ -20,7 +20,7 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
   # total time periods
   obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
 
-  # if matching requested, keep only observations that occur through the whole sample
+  # if matching requested, keep only products that occur through the whole window
   if(sample == "matched"){
     tab <- table(x[[pervar]], x[[prodID]])
     keep <- colnames(tab)[colSums(tab) == obs]
@@ -50,6 +50,8 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
   pmat <- matrix(x[[pvar]], nrow = obs, byrow = TRUE)
   qmat <- matrix(x[[qvar]], nrow = obs, byrow = TRUE)
   etn <- Reduce(`*`, list(pmat, qmat))
+
+  # replace NAs with zeros
   etn <- replace(etn, is.na(etn), 0)
 
   # calculate expenditure shares
@@ -138,8 +140,8 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
 #' @param pervar A character string for the name of the time variable. This variable
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
 #' There may be observations on multiple products for each time period.
-#' @param sample default = "matched". whether to only use products that occur
-#' across all periods in a given window.
+#' @param sample set to "matched" to only use products that occur
+#' across all periods in a given window. Default is not to match.
 #' @param window An integer specifying the length of the window.
 #' @param splice A character string specifying the splicing method. Valid methods are
 #' window, movement, half or mean. The default is mean.
@@ -151,7 +153,7 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
 #' Time Aggregation and the Construction of Price Indexes", Journal of
 #' Econometrics 161, 24-35.
 #' @export
-WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "matched", window = 13, splice = "mean"){
+WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, splice = "mean"){
 
   # check valid column names are given
   colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
