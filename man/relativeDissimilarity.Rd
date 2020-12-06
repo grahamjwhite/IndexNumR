@@ -4,8 +4,15 @@
 \alias{relativeDissimilarity}
 \title{Computes measures of relative dissimilarity between all periods}
 \usage{
-relativeDissimilarity(x, pvar, qvar, pervar, prodID,
-  indexMethod = "fisher", similarityMethod = "logquadratic")
+relativeDissimilarity(
+  x,
+  pvar,
+  qvar,
+  pervar,
+  prodID,
+  indexMethod = "fisher",
+  similarityMethod = "logquadratic"
+)
 }
 \arguments{
 \item{x}{A dataframe containing price, quantities, a time

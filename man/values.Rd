@@ -4,8 +4,15 @@
 \alias{values}
 \title{Compute values (price x quantity)}
 \usage{
-values(x, pvar, qvar, pervar, prodID, sample = "matched",
-  matchPeriod = "previous")
+values(
+  x,
+  pvar,
+  qvar,
+  pervar,
+  prodID,
+  sample = "matched",
+  matchPeriod = "previous"
+)
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier

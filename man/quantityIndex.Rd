@@ -4,9 +4,19 @@
 \alias{quantityIndex}
 \title{Computes a bilateral quantity index}
 \usage{
-quantityIndex(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
-  sample = "matched", output = "pop", chainMethod = "pop",
-  sigma = 1.0001, ...)
+quantityIndex(
+  x,
+  pvar,
+  qvar,
+  pervar,
+  indexMethod = "laspeyres",
+  prodID,
+  sample = "matched",
+  output = "pop",
+  chainMethod = "pop",
+  sigma = 1.0001,
+  ...
+)
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier

@@ -4,8 +4,7 @@
 \alias{quantityIndicator}
 \title{Compute a quantity indicator}
 \usage{
-quantityIndicator(x, pvar, qvar, pervar, prodID, method,
-  sample = "matched")
+quantityIndicator(x, pvar, qvar, pervar, prodID, method, sample = "matched")
 }
 \arguments{
 \item{x}{data frame with input data}
