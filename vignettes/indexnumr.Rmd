@@ -20,7 +20,7 @@ library(IndexNumR)
 
 *IndexNumR* is a package for computing indices of aggregate prices or quantities using information on the prices and quantities on multiple products over multiple time periods. Such numbers are routinely computed by statistical agencies to measure, for example, the general change in the level of prices, production inputs and productivity for an economy. Well known examples are consumer price indices and producer price indices.
 
-In recent years, advances have been made in index number theory to address biases in many well known and widely used index number methods. One potential solution to some of these problems is the adaptation of multilateral methods that have commonly been used in cross-sectional comparisons to the time series context. This involves more computational complexity than earlier methods, but generally requires similar inputs. *IndexNumR* provides functions that make it easy to estimate indices using common index number methods, as well as multilateral methods.   
+In recent years, advances have been made in index number theory to address biases in many well known and widely used index number methods. One area of development has been the adaptation of multilateral methods, commonly used in cross-sectional comparisons, to the time series context. This involves more computational complexity than bilateral methods, but generally requires similar inputs. *IndexNumR* provides functions that make it easy to estimate indices using common index number methods, as well as multilateral methods.   
 
 ## Packages providing related functionality
 
@@ -387,7 +387,7 @@ priceIndex(CES_sigma_2,
 
 ## Multilateral index numbers
 
-Multilateral index number methods use data from multiple periods to compute each term in the index. *IndexNumR* provides the functions `GEKSIndex` and `GKIndex` to use the GEKS or Geary-Khamis multilateral index number methods respectively. 
+Multilateral index number methods use data from multiple periods to compute each term in the index. *IndexNumR* provides the functions `GEKSIndex`, `GKIndex` and `WTPDIndex` to use the GEKS, Geary-Khamis or Weighted Time-Product-Dummy multilateral index number methods respectively. 
 
 ### The GEKS method
 
@@ -453,7 +453,58 @@ Adding the constraint to the original equation we now have the solution for $b$,
   b = [I_{N} - C + R]^{-1}c.
 \end{equation}
 
-Once the $b$ vector has been calculated, the price levels can be computed from the GK equations above. As with other multilateral methods applied to the time-series context, the index must be extended in real-time as new observations become available. Therefore, the GK index is calculated over some window of time $w$, and methods to extend the index beyond period $w$ are discussed below.  
+Once the $b$ vector has been calculated, the price levels can be computed from the GK equations above. 
+
+
+### The Weighted Time-Product-Dummy method
+
+The weighed time-product-dummy method can be seen as the country-product-dummy method [@summers:1973] adapted to the time-series context and supposes the following model for prices:
+
+\begin{equation}
+  p_{tn} = \alpha_{t}b_{n}e_{tn},
+\end{equation}
+where $\alpha_{t}$ can be interpreted as the price level in period $t$, $b_{n}$ is the quality adjustment factor for product $n$ and $e_{tn}$ is a stochastic error term. 
+
+The problem is to solve for $\alpha$ and $b$ using least squares minimisation. Following [@rao:1995], it is formulated as a weighted least squares minimisation, where the weights are based on economic importance. Diewert and Fox show that this can be written as the solution to the system of equations,
+
+\begin{equation}
+  [I_{N} - F]\beta = f,
+\end{equation}
+where $I_{N}$ is the $N \times N$ identity matrix,
+
+$F$ is the following $N \times N$ matrix,
+\begin{equation}
+  F = \begin{bmatrix} f_{11} & \dots & f_{1N} \\ \vdots & \dots & \vdots \\ f_{N1} & \dots & f_{NN} \end{bmatrix},
+\end{equation}
+
+the elements of $F$ are the following,
+\begin{equation}
+  f_{nj} = w_{nj}/\sum_{k=1}^{N}w_{nk} \quad n,j = 1, \dots, N,
+\end{equation}
+
+with the $w_{nj}$ given by,
+\begin{equation}
+  w_{nj} = \sum_{t=1}^{T}w_{tnj} \quad n,j = 1, \dots, N,
+\end{equation}
+
+and the $w_{tnj}$ given by,
+\begin{equation}
+  w_{tnj} = s_{tn}s_{tj} \quad n \neq j, n = 1, \dots, N; j = 1, \dots, N; t = 1, \dots, T.
+\end{equation}
+
+$f$ on the right-hand-side is the following,
+\begin{equation}
+  f = [f_{1}, \dots, f_{N}]^{\textbf{T}},
+\end{equation}
+
+where the $f_{n}$ are given by,
+\begin{equation}
+  \sum_{t=1}^{T}\sum_{j=1}^{N}f_{tnj}(y_{tn} - y_{tj}) \quad for \space n = 1, \dots, N
+\end{equation}
+
+and $y_{tn} = log(p_{tn})$. 
+
+The matrix $[I_{N} - F]$ is singular so a normalisation must be used to solve the system of equations. *IndexNumR* uses the method discussed in Diewert and Fox; $\beta_{N}$ is assumed to be zero and the last equation is dropped to solve for the remaining coefficients. 
 
 ### Extending multilateral indexes
 
