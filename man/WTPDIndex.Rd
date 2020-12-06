@@ -4,7 +4,16 @@
 \alias{WTPDIndex}
 \title{Compute a weighted time-product-dummy multilateral index}
 \usage{
-WTPDIndex(x, pvar, qvar, pervar, prodID, window = 13, splice = "mean")
+WTPDIndex(
+  x,
+  pvar,
+  qvar,
+  pervar,
+  prodID,
+  sample = "",
+  window = 13,
+  splice = "mean"
+)
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier
@@ -20,13 +29,22 @@ There may be observations on multiple products for each time period.}
 
 \item{prodID}{A character string for the name of the product identifier}
 
+\item{sample}{set to "matched" to only use products that occur
+across all periods in a given window. Default is not to match.}
+
 \item{window}{An integer specifying the length of the window.}
 
 \item{splice}{A character string specifying the splicing method. Valid methods are
 window, movement, half or mean. The default is mean.}
 }
 \description{
-A function to calculate a weighted time-product-dummy multilateral index
+A function to calculate a weighted-time-product-dummy multilateral index.
+}
+\details{
+When there are missing values in the dataset (e.g., from new or disappearing
+products), the default option is to treat the missing prices and quantities
+as zero. An alternative is to use a matched sample, where only products that
+appear throughout each window in the calculation are kept.
 }
 \examples{
 # compute a wtpd index with mean splicing

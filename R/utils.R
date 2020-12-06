@@ -232,3 +232,19 @@ fillMissing <- function(x, pvar, qvar, pervar, prodID, priceReplace, quantityRep
   return(x)
 
 }
+
+#' windowMatch
+#'
+#' match products over a window of periods
+#' @param x data frame of product data
+#' @param pervar string for the name of the time period variable
+#' @param prodID string for the name of the product identifier variable
+#' @keywords internal
+#' @noRd
+windowMatch <- function(x, pervar, prodID){
+
+  tab <- table(x[[pervar]], x[[prodID]])
+  keep <- colnames(tab)[colSums(tab) == obs]
+  return(x[x[[prodID]] %in% keep,])
+
+}

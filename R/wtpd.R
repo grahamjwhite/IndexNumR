@@ -22,15 +22,13 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
 
   # if matching requested, keep only products that occur through the whole window
   if(sample == "matched"){
-    tab <- table(x[[pervar]], x[[prodID]])
-    keep <- colnames(tab)[colSums(tab) == obs]
-    x <- x[x[[prodID]] %in% keep,]
+    x <- windowMatch(x, pervar, prodID)
   }
   else {
-    # fill out the gaps from missing/new products with NAs.
-    # we'll ignore them in the calcs, but it makes sure that the dimensions
-    # are correct to allow calculations to proceed.
-    x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = NA, quantityReplace = NA)
+    # fill out the gaps from missing/new products with zeros.
+    # this makes sure that the dimensions of all vectors/matrices
+    # are conformable for the calculations
+    x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
   }
 
   # list of time periods
@@ -130,7 +128,12 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
 
 #' Compute a weighted time-product-dummy multilateral index
 #'
-#' A function to calculate a weighted time-product-dummy multilateral index
+#' A function to calculate a weighted-time-product-dummy multilateral index.
+#'
+#' When there are missing values in the dataset (e.g., from new or disappearing
+#' products), the default option is to treat the missing prices and quantities
+#' as zero. An alternative is to use a matched sample, where only products that
+#' appear throughout each window in the calculation are kept.
 #'
 #' @param x A dataframe containing price, quantity, a time period identifier
 #' and a product identifier. It must have column names.
@@ -189,14 +192,14 @@ WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, s
   xWindow <- x[x[[pervar]] >= 1 & x[[pervar]] <= window,]
 
   # call wtpd_w on first window
-  pWTPD[1:window,1] <- wtpd_w(xWindow, pvar, qvar, pervar, prodID, sample)
+  pWTPD[1:window, 1] <- wtpd_w(xWindow, pvar, qvar, pervar, prodID, sample)
 
   # use a splicing method to compute the rest of the index
   if(n > window){
     for(i in 2:(n-window+1)){
       # set the old window
       if(i==2){
-        old <- pWTPD[(i-1):(i+window-2),1]
+        old <- pWTPD[(i-1):(i+window-2), 1]
       }
       else {
         old <- new
@@ -206,10 +209,10 @@ WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, s
       xWindow <- x[x[[pervar]]>=i & x[[pervar]] < i + window,]
 
       # call wtpd_w on this window
-      new <- wtpd_w(xWindow,pvar,qvar,pervar,prodID)
+      new <- wtpd_w(xWindow, pvar, qvar, pervar, prodID, sample)
 
       # splice the new datapoint on
-      pWTPD[i+window-1,1] <- splice_t(pWTPD[i+window-2,1], old, new, method=splice)
+      pWTPD[i+window-1, 1] <- splice_t(pWTPD[i+window-2, 1], old, new, method = splice)
     }
   }
 
