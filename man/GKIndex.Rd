@@ -4,7 +4,7 @@
 \alias{GKIndex}
 \title{Compute the Geary-Khamis index}
 \usage{
-GKIndex(x, pvar, qvar, pervar, prodID, window, splice = "mean")
+GKIndex(x, pvar, qvar, pervar, prodID, sample = "", window, splice = "mean")
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier
@@ -19,6 +19,9 @@ must contain integers starting at period 1 and increasing in increments of 1 per
 There may be observations on multiple products for each time period.}
 
 \item{prodID}{A character string for the name of the product identifier}
+
+\item{sample}{set to "matched" to only use products that occur
+across all periods in a given window. Default is not to match.}
 
 \item{window}{An integer specifying the length of the window.}
 
