@@ -178,8 +178,8 @@ daysInMonth <- function(x){
 #' @noRd
 kennedyBeta <- function(x){
 
-  coeffs <- coef(x)
-  vars <- diag(vcov(x))
+  coeffs <- stats::coef(x)
+  vars <- diag(stats::vcov(x))
 
   return(coeffs - 0.5*vars)
 
@@ -236,15 +236,20 @@ fillMissing <- function(x, pvar, qvar, pervar, prodID, priceReplace, quantityRep
 #' windowMatch
 #'
 #' match products over a window of periods
+#'
 #' @param x data frame of product data
 #' @param pervar string for the name of the time period variable
 #' @param prodID string for the name of the product identifier variable
+#' @return a dataframe of matched product data
 #' @keywords internal
 #' @noRd
 windowMatch <- function(x, pervar, prodID){
 
+  obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
+
   tab <- table(x[[pervar]], x[[prodID]])
   keep <- colnames(tab)[colSums(tab) == obs]
+
   return(x[x[[prodID]] %in% keep,])
 
 }

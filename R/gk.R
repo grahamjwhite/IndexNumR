@@ -12,9 +12,7 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
 
   # if matching requested, keep only products that occur through the whole window
   if(sample == "matched"){
-    tab <- table(x[[pervar]], x[[prodID]])
-    keep <- colnames(tab)[colSums(tab) == obs]
-    x <- x[x[[prodID]] %in% keep,]
+    x <- windowMatch(x, pervar, prodID)
   }
   else {
     # fill out the gaps from missing/new products with NAs.
@@ -171,7 +169,7 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice =
       xWindow <- x[x[[pervar]]>=i & x[[pervar]] < i + window,]
 
       # call gk_w on this window
-      new <- gk_w(xWindow,pvar,qvar,pervar,prodID)
+      new <- gk_w(xWindow, pvar, qvar, pervar, prodID, sample)
 
       # splice the new datapoint on
       pGK[i+window-1,1] <- splice_t(pGK[i+window-2,1], old, new, method=splice)
