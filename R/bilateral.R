@@ -191,9 +191,9 @@ tpd_t <- function(p0, p1, q0, q1){
 
   regData <- rbind(df0, df1)
 
-  reg <- lm(lnP ~ D + product, data = regData, weights = s)
-  coeffs <- coef(reg)
-  vars <- diag(vcov(reg))
+  reg <- with(regData, stats::lm(lnP ~ D + product, weights = s))
+  coeffs <- stats::coef(reg)
+  vars <- diag(stats::vcov(reg))
 
   b <- coeffs[which(names(coeffs) == "D")]
   varB <- vars[which(names(vars) == "D")]
