@@ -20,7 +20,7 @@ library(IndexNumR)
 
 *IndexNumR* is a package for computing indices of aggregate prices or quantities using information on the prices and quantities on multiple products over multiple time periods. Such numbers are routinely computed by statistical agencies to measure, for example, the general change in the level of prices, production inputs and productivity for an economy. Well known examples are consumer price indices and producer price indices.
 
-In recent years, advances have been made in index number theory to address biases in many well known and widely used index number methods. One potential solution to some of these problems is the adaptation of multilateral methods that have commonly been used in cross-sectional comparisons to the time series context. This involves more computational complexity than earlier methods, but generally requires similar inputs. *IndexNumR* provides functions that make it easy to estimate indices using common index number methods, as well as multilateral methods.   
+In recent years, advances have been made in index number theory to address biases in many well known and widely used index number methods. One area of development has been the adaptation of multilateral methods, commonly used in cross-sectional comparisons, to the time series context. This involves more computational complexity than bilateral methods, but generally requires similar inputs. *IndexNumR* provides functions that make it easy to estimate indices using common index number methods, as well as multilateral methods.   
 
 ## Packages providing related functionality
 
@@ -128,7 +128,9 @@ and the prices and expenditures are,
 
 ## Matched-sample indexes
 
-A common issue when computing index numbers is that the sample of products over which the index is computed changes over time. Since price and quantity information is generally needed on the same set of products for each pair of periods being compared, the index calculation functions provided in *IndexNumR* provide the option `sample="matched"` to use only a matched sample of products. This means that the price and quantity information will be extracted for a pair of periods, any non-overlapping products removed, and the index computed over these matched products. This is repeated for each pair of periods over which the index is being computed. 
+A common issue when computing index numbers is that the sample of products over which the index is computed changes over time. Since price and quantity information is generally needed on the same set of products for each pair of periods being compared, the index calculation functions provided in *IndexNumR* provide the option `sample="matched"` to use only a matched sample of products. How this performs the matching depends on whether the index is bilateral or multilateral. For bilateral indices the price and quantity information will be extracted for a pair of periods, any non-overlapping products removed, and the index computed over these matched products. This is repeated for each pair of periods over which the index is being computed.
+
+For multilateral indices it is somewhat different. For the GEKS index, the matching is performed over all bilateral comparisons that enter into the calculation of the multilateral index (see section on the GEKS index below). For the Geary-Khamis and Weighted-Time-Product-Dummy methods, matching is performed over each window of data. That is, only products that appear in all time periods within each calculation window are kept. 
 
 Matched-sample indices may suffer from bias. As a simple assessment of the potential bias, the function `evaluateMatched` calculates the proportion of total expenditure that the matched sample covers in each time period. The function provides output for expenditure as well as counts and can evaluate overlap using either a chained or fixed base index. 
 
@@ -306,7 +308,7 @@ which recovers the value of $\sigma$ used to construct the dataset. There is one
 
 One problem with chain-linked indices is that depending on the index number method chosen, the index will likely suffer from chain drift. Take an example where prices increase in one period and then return to their original level in the next period. An index suffering from chain-drift will increase when prices increase, but won't return to its original level when prices do. In the above examples, it was noted that there is substantial positive bias in the Laspeyres index and substantial negative bias in the Paasche index. Part of this is due to chain drift. 
 
-One way of reducing the amount of chain drift is to choose linking periods that are 'similar' in some sense (a way of eliminating chain-drift is to use the GEKS multilateral index discussed later). This method of linking has been mentioned by Diewert and Fox [@df:2017], and Hill [@hill:2001] takes the concept further to choose the link period based on a minimum cost spanning tree. 
+One way of reducing the amount of chain drift is to choose linking periods that are 'similar' in some sense (alternatively, use a multilateral method). This method of linking has been mentioned by Diewert and Fox [@df:2017], and Hill [@hill:2001] takes the concept further to choose the link period based on a minimum cost spanning tree. 
 
 To choose the linking period we need a measure of the similarity between two periods. For each period we have information on prices and quantities. The Hill (2001) method compares the two periods based on the Paasche-Laspeyres spread,
 
@@ -316,7 +318,7 @@ PL (p^{t},p^{T+1},q^{t},q^{T+1}) = \Bigg|{ln\Bigg(\frac{P_{T+1,t}^{L}}{P_{T+1,t}
 
 where $P^{L}$ is a Laspeyres price index and $P^{P}$ is a Paasche price index. Since the Laspeyres and Paasche indices are biased in opposite directions, this choice of similarity measure is designed to choose linking periods that minimise the influence of index number method choice. 
 
-Alternative measures exist for comparing the dissimilarity of two vectors. Two such measures, recommended by Diewert [@Diewert:2002] are the weighted log-quadratic index of relative price dissimilarity and the weighted asymptotically linear index of relative price dissimilarity, given by the following,
+Alternative measures exist that compute the dissimilarity of two vectors. Two such measures, recommended by Diewert [@Diewert:2002] are the weighted log-quadratic index of relative price dissimilarity and the weighted asymptotically linear index of relative price dissimilarity, given by the following,
 \begin{align}
 LQ(p^{t},p^{T+1},q^{t},q^{T+1}) = \sum_{n=1}^{N}\frac{1}{2}&(s_{T+1,n} + s_{t,n})[ln(p_{T+1,n}/P(p^{t},p^{T+1},q^{t},q^{T+1})p_{t,n})]^{2} \label{eq:logQuadratic} \\
 AL(p^{t},p^{T+1},q^{t},q^{T+1}) = \sum_{n=1}^{N}\frac{1}{2}&(s_{T+1,n} +  s_{t,n})[(p_{T+1,n}/P(p^{t},p^{T+1},q^{t},q^{T+1})p_{t,n}) + \nonumber	\\
@@ -387,7 +389,7 @@ priceIndex(CES_sigma_2,
 
 ## Multilateral index numbers
 
-Multilateral index number methods use data from multiple periods to compute each term in the index. *IndexNumR* provides the functions `GEKSIndex` and `GKIndex` to use the GEKS or Geary-Khamis multilateral index number methods respectively. 
+Multilateral index number methods use data from multiple periods to compute each term in the index. *IndexNumR* provides the functions `GEKSIndex`, `GKIndex` and `WTPDIndex` to use the GEKS, Geary-Khamis or Weighted Time-Product-Dummy multilateral index number methods respectively. 
 
 ### The GEKS method
 
@@ -406,8 +408,6 @@ where the term $P^{k,t}$ is the bilateral index between period $t$ and base peri
 \end{pmatrix}
 \]
 So that the first term of the GEKS index is the geometric mean of the elements in the first column of the above matrix, the second term is the geometric mean of the second column, and so on. Note that *IndexNumR* makes use of two facts about the matrix above to speed up computation: it is (inversely) symmetric so that $P^{j,k} = 1/P^{k,j}$; and the diagonal elements are 1. 
-
-The indexes are then normalised by dividing by the first term, to give an index for the first $w$ periods that starts at 1. If the index only covers $w$ periods then no further calculation is required. However, if there are $T>w$ periods in the dataset then the index must be extended. 
 
 ### The Geary-Khamis method
 
@@ -453,9 +453,62 @@ Adding the constraint to the original equation we now have the solution for $b$,
   b = [I_{N} - C + R]^{-1}c.
 \end{equation}
 
-Once the $b$ vector has been calculated, the price levels can be computed from the GK equations above. As with other multilateral methods applied to the time-series context, the index must be extended in real-time as new observations become available. Therefore, the GK index is calculated over some window of time $w$, and methods to extend the index beyond period $w$ are discussed below.  
+Once the $b$ vector has been calculated, the price levels can be computed from the GK equations above. 
+
+
+### The Weighted Time-Product-Dummy method
+
+The weighed time-product-dummy method can be seen as the country-product-dummy method [@summers:1973] adapted to the time-series context and supposes the following model for prices:
+
+\begin{equation}
+  p_{tn} = \alpha_{t}b_{n}e_{tn},
+\end{equation}
+where $\alpha_{t}$ can be interpreted as the price level in period $t$, $b_{n}$ is the quality adjustment factor for product $n$ and $e_{tn}$ is a stochastic error term. 
+
+The problem is to solve for $\alpha$ and $b$ using least squares minimisation. Following [@rao:1995], it is formulated as a weighted least squares minimisation, where the weights are based on economic importance. Diewert and Fox show that this can be written as the solution to the system of equations,
+
+\begin{equation}
+  [I_{N} - F]\beta = f,
+\end{equation}
+where $I_{N}$ is the $N \times N$ identity matrix,
+
+$F$ is the following $N \times N$ matrix,
+\begin{equation}
+  F = \begin{bmatrix} f_{11} & \dots & f_{1N} \\ \vdots & \dots & \vdots \\ f_{N1} & \dots & f_{NN} \end{bmatrix},
+\end{equation}
+
+the elements of $F$ are the following,
+\begin{equation}
+  f_{nj} = w_{nj}/\sum_{k=1}^{N}w_{nk} \quad n,j = 1, \dots, N,
+\end{equation}
+
+with the $w_{nj}$ given by,
+\begin{equation}
+  w_{nj} = \sum_{t=1}^{T}w_{tnj} \quad n,j = 1, \dots, N,
+\end{equation}
+
+and the $w_{tnj}$ given by,
+\begin{equation}
+  w_{tnj} = s_{tn}s_{tj} \quad n \neq j, n = 1, \dots, N; j = 1, \dots, N; t = 1, \dots, T.
+\end{equation}
+
+$f$ on the right-hand-side is the following,
+\begin{equation}
+  f = [f_{1}, \dots, f_{N}]^{\textbf{T}},
+\end{equation}
+
+where the $f_{n}$ are given by,
+\begin{equation}
+  \sum_{t=1}^{T}\sum_{j=1}^{N}f_{tnj}(y_{tn} - y_{tj}) \quad for \space n = 1, \dots, N
+\end{equation}
+
+and $y_{tn} = log(p_{tn})$. 
+
+The matrix $[I_{N} - F]$ is singular so a normalisation must be used to solve the system of equations. *IndexNumR* uses the method discussed in [@df:2017]; $\beta_{N}$ is assumed to be zero and the last equation is dropped to solve for the remaining coefficients. 
 
 ### Extending multilateral indexes
+
+The multilateral indexes are normalised by dividing by the first term, to give an index for the first $w$ periods that starts at 1. If the index only covers $w$ periods then no further calculation is required. However, if there are $T>w$ periods in the dataset then the index must be extended.
 
 Extending a multilateral index can be done in a multitude of ways. Statistical agencies generally do not revise price indices like the consumer price index, so the methods offered by *IndexNumR* to extend multilateral indexes are methods that do not lead to revisions. More specifically, these are called *splicing methods* and the four options available are the *movement*, *window*, *half* and *mean splice*. The idea is that we start by moving the window forward by one period and calculate the index for the new window. There will be $w-1$ overlapping periods between the initial index and the index computed on the window that has been rolled forward one period. Any one of these overlapping periods can be used to extend the multilateral index.  
 

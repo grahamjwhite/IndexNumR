@@ -4,8 +4,15 @@
 \alias{valueDecomposition}
 \title{valueDecomposition}
 \usage{
-valueDecomposition(x, pvar, qvar, pervar, prodID, priceMethod,
-  sample = "matched")
+valueDecomposition(
+  x,
+  pvar,
+  qvar,
+  pervar,
+  prodID,
+  priceMethod,
+  sample = "matched"
+)
 }
 \arguments{
 \item{x}{data frame with input data}

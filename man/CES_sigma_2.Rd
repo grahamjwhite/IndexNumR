@@ -4,13 +4,15 @@
 \name{CES_sigma_2}
 \alias{CES_sigma_2}
 \title{Dataset of prices and quantities on four products}
-\format{A data frame with 48 rows and 4 columns:
+\format{
+A data frame with 48 rows and 4 columns:
 \describe{
   \item{time}{time period}
   \item{prices}{constructed prices}
   \item{quantities}{constructed quantities}
   \item{prodID}{product identifier}
-}}
+}
+}
 \source{
 Computed using procedure in W.E. Diewert and K.J. Fox (2017),
 "Substitution Bias in Multilateral Methods for CPI Construction Using

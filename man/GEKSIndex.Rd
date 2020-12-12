@@ -4,8 +4,17 @@
 \alias{GEKSIndex}
 \title{Compute a GEKS multilateral index}
 \usage{
-GEKSIndex(x, pvar, qvar, pervar, indexMethod = "tornqvist", prodID,
-  sample = "matched", window = 13, splice = "mean")
+GEKSIndex(
+  x,
+  pvar,
+  qvar,
+  pervar,
+  indexMethod = "tornqvist",
+  prodID,
+  sample = "matched",
+  window = 13,
+  splice = "mean"
+)
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier

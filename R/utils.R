@@ -178,9 +178,78 @@ daysInMonth <- function(x){
 #' @noRd
 kennedyBeta <- function(x){
 
-  coeffs <- coef(x)
-  vars <- diag(vcov(x))
+  coeffs <- stats::coef(x)
+  vars <- diag(stats::vcov(x))
 
   return(coeffs - 0.5*vars)
+
+}
+
+
+#' fillMissing
+#'
+#' fill in missing observations
+#' @param x the dataset
+#' @param pvar the price variable
+#' @param qvar the quantity variable
+#' @param pervar the time period variable
+#' @param prodID the product identifier
+#' @param priceReplace what to replace missing prices with
+#' @param quantityReplace what to replace missing quantities with
+#' @keywords internal
+#' @noRd
+fillMissing <- function(x, pvar, qvar, pervar, prodID, priceReplace, quantityReplace){
+
+  # list of time periods
+  pers <- sort(unique(x[[pervar]]))
+  # list of products
+  prods <- sort(unique(x[[prodID]]))
+
+  # fill out the gaps from missing/new products with replacement values.
+  available <- table(x[,c(prodID, pervar)])
+  if(sum(!(available == 0)) > 0){
+
+    # which products are not available
+    toAdd <- as.data.frame(which(available == 0, arr.ind = TRUE))
+
+    # generate the new observation row for price, quantity, time and product id
+    newObs <- data.frame(rep(priceReplace, nrow(toAdd)),
+                         rep(quantityReplace,nrow(toAdd)),
+                         prods[toAdd[[prodID]]],
+                         pers[toAdd[[pervar]]],
+                         stringsAsFactors = FALSE)
+
+    # set column names to the ones used in the input dataset
+    colnames(newObs) <- c(pvar, qvar, prodID, pervar)
+
+    # add the new observations onto the dataset
+    x <- merge(x, newObs, all.x = TRUE, all.y = TRUE)
+
+    # ensure dataset still sorted by time period and product ID
+    x <- x[order(x[[pervar]], x[[prodID]]),]
+  }
+
+  return(x)
+
+}
+
+#' windowMatch
+#'
+#' match products over a window of periods
+#'
+#' @param x data frame of product data
+#' @param pervar string for the name of the time period variable
+#' @param prodID string for the name of the product identifier variable
+#' @return a dataframe of matched product data
+#' @keywords internal
+#' @noRd
+windowMatch <- function(x, pervar, prodID){
+
+  obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
+
+  tab <- table(x[[pervar]], x[[prodID]])
+  keep <- colnames(tab)[colSums(tab) == obs]
+
+  return(x[x[[prodID]] %in% keep,])
 
 }

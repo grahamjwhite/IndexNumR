@@ -4,9 +4,20 @@
 \alias{priceIndex}
 \title{Computes a bilateral price index}
 \usage{
-priceIndex(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
-  sample = "matched", output = "pop", chainMethod = "pop",
-  sigma = 1.0001, basePeriod = 1, ...)
+priceIndex(
+  x,
+  pvar,
+  qvar,
+  pervar,
+  indexMethod = "laspeyres",
+  prodID,
+  sample = "matched",
+  output = "pop",
+  chainMethod = "pop",
+  sigma = 1.0001,
+  basePeriod = 1,
+  ...
+)
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier

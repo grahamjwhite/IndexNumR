@@ -4,8 +4,16 @@
 \alias{elasticity}
 \title{Computes the elasticity of substitution}
 \usage{
-elasticity(x, pvar, qvar, pervar, prodID, compIndex = "ces",
-  lower = -20, upper = 20)
+elasticity(
+  x,
+  pvar,
+  qvar,
+  pervar,
+  prodID,
+  compIndex = "ces",
+  lower = -20,
+  upper = 20
+)
 }
 \arguments{
 \item{x}{A dataframe}
