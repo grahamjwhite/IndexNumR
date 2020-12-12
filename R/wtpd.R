@@ -15,6 +15,10 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 
+#' this computes the weighted time product dummy method for a window
+#' of data. This is not exposed to the user and is called by WTPDIndex()
+#' @keywords internal
+#' @noRd
 wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
 
   # total time periods

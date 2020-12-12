@@ -6,9 +6,8 @@ Author: Graham White
 Maintainer: Graham White <g.white@unswalumni.com>
 Description: Computes bilateral and multilateral index numbers. 
     It has support for several standard bilateral indices as well as
-    the GEKS multilateral index number methods 
-    (see Ivancic, Diewert and Fox (2011) <doi:10.1016/j.jeconom.2010.09.003>) . 
-    It also supports updating of GEKS indexes using several splicing methods.
+    the multilateral index number methods. 
+    It also supports updating of multilateral indexes using several splicing methods.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
