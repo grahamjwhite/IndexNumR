@@ -4,7 +4,7 @@ load(system.file("testdata","testData_bilateral.RData", package = "IndexNumR"))
 
 indexMethods <- c("laspeyres", "paasche", "fisher", "tornqvist", "satovartia",
                   "dutot", "carli", "jevons", "harmonic", "cswd", "walsh", "ces",
-                  "geomLaspeyres", "geomPaasche", "tpd")
+                  "geomLaspeyres", "geomPaasche", "tpd", "gk")
 outputTypes <- c("pop", "chained", "fixedbase")
 
 indexEqual <- function(pOrq, indexMethod, outputType, result){

@@ -201,6 +201,17 @@ tpd_t <- function(p0, p1, q0, q1){
   return(exp(b - 0.5*varB))
 }
 
+#' Geary-Khamis bilateral
+#'
+#' @keywords internal
+#' @noRd
+gk_t <- function(p0, p1, q0, q1){
+
+  h <- 2/(1/q0+1/q1)
+  return(sum(p1*h)/sum(p0*h))
+
+}
+
 #' Computes a bilateral price index
 #'
 #' A function to compute a price index given data on products over time
@@ -215,7 +226,8 @@ tpd_t <- function(p0, p1, q0, q1){
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
 #' number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-#' harmonic, tornqvist, satovartia, walsh, CES, geomLaspeyres, geomPaasche and tpd.
+#' harmonic, tornqvist, satovartia, walsh, CES, geomLaspeyres, geomPaasche, tpd and
+#' Geary-Khamis.
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
 #' @param output A character string specifying whether a chained (output="chained")
@@ -256,7 +268,7 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
                     "paasche","fisher","tornqvist","satovartia","walsh","ces",
-                    "geomlaspeyres", "geompaasche", "tpd")
+                    "geomlaspeyres", "geompaasche", "tpd", "gk")
 
   if(!(tolower(indexMethod) %in% validMethods)){
     stop("Not a valid index number method.")
@@ -368,7 +380,8 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
              ces = {plist[i,1] <- lloydMoulton_t0(p0,p1,q0,sigma = sigma)},
              geomlaspeyres = {plist[i,1] <- geomLaspeyres_t(p0, p1, q0, q1)},
              geompaasche = {plist[i,1] <- geomPaasche_t(p0, p1, q0, q1)},
-             tpd = {plist[i,1] <- tpd_t(p0, p1, q0, q1)}
+             tpd = {plist[i,1] <- tpd_t(p0, p1, q0, q1)},
+             gk = {plist[i,1] <- gk_t(p0, p1, q0, q1)}
       )
 
       # if similarity chain linking then multiply the index by the link period index
