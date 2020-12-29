@@ -186,7 +186,7 @@ where $s^{t}_{n} = \frac{p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}$ 
 where $s^{t}_{n}$ is defined as above for the geometric laspeyres index.
 
 
-### Superlative indexes
+### Superlative and psuedo-superlative indexes
 
 * Fisher index [@fisher:1921],
 \begin{equation*}
@@ -217,6 +217,12 @@ and $w^{*}_{n}$ is the logarithmic mean of the shares,
 \begin{equation*}
 	w^{*}_{n} = \frac{s^{t}_{n}-s^{t-1}_{n}}{\log (s^{t}_{n}) - \log (s^{t-1}_{n})}
 \end{equation*}
+
+* Geary-Khamis [@khamis:1972]
+\begin{equation*}
+  P(p^{t-1},p^{t},q^{t-1},q^{t}) = \frac{\sum_{n=1}^{N}h(q^{t-1}_{n}, q^{t}_{n})p^{t}_{n}}{\sum_{n=1}^{N}h(q^{t-1}_{n}, q^{t}_{n})p^{t-1}_{n}}
+\end{equation*}
+where h() is the harmonic mean. 
 
 ### Constant elasticity of substitution (CES) framework indexes
 
