@@ -2,10 +2,11 @@
 
 ### Improvements
 
-- Added the bilateral time-product-dummy index method. This uses the Kennedy (1981) bias adjustment. 
+- Added the bilateral time-product-dummy index method. This optionally uses the Kennedy (1981) bias adjustment. 
 - Added the Geary-Khamis bilateral method.
 - The bilateral time-product-dummy method added as a valid bilateral index to use within the GEKS multilateral index number method.
-- Added the Geary-Khamis multilateral method
+- Added the Geary-Khamis and weighted time-product-dummy multilateral methods.
+- Added the Fixed Base Expanding Window and Fixed Base Moving Window splicing methods.
 - Added the function CESData() that calculates sample datasets using any value of sigma, assuming the data and methodology in Diewert and Fox (2017)
 - Added basePeriod parameter to priceIndex() and quantityIndex() so it is now possible to choose the base period when using output = "fixedbase" for bilateral indices. 
 
