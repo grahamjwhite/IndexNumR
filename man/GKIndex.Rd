@@ -26,10 +26,22 @@ across all periods in a given window. Default is not to match.}
 \item{window}{An integer specifying the length of the window.}
 
 \item{splice}{the splicing method to use to extend the index. Valid methods are
-window, movement, half or mean. The default is mean.}
+window, movement, half, mean, fbew or fbmw. The default is mean.}
 }
 \description{
 Compute the Geary-Khamis index
+}
+\details{
+The splicing methods are used to update the price index when new data become
+available without changing prior index values. The window, movement, half and mean splices
+use the most recent index value as the base period, which is multiplied by a price movement
+computed using new data. The fbew (Fixed Base Expanding Window) and fbmw (Fixed Base Moving
+Window) use a fixed base onto which the price movement using new data is applied. The base
+period is updated periodically. IndexNumR calculates which periods are the base periods using
+\code{seq(from = 1, to = n, by = window - 1)}, so the data must be set up correctly and the
+right window length chosen. For example, if you have monthly data and want December
+of each year to be the base period, then the first period in the data must be December
+and the window must be set to 13.
 }
 \examples{
 # compute a Geary-Khamis index with mean splicing
@@ -40,4 +52,10 @@ prodID = "prodID", window=11, splice = "mean")
 Ivancic, L., W.E. Diewert and K.J. Fox (2011), "Scanner Data,
 Time Aggregation and the Construction of Price Indexes", Journal of
 Econometrics 161, 24-35.
+
+Geary, R. G. 1958. “A Note on Comparisons of Exchange Rates and Purchasing Power Between
+Countries.” Journal of the Royal Statistical Society Series A 121: 97–99.
+
+Khamis, S. H. 1970. “Properties and Conditions for the Existence of a New Type of Index Number.”
+Sankhya: The Indian Journal of Statistics, Series B (1960-2002) 32: 81–98.
 }

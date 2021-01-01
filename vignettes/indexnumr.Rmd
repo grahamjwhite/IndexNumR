@@ -18,9 +18,9 @@ library(IndexNumR)
 
 # Introduction
 
-*IndexNumR* is a package for computing indices of aggregate prices or quantities using information on the prices and quantities on multiple products over multiple time periods. Such numbers are routinely computed by statistical agencies to measure, for example, the general change in the level of prices, production inputs and productivity for an economy. Well known examples are consumer price indices and producer price indices.
+*IndexNumR* is a package for computing indices of aggregate prices or quantities using information on the prices and quantities on multiple products over multiple time periods. Such numbers are routinely computed by statistical agencies to measure, for example, the change in the general level of prices, production inputs and productivity for an economy. Well known examples are consumer price indices and producer price indices.
 
-In recent years, advances have been made in index number theory to address biases in many well known and widely used index number methods. One area of development has been the adaptation of multilateral methods, commonly used in cross-sectional comparisons, to the time series context. This involves more computational complexity than bilateral methods, but generally requires similar inputs. *IndexNumR* provides functions that make it easy to estimate indices using common index number methods, as well as multilateral methods.   
+In recent years, advances have been made in index number theory to address biases in many well known and widely used index number methods. One area of development has been the adaptation of multilateral methods, commonly used in cross-sectional comparisons, to the time series context. This typically involves more computational complexity than bilateral methods. *IndexNumR* provides functions that make it easy to estimate indices using common index number methods, as well as multilateral methods.   
 
 ## Packages providing related functionality
 
@@ -130,7 +130,7 @@ and the prices and expenditures are,
 
 A common issue when computing index numbers is that the sample of products over which the index is computed changes over time. Since price and quantity information is generally needed on the same set of products for each pair of periods being compared, the index calculation functions provided in *IndexNumR* provide the option `sample="matched"` to use only a matched sample of products. How this performs the matching depends on whether the index is bilateral or multilateral. For bilateral indices the price and quantity information will be extracted for a pair of periods, any non-overlapping products removed, and the index computed over these matched products. This is repeated for each pair of periods over which the index is being computed.
 
-For multilateral indices it is somewhat different. For the GEKS index, the matching is performed over all bilateral comparisons that enter into the calculation of the multilateral index (see section on the GEKS index below). For the Geary-Khamis and Weighted-Time-Product-Dummy methods, matching is performed over each window of data. That is, only products that appear in all time periods within each calculation window are kept. 
+For multilateral indices it is somewhat different. For the GEKS index, the matching is performed over all bilateral comparisons that enter into the calculation of the multilateral index (see section on the GEKS index below). For the Geary-Khamis and Weighted-Time-Product-Dummy methods, matching is performed over each window of data. That is, only products that appear in all time periods within each calculation window are kept. For these two indices a matched sample is not required; *IndexNumR* will set price and quantity to zero for all missing observations if a matched sample is not requested, to allow the index to be computed.
 
 Matched-sample indices may suffer from bias. As a simple assessment of the potential bias, the function `evaluateMatched` calculates the proportion of total expenditure that the matched sample covers in each time period. The function provides output for expenditure as well as counts and can evaluate overlap using either a chained or fixed base index. 
 
@@ -241,14 +241,14 @@ This is a regression model approach where log prices are modelled as a function 
 \begin{equation*}
   \ln{p_{n}^{t}} = \alpha + \beta_{1} D^{t} + \sum_{n = 2}^{N}\beta_{n}D_{n} + \epsilon_{n}^{t},
 \end{equation*}
-where $D^{t}$ is equal to 1 in period $t$ and 0 in period $t-1$, and $D_{i}$ is equal to 1 if the product is product $i$ and 0 otherwise. The equation is estimated by weighted least squares (as suggested by [@diewert:2005b]), where the weights are the product expenditure shares.
+where $D^{t}$ is equal to 1 in period $t$ and 0 in period $t-1$, and $D_{n}$ is equal to 1 if the product is product $n$ and 0 otherwise. The equation is estimated by weighted least squares (as suggested by [@diewert:2005b]), where the weights are the product expenditure shares.
 
 The price index is then given by,
 \begin{equation*}
   P(p^{t-1},p^{t},q^{t-1},q^{t}) = \exp({\hat{\beta_{1}}})
 \end{equation*}
 
-However, this is a biased estimate [@kennedy:1981], so *IndexNumR* calculates the following,
+However, this is a biased estimate [@kennedy:1981], so *IndexNumR* optionally calculates the following adjusted estimate,
 
 \begin{equation*}
   P(p^{t-1},p^{t},q^{t-1},q^{t}) = \exp({\hat{\beta_{1}} - 0.5 \times Var(\hat{\beta_{1}})})
@@ -516,7 +516,7 @@ The matrix $[I_{N} - F]$ is singular so a normalisation must be used to solve th
 
 The multilateral indexes are normalised by dividing by the first term, to give an index for the first $w$ periods that starts at 1. If the index only covers $w$ periods then no further calculation is required. However, if there are $T>w$ periods in the dataset then the index must be extended.
 
-Extending a multilateral index can be done in a multitude of ways. Statistical agencies generally do not revise price indices like the consumer price index, so the methods offered by *IndexNumR* to extend multilateral indexes are methods that do not lead to revisions. More specifically, these are called *splicing methods* and the four options available are the *movement*, *window*, *half* and *mean splice*. The idea is that we start by moving the window forward by one period and calculate the index for the new window. There will be $w-1$ overlapping periods between the initial index and the index computed on the window that has been rolled forward one period. Any one of these overlapping periods can be used to extend the multilateral index.  
+Extending a multilateral index can be done in a multitude of ways. Statistical agencies generally do not revise price indices like the consumer price index, so the methods offered by *IndexNumR* to extend multilateral indexes are methods that do not lead to revisions. More specifically, these are called *splicing methods* and the options available are the *movement*, *window*, *half*, *mean*, *fbew (Fixed Base Expanding Window)* and *fbmw (Fixed Base Moving Window)*. The idea behind most of these methods is that we start by moving the window forward by one period and calculate the index for the new window. There will be $w-1$ overlapping periods between the initial index and the index computed on the window that has been rolled forward one period. Any one of these overlapping periods can be used to extend the multilateral index.  
 
 Let $P_{OLD}$ be the index computed over periods $1$ to $w$ and let $P_{NEW}$ be the index computed over the window rolled forward one period, from periods $2$ to $w+1$. Let the final index simply be $P$. For the first $w$ periods $P = P_{OLD}$, then $P^{w+1}$ is computed using the splicing methods as follows.
 
@@ -544,18 +544,44 @@ The half splice uses the period in the middle of the window as the overlapping p
 \end{equation}
 The mean splice uses the geometric mean of the movements between the last period and every other period in the window to extend the original index.   
 
+* FBMW [@lamboray:2017]
+\begin{equation}
+  P^{w+1} = P^{base} \times \frac{P_{NEW}^{w+1}}{P_{NEW}^{base}}
+\end{equation}
+This method uses a fixed base period that is updated periodically. For example, if the data are monthly then the base period could be each December month, which would be achieved by ensuring that December is the first period in the data and specifying a window length of 13. The splice is calculated by using the movement between the final data point and the base period in the new window to extend the index. If the new data point being calculated is the first period after the base period, then this method is the same as the movement splice. Using the same example, if each December is the base period, then each January this method will produce the same result as the movement splice.
+
+* FBEW [@chessa:2016]
+  
+  This method uses the same calculation as FBMW, but uses a different set of data for the calculation. It expands the size of the window used to compute the new data point each period to include the latest period of data. If the data are monthly and the base period is each December, then the window used to compute the new data point in January includes only the December and January months. In February it includes the December, January and February months, and so on until the next December where it includes the full 13 months (assuming a window length of 13). This method produces the same result as the FBMW method when the new period being calculated is the base period. Using the same example, if each December is the base period, then each December this will produce the same result as the FBMW method.  
+
 The splicing methods are used in this fashion to extend the series up to the final period in the data. 
 
 ```{r geks_splicing} 
-GEKSIndex(CES_sigma_2, 
+# Assume that the data in CES_sigma_2 are quarterly data with time period
+# 1 corresponding to the December quarter. 
+
+splices <- c("window", "half", "movement", "mean", "fbew", "fbmw")
+
+# estimate a GEKS index using the different splicing methods. Under
+# the above assumptions, the window must be 5 to ensure the base period is
+# each December quarter.
+result <- as.data.frame(lapply(splices, function(x){
+  GEKSIndex(CES_sigma_2, 
           pvar = "prices", 
           qvar = "quantities", 
           pervar = "time", 
           prodID = "prodID", 
           indexMethod = "tornqvist", 
-          window=11, 
-          splice = "mean")
+          window=5, 
+          splice = x)
+}))
+
+colnames(result) <- splices
+result
+
 ```
+
+On the assumptions in the above example, periods 1, 5 and 9 are Decembers. Periods 1-5 are computed using full information and periods 6-12 are computed using the splicing methods. Notice that fbew = fbmw in period 9 (December) and fbmw = movement in period 6 (January).
 
 ## The differences approach to index numbers
 

@@ -1,3 +1,21 @@
+# IndexNumR: a package for index number computation
+# Copyright (C) 2018 Graham J. White (g.white@unswalumni.com)
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+
+
 #' Geary-Khamis index for a window
 #'
 #' Calculate the GK index for a window of w periods.
@@ -15,9 +33,9 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
     x <- windowMatch(x, pervar, prodID)
   }
   else {
-    # fill out the gaps from missing/new products with NAs.
-    # we'll ignore them in the calcs, but it makes sure that the dimensions
-    # are correct to allow calculations to proceed.
+    # fill out the gaps from missing/new products with zeros.
+    # this makes sure that the dimensions of all vectors/matrices
+    # are conformable for the calculations
     x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
   }
 
@@ -107,7 +125,17 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
 #' across all periods in a given window. Default is not to match.
 #' @param window An integer specifying the length of the window.
 #' @param splice the splicing method to use to extend the index. Valid methods are
-#' window, movement, half or mean. The default is mean.
+#' window, movement, half, mean, fbew or fbmw. The default is mean.
+#' @details The splicing methods are used to update the price index when new data become
+#' available without changing prior index values. The window, movement, half and mean splices
+#' use the most recent index value as the base period, which is multiplied by a price movement
+#' computed using new data. The fbew (Fixed Base Expanding Window) and fbmw (Fixed Base Moving
+#' Window) use a fixed base onto which the price movement using new data is applied. The base
+#' period is updated periodically. IndexNumR calculates which periods are the base periods using
+#' \code{seq(from = 1, to = n, by = window - 1)}, so the data must be set up correctly and the
+#' right window length chosen. For example, if you have monthly data and want December
+#' of each year to be the base period, then the first period in the data must be December
+#' and the window must be set to 13.
 #' @examples
 #' # compute a Geary-Khamis index with mean splicing
 #' GKIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
@@ -115,8 +143,19 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
 #' @references Ivancic, L., W.E. Diewert and K.J. Fox (2011), "Scanner Data,
 #' Time Aggregation and the Construction of Price Indexes", Journal of
 #' Econometrics 161, 24-35.
+#'
+#' Geary, R. G. 1958. “A Note on Comparisons of Exchange Rates and Purchasing Power Between
+#' Countries.” Journal of the Royal Statistical Society Series A 121: 97–99.
+#'
+#' Khamis, S. H. 1970. “Properties and Conditions for the Existence of a New Type of Index Number.”
+#' Sankhya: The Indian Journal of Statistics, Series B (1960-2002) 32: 81–98.
 #' @export
 GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice = "mean"){
+
+  # check that only valid splice methods are chosen
+  if(!(tolower(splice) %in% c("mean", "window", "movement", "half", "fbew", "fbmw"))){
+    stop("Not a valid splicing method.")
+  }
 
   # check valid column names are given
   colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
@@ -147,6 +186,9 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice =
   # final price index
   pGK <- matrix(0, nrow = n, ncol = 1)
 
+  # set the sequence of base periods for fbew and fbmw splices
+  bases <- seq(from = 1, to = n, by = window - 1)
+
   # first estimate a GK index for the first (window) observations
   # subset the window of data to use
   xWindow <- x[x[[pervar]] >= 1 & x[[pervar]] <= window,]
@@ -157,6 +199,10 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice =
   # use a splicing method to compute the rest of the index
   if(n > window){
     for(i in 2:(n-window+1)){
+
+      # find the base period for fbew and fbmw splices
+      base <- max(bases[bases <= i + window - 2])
+
       # set the old window
       if(i==2){
         old <- pGK[(i-1):(i+window-2),1]
@@ -165,14 +211,26 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice =
         old <- new
       }
 
+      # set the base value for fbew
+      fbewBase <- pGK[base,1]
+
       # fetch the next window of data
-      xWindow <- x[x[[pervar]]>=i & x[[pervar]] < i + window,]
+      if(splice == "fbew"){
+        xWindow <- x[x[[pervar]] >= base & x[[pervar]] < i + window,]
+      }
+      else {
+        xWindow <- x[x[[pervar]] >= i & x[[pervar]] < i + window,]
+      }
 
       # call gk_w on this window
       new <- gk_w(xWindow, pvar, qvar, pervar, prodID, sample)
 
       # splice the new datapoint on
-      pGK[i+window-1,1] <- splice_t(pGK[i+window-2,1], old, new, method=splice)
+      switch(splice,
+             fbew = {pGK[i+window-1,1] <- fbewBase*new[length(new)]},
+             fbmw = {pGK[i+window-1,1] <- fbewBase*new[length(new)]/new[length(new)-(i+window-1-base)]},
+             pGK[i+window-1,1] <- splice_t(pGK[i+window-2,1], old, new, method=splice))
+
     }
   }
 

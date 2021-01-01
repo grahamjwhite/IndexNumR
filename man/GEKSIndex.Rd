@@ -38,21 +38,26 @@ The default is to use matching.
 If sample=matched then any products that are not present in comparison periods
 are removed prior to estimating the index for those periods.}
 
-\item{window}{An integer specifying the length of the GEKS window.}
+\item{window}{An integer specifying the length of the window.}
 
 \item{splice}{A character string specifying the splicing method. Valid methods are
-window, movement, half or mean. The default is mean.}
+window, movement, half, mean, fbew or fbmw. The default is mean. See details for important
+considerations when using fbew and fbmw.}
 }
 \description{
 A function to calculate a GEKS multilateral price index
 }
 \details{
 The splicing methods are used to update the price index when new data become
-available without changing prior index values. The window and movement splicing methods
-first calculate an 'update factor' by calculating the ratio of the final index value
-in the new GEKS window to some base period and then multiply the relevant old GEKS
-index value by the update factor. Alternatives are "window","movement","half", and "mean".
-See the package vignette for more information.
+available without changing prior index values. The window, movement, half and mean splices
+use the most recent index value as the base period, which is multiplied by a price movement
+computed using new data. The fbew (Fixed Base Expanding Window) and fbmw (Fixed Base Moving
+Window) use a fixed base onto which the price movement using new data is applied. The base
+period is updated periodically. IndexNumR calculates which periods are the base periods using
+\code{seq(from = 1, to = n, by = window - 1)}, so the data must be set up correctly and the
+right window length chosen. For example, if you have monthly data and want December
+of each year to be the base period, then the first period in the data must be December
+and the window must be set to 13.
 }
 \examples{
 # compute a GEKS mutlilateral index with mean splicing
