@@ -174,6 +174,7 @@ daysInMonth <- function(x){
 #'
 #' calculate the adjusted regression coefficients for a semi-log model
 #' @param x a regression object (e.g. the output from \code{lm})
+#' @return a vector of adjusted coefficients
 #' @keywords internal
 #' @noRd
 kennedyBeta <- function(x){

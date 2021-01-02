@@ -172,7 +172,7 @@ geomPaasche_t <- function(p0, p1, q0, q1){
 #'
 #' @keywords internal
 #' @noRd
-tpd_t <- function(p0, p1, q0, q1){
+tpd_t <- function(p0, p1, q0, q1, biasAdjust){
 
   exp0 <- sum(p0*q0)
   exp1 <- sum(p1*q1)
@@ -192,13 +192,17 @@ tpd_t <- function(p0, p1, q0, q1){
   regData <- rbind(df0, df1)
 
   reg <- with(regData, stats::lm(lnP ~ D + product, weights = s))
-  coeffs <- stats::coef(reg)
-  vars <- diag(stats::vcov(reg))
+
+  if(biasAdjust){
+    coeffs <- kennedyBeta(reg)
+  }
+  else {
+    coeffs <- stats::coef(reg)
+  }
 
   b <- coeffs[which(names(coeffs) == "D")]
-  varB <- vars[which(names(vars) == "D")]
 
-  return(exp(b - 0.5*varB))
+  return(exp(b))
 }
 
 #' Geary-Khamis bilateral
@@ -244,6 +248,8 @@ gk_t <- function(p0, p1, q0, q1){
 #' @param sigma The elasticity of substitution for the CES index method.
 #' @param basePeriod The period to be used as the base when 'fixedbase' output is
 #' chosen. Default is 1 (the first period).
+#' @param biasAdjust whether to adjust for bias in the coefficients in the bilateral
+#' TPD index. The default is TRUE.
 #' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
 #' function.
 #' @examples
@@ -263,7 +269,7 @@ gk_t <- function(p0, p1, q0, q1){
 #' @export
 priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                        sample = "matched", output = "pop", chainMethod = "pop",
-                       sigma = 1.0001, basePeriod = 1, ...){
+                       sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE, ...){
 
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
@@ -380,7 +386,7 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
              ces = {plist[i,1] <- lloydMoulton_t0(p0,p1,q0,sigma = sigma)},
              geomlaspeyres = {plist[i,1] <- geomLaspeyres_t(p0, p1, q0, q1)},
              geompaasche = {plist[i,1] <- geomPaasche_t(p0, p1, q0, q1)},
-             tpd = {plist[i,1] <- tpd_t(p0, p1, q0, q1)},
+             tpd = {plist[i,1] <- tpd_t(p0, p1, q0, q1, biasAdjust)},
              gk = {plist[i,1] <- gk_t(p0, p1, q0, q1)}
       )
 
@@ -417,8 +423,9 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
 #' @export
 quantityIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres", prodID,
                           sample="matched", output="pop", chainMethod="pop",
-                          sigma=1.0001, basePeriod = 1, ...){
+                          sigma=1.0001, basePeriod = 1, biasAdjust = TRUE, ...){
   return(priceIndex(x, pvar=qvar, qvar=pvar, pervar = pervar, indexMethod=indexMethod,
                     prodID = prodID, sample = sample, output = output,
-                    chainMethod = chainMethod, sigma = sigma, basePeriod = basePeriod, ... = ...))
+                    chainMethod = chainMethod, sigma = sigma, basePeriod = basePeriod,
+                    biasAdjust = biasAdjust, ... = ...))
 }

@@ -23,8 +23,8 @@
 #' This is not exposed to the user because GEKSIndex calls this
 #' @keywords internal
 #' @noRd
-GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
-                   sample="matched"){
+GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
+                   sample="matched", biasAdjust){
 
   # get the window length
   window <- max(x[[pervar]]) - min(x[[pervar]]) + 1
@@ -80,9 +80,9 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 
           # calculate the price index for 'base' period j and 'next' period k
           switch(tolower(indexMethod),
-                 fisher = {pindices[j,k] <- fisher_t(p0,p1,q0,q1)},
-                 tornqvist = {pindices[j,k] <- tornqvist_t(p0,p1,q0,q1)},
-                 tpd = {pindices[j,k] <- tpd_t(p0,p1,q0,q1)})
+                 fisher = {pindices[j,k] <- fisher_t(p0, p1, q0, q1)},
+                 tornqvist = {pindices[j,k] <- tornqvist_t(p0, p1, q0, q1)},
+                 tpd = {pindices[j,k] <- tpd_t(p0, p1, q0, q1, biasAdjust)})
         }
 
       }
@@ -115,15 +115,23 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 #' The default is to use matching.
 #' If sample=matched then any products that are not present in comparison periods
 #' are removed prior to estimating the index for those periods.
-#' @param window An integer specifying the length of the GEKS window.
+#' @param window An integer specifying the length of the window.
 #' @param splice A character string specifying the splicing method. Valid methods are
-#' window, movement, half or mean. The default is mean.
+#' window, movement, half, mean, fbew or fbmw. The default is mean. See details for important
+#' considerations when using fbew and fbmw.
+#' @param biasAdjust whether to adjust for bias in the coefficients of the bilateral TPD index.
+#' The default is FALSE because making this adjustment will break transitivity of the
+#' GEKS index.
 #' @details The splicing methods are used to update the price index when new data become
-#' available without changing prior index values. The window and movement splicing methods
-#' first calculate an 'update factor' by calculating the ratio of the final index value
-#' in the new GEKS window to some base period and then multiply the relevant old GEKS
-#' index value by the update factor. Alternatives are "window","movement","half", and "mean".
-#' See the package vignette for more information.
+#' available without changing prior index values. The window, movement, half and mean splices
+#' use the most recent index value as the base period, which is multiplied by a price movement
+#' computed using new data. The fbew (Fixed Base Expanding Window) and fbmw (Fixed Base Moving
+#' Window) use a fixed base onto which the price movement using new data is applied. The base
+#' period is updated periodically. IndexNumR calculates which periods are the base periods using
+#' \code{seq(from = 1, to = n, by = window - 1)}, so the data must be set up correctly and the
+#' right window length chosen. For example, if you have monthly data and want December
+#' of each year to be the base period, then the first period in the data must be December
+#' and the window must be set to 13.
 #' @examples
 #' # compute a GEKS mutlilateral index with mean splicing
 #' GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
@@ -137,8 +145,8 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 #' Time Aggregation and the Construction of Price Indexes", Journal of
 #' Econometrics 161, 24-35.
 #' @export
-GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
-                      sample="matched",window=13,splice="mean"){
+GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod="tornqvist", prodID,
+                      sample="matched", window=13, splice="mean", biasAdjust = FALSE){
 
   # check that only valid index methods are chosen
   if(!(tolower(indexMethod) %in% c("fisher","tornqvist", "tpd"))){
@@ -146,7 +154,7 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
   }
 
   # check that only valid splice methods are chosen
-  if(!(tolower(splice) %in% c("mean","window","movement","half"))){
+  if(!(tolower(splice) %in% c("mean", "window", "movement", "half", "fbew", "fbmw"))){
     stop("Not a valid splicing method.")
   }
 
@@ -179,6 +187,9 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
   # final price index
   pGEKS <- matrix(0, nrow = n, ncol = 1)
 
+  # set the sequence of base periods for fbew and fbmw splices
+  bases <- seq(from = 1, to = n, by = window - 1)
+
   # first estimate a GEKS index for the first (window) observations
   # subset the window of data to use
   xWindow <- x[x[[pervar]] >= 1 & x[[pervar]] <= window,]
@@ -199,28 +210,44 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
   # use a splicing method to compute the rest of the index
   if(n>window){
     for(i in 2:(n-window+1)){
+
+      # find the base period for fbew and fbmw splices
+      base <- max(bases[bases <= i + window - 2])
+
       # set the old GEKS window
       if(i==2){
-        oldGEKS <- pGEKS[(i-1):(i+window-2),1]
+        old <- pGEKS[(i-1):(i+window-2),1]
       }
       else {
-        oldGEKS <- newGEKS
+        old <- new
       }
 
+      # set the base value for fbew
+      fbewBase <- pGEKS[base,1]
+
       # fetch the next window of data
-      xWindow <- x[x[[pervar]]>=i & x[[pervar]] < i + window,]
+      if(splice == "fbew"){
+        xWindow <- x[x[[pervar]] >= base & x[[pervar]] < i + window,]
+      }
+      else {
+        xWindow <- x[x[[pervar]] >= i & x[[pervar]] < i + window,]
+      }
 
       # call GEKS_w on this window
-      tempGEK <- GEKS_w(xWindow,pvar,qvar,pervar,indexMethod,prodID,
-                        sample)
-      newGEKS <- tempGEK$pgeo
+      tempGEK <- GEKS_w(xWindow, pvar, qvar, pervar, indexMethod, prodID, sample)
+      new <- tempGEK$pgeo
+
       if(length(tempGEK$naPairs) > 0){
         naWarn <- paste0(naWarn, i, " to ",i+window-1,": ",
                          tempGEK$naPairs, "\n")
       }
 
       # splice the new datapoint on
-      pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1],oldGEKS,newGEKS,method=splice)
+      switch(splice,
+             fbew = {pGEKS[i+window-1,1] <- fbewBase*new[length(new)]},
+             fbmw = {pGEKS[i+window-1,1] <- fbewBase*new[length(new)]/new[length(new)-(i+window-1-base)]},
+             pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1], old, new, method=splice))
+
     }
   }
 
@@ -234,71 +261,5 @@ GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
   return(pGEKS)
 }
 
-
-#' function to calculate the new spliced datapoint
-#'
-#' This function passes the right values to the
-#' splice function for the different types of splicing method.
-#'
-#' @param x the base by which we multiply the splice factor to
-#' get the new point. Usually this is the last period of the old
-#' window.
-#' @param oldWindow the previously computed window (i.e. the last w
-#' periods of the index that we are extending).
-#' @param newWindow the new window computed in order to extend the index
-#' @param method the splicing method to use. Possible options are
-#' 'movement', 'window', 'mean', 'half', or a number representing
-#' the period to use for the splice.
-#' @keywords internal
-#' @noRd
-splice_t <- function(x, oldWindow, newWindow, method="mean"){
-
-  if(is.numeric(method)){
-    pt <- x*splice(method, oldWindow, newWindow)
-  }
-  else {
-    switch(method,
-           movement = {pt <- x*splice(length(newWindow)-1, oldWindow, newWindow)},
-           window = {pt <- x*splice(1, oldWindow, newWindow)},
-           mean = {pt <- x*meanSplice(oldWindow, newWindow)},
-           half = {pt <- x*splice(length((newWindow)-1)/2, oldWindow, newWindow)}
-    )
-  }
-
-  return(pt)
-}
-
-
-#' compute the splice factor for any given overlapping period
-#'
-#' @param period the period to use for the overlap
-#' @param oldWindow the old window
-#' @param newWindow the new window
-#' @keywords internal
-#' @noRd
-splice <- function(period, oldWindow, newWindow){
-  w <- length(newWindow)
-  spliceFactor <- (newWindow[w]/newWindow[period])/(oldWindow[w]/oldWindow[period+1])
-}
-
-
-#' mean splicing using the geometric mean of all overlapping periods
-#'
-#' This is wrapper around \code{splice} to use the geometric mean
-#' of all possible combinations of overlap period.
-#'
-#' @param oldWindow the old window
-#' @param newWindow the new window
-#' @keywords internal
-#' @noRd
-meanSplice <- function(oldWindow, newWindow){
-  w <- length(newWindow)
-  pvector <- matrix(0,nrow=w-1,ncol=1)
-
-  for(l in 1:(w-1)){
-    pvector[l,1] <- splice(l, oldWindow, newWindow)
-  }
-  return(geomean(pvector))
-}
 
 

@@ -35,7 +35,7 @@ across all periods in a given window. Default is not to match.}
 \item{window}{An integer specifying the length of the window.}
 
 \item{splice}{A character string specifying the splicing method. Valid methods are
-window, movement, half or mean. The default is mean.}
+window, movement, half, mean, fbew or fbmw. The default is mean.}
 }
 \description{
 A function to calculate a weighted-time-product-dummy multilateral index.
@@ -45,6 +45,17 @@ When there are missing values in the dataset (e.g., from new or disappearing
 products), the default option is to treat the missing prices and quantities
 as zero. An alternative is to use a matched sample, where only products that
 appear throughout each window in the calculation are kept.
+
+The splicing methods are used to update the price index when new data become
+available without changing prior index values. The window, movement, half and mean splices
+use the most recent index value as the base period, which is multiplied by a price movement
+computed using new data. The fbew (Fixed Base Expanding Window) and fbmw (Fixed Base Moving
+Window) use a fixed base onto which the price movement using new data is applied. The base
+period is updated periodically. IndexNumR calculates which periods are the base periods using
+\code{seq(from = 1, to = n, by = window - 1)}, so the data must be set up correctly and the
+right window length chosen. For example, if you have monthly data and want December
+of each year to be the base period, then the first period in the data must be December
+and the window must be set to 13.
 }
 \examples{
 # compute a wtpd index with mean splicing
