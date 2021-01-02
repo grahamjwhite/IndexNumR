@@ -32,12 +32,12 @@
 #' @param output A character string specifying whether the matching should be
 #' done assuming a chained index or a fixed base index. No index is actually computed,
 #' but the matching needs to know which periods are being compared. Default is chained.
-#' @return A list of two matrices, one for expenditures and one for counts. Each
-#' matrix has eight columns. The first four columns present the base period information
-#' base_index (the index of the base period), base (base period expenditure or count),
+#' @return A list of two matrices, one for expenditures and one for counts.
+#' The first four columns present the base period information
+#' base_index (the base time period), base (base period expenditure or count),
 #' base_matched (the expenditure or count of the base period after matching),
 #' base_share (share of total expenditure in the base period that remains after
-#' matching). Columns 5-8 are defined analagously for the current period. The matched
+#' matching). Columns 5-8 are defined analogously for the current period. The matched
 #' numbers for the base period should be interpreted as the count or expenditure
 #' that remains after removal of products that exist in the base period, but not
 #' in the current period. That is, products that existed in the base period but no
@@ -48,6 +48,11 @@
 #' Therefore, a base period share that is less than 1 indicates that products have
 #' disappeared, while a current period share less than 1 indicates that new products
 #' have appeared.
+#'
+#' The count matrix has two additional columns, "new" and "leaving". The new column
+#' gives the number of products that exist in the current period but not the base period.
+#' The leaving column gives the count of products that exist in the base period
+#' but not the current period. Matching removes both of these types of products.
 #' @examples
 #' # create CES_sigma_2 dataset removing the observation in time period 4
 #' # on product 1
@@ -67,20 +72,21 @@ evaluateMatched <- function(x,pvar,qvar,pervar,prodID,output="chained"){
 
   # initialise some things
   n <- max(x[[pervar]], na.rm=TRUE)
-  colheads <- c("base_index","base","base_matched","base_share",
+  colheadsExp <- c("base_index","base","base_matched","base_share",
                 "current_index","current","current_matched","current_share")
-  expenditure <- matrix(0,n,8)
-  colnames(expenditure) <- colheads
-  counts <- matrix(0,n,8)
-  colnames(counts) <- colheads
+  colheadsCount <- c(colheadsExp, "new", "leaving")
+  expenditure <- matrix(NA,n-1,8)
+  colnames(expenditure) <- colheadsExp
+  counts <- matrix(NA,n-1,10)
+  colnames(counts) <- colheadsCount
 
   # if fixed base requested, set xt0 to the first period data
   if(tolower(output)=="fixedbase"){
     xt0 <- x[x[[pervar]]==1,]
-    expenditure[,1] <- 1
-    expenditure[,2] <- sum(xt0[[pvar]]*xt0[[qvar]])
-    counts[,1] <- 1
-    counts[,2] <- length(unique(xt0[[prodID]]))
+    expenditure[,"base_index"] <- 1
+    expenditure[,"base"] <- sum(xt0[[pvar]]*xt0[[qvar]])
+    counts[,"base_index"] <- 1
+    counts[,"base"] <- length(unique(xt0[[prodID]]))
   }
 
   for(i in 2:n){
@@ -88,29 +94,36 @@ evaluateMatched <- function(x,pvar,qvar,pervar,prodID,output="chained"){
     # calculate expenditure and counts prior to matching
     if(!(tolower(output)=="fixedbase")){
       xt0 <- x[x[[pervar]]==i-1,]
-      expenditure[i,1] <- i-1
-      expenditure[i,2] <- sum(xt0[[pvar]]*xt0[[qvar]])
-      counts[i,1] <- i-1
-      counts[i,2] <- length(unique(xt0[[prodID]]))
+      expenditure[i-1,"base_index"] <- i-1
+      expenditure[i-1,"base"] <- sum(xt0[[pvar]]*xt0[[qvar]])
+      counts[i-1,"base_index"] <- i-1
+      counts[i-1,"base"] <- length(unique(xt0[[prodID]]))
+    }
+    else {
+      xt0 <- x[x[[pervar]]==1,]
     }
 
     xt1 <- x[x[[pervar]]==i,]
 
-    expenditure[i,5] <- i
-    expenditure[i,6] <- sum(xt1[[pvar]]*xt1[[qvar]])
-    counts[i,5] <- i
-    counts[i,6] <- length(unique(xt1[[prodID]]))
+    expenditure[i-1,"current_index"] <- i
+    expenditure[i-1,"current"] <- sum(xt1[[pvar]]*xt1[[qvar]])
+    counts[i-1,"current_index"] <- i
+    counts[i-1,"current"] <- length(unique(xt1[[prodID]]))
+
+    counts[i-1,9] <- length(xt1[!(xt1[[prodID]] %in% xt0[[prodID]])])
+    counts[i-1,10] <- length(xt0[!(xt0[[prodID]] %in% xt1[[prodID]])])
 
     # remove the unmatched items
     xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
     xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
 
     # calculate the matched expenditures and counts
-    expenditure[i,3] <- sum(xt0[[pvar]]*xt0[[qvar]])
-    counts[i,3] <- length(unique(xt0[[prodID]]))
-    expenditure[i,7] <- sum(xt1[[pvar]]*xt1[[qvar]])
-    counts[i,7] <- length(unique(xt1[[prodID]]))
+    expenditure[i-1,3] <- sum(xt0[[pvar]]*xt0[[qvar]])
+    counts[i-1,3] <- length(unique(xt0[[prodID]]))
+    expenditure[i-1,7] <- sum(xt1[[pvar]]*xt1[[qvar]])
+    counts[i-1,7] <- length(unique(xt1[[prodID]]))
   }
+
   # compute the shares
   expenditure[,4] <- expenditure[,3]/expenditure[,2]
   expenditure[,8] <- expenditure[,7]/expenditure[,6]
