@@ -1,5 +1,44 @@
 context("indicator tests")
 
+test_that("price indicator fails nicely on incorrect methods", {
+
+  expect_error(priceIndicator(CES_sigma_2,
+                              pvar = "prices",
+                              qvar = "quantities",
+                              prodID = "prodID",
+                              pervar = "time",
+                              method = "wrong method"),
+               "Invalid method chosen")
+
+})
+
+test_that("price indicator fails nicely on bad column names", {
+
+  expect_error(priceIndicator(CES_sigma_2,
+                              pvar = "prices",
+                              qvar = "bad column",
+                              prodID = "prodID",
+                              pervar = "time",
+                              method = "laspeyres"),
+               "Check the names given to the pvar, qvar, pervar and prodID arguments")
+
+})
+
+test_that("error is thrown when a time period is missing",{
+
+  dat <- CES_sigma_2
+  dat$time[dat$time==3] <- 2
+
+  expect_error(priceIndex(dat,
+                          pvar="prices",
+                          qvar="quantities",
+                          pervar = "time",
+                          prodID = "prodID",
+                          indexMethod = "laspeyres",
+                          output = "chained"),
+               "The time period variable is not continuous. Missing periods: 3")
+})
+
 test_that("price indicator returns correct values for laspeyres method", {
 
   results <- as.matrix(c(NA, -0.326923077, 4.344176771, 0.406142949,

@@ -72,7 +72,7 @@ rm(testData)
 
 #load CES_sigma_2 and make period 3 missing
 dat <- CES_sigma_2
-dat$time[dat$time==3] = 2
+dat$time[dat$time==3] <- 2
 
 test_that("error is thrown when a time period is missing",{
   expect_error(priceIndex(dat, pvar="prices",qvar="quantities", pervar = "time",
