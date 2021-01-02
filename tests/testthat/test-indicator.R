@@ -20,7 +20,7 @@ test_that("price indicator fails nicely on bad column names", {
                               prodID = "prodID",
                               pervar = "time",
                               method = "laspeyres"),
-               "Check the names given to the pvar, qvar, pervar and prodID arguments")
+               "are not column names of the input data frame")
 
 })
 
@@ -183,3 +183,109 @@ test_that("quantity indicator returns correct values for montgomery method", {
 })
 
 
+test_that("value decomposition returns the right results for Paasche price method", {
+
+  expected <- data.frame(
+    price = c(NA,-3.23451166558322,1.19889565518684,
+              0.338354798691534,-5.65501232619842,1.89061743778933,
+              -0.724047978536408,-4.76683535762483,1.38856453281232,
+              -4.49985294117647,1.65051935084982,0.0250350184983226),
+    quantity = c(NA,6.23451166558322,-3.19889565518684,
+                 0.661645201308465,8.65501232619842,-3.89061743778933,
+                 1.72404797853641,7.76683535762483,-3.38856453281232,7.49985294117647,
+                 -3.65051935084981,0.974964981501678),
+    changes = c(NA, 3, -2, 0.999999999999998, 3, -2, 1, 3, -2, 3, -2, 1),
+    values = c(NA, 13, 11, 12, 15, 13, 14, 17, 15, 18, 16, 17)
+  )
+
+  result <- valueDecomposition(CES_sigma_2,
+                               pvar = "prices",
+                               qvar = "quantities",
+                               prodID = "prodID",
+                               pervar = "time",
+                               priceMethod = "paasche")
+
+  expect_equal(expected, result)
+
+})
+
+test_that("value decomposition returns the right results for laspeyres price method", {
+
+  expected <- data.frame(
+    price = c(NA,-0.326923076923076,4.34417677081562,
+              0.406142948667661,-0.806657971531005,5.84513819985051,
+              -0.611482951157069,-1.69927459763315,4.52035537561853,
+              -1.02746523388116,4.92214705882353,0.139606945104282),
+    quantity = c(NA,3.32692307692308,-6.34417677081562,
+                 0.593857051332339,3.80665797153101,-7.84513819985052,
+                 1.61148295115707,4.69927459763315,-6.52035537561853,4.02746523388116,
+                 -6.92214705882353,0.860393054895719),
+    changes = c(NA, 3, -2, 0.999999999999998, 3, -2, 1, 3, -2, 3, -2, 1),
+    values = c(NA, 13, 11, 12, 15, 13, 14, 17, 15, 18, 16, 17)
+  )
+
+  result <- valueDecomposition(CES_sigma_2,
+                               pvar = "prices",
+                               qvar = "quantities",
+                               prodID = "prodID",
+                               pervar = "time",
+                               priceMethod = "laspeyres")
+
+  expect_equal(expected, result)
+
+})
+
+
+test_that("value decomposition returns the right results for bennet price method", {
+
+  expected <- data.frame(
+    price = c(NA,-1.78071737125315,2.77153621300123,
+              0.372248873679598,-3.23083514886471,3.86787781881992,
+              -0.667765464846739,-3.23305497762899,2.95445995421543,
+              -2.76365908752882,3.28633320483667,0.0823209818013025),
+    quantity = c(NA,4.78071737125315,-4.77153621300123,
+                 0.627751126320402,6.23083514886471,-5.86787781881992,
+                 1.66776546484674,6.23305497762899,-4.95445995421543,5.76365908752881,
+                 -5.28633320483667,0.917679018198699),
+    changes = c(NA, 3, -2, 0.999999999999998, 3, -2, 1, 3, -2, 3, -2, 1),
+    values = c(NA, 13, 11, 12, 15, 13, 14, 17, 15, 18, 16, 17)
+  )
+
+  result <- valueDecomposition(CES_sigma_2,
+                               pvar = "prices",
+                               qvar = "quantities",
+                               prodID = "prodID",
+                               pervar = "time",
+                               priceMethod = "bennet")
+
+  expect_equal(expected, result)
+
+})
+
+
+test_that("value decomposition returns the right results for montgomery price method", {
+
+  expected <- data.frame(
+    price = c(NA,-1.27874802287663,2.23764163264406,
+              0.373294606860997,-2.35138599056262,3.23912450758093,
+              -0.665710587242193,-2.74535253122247,2.45168559478284,
+              -2.2876179051576,2.85483402898994,0.0839129500556),
+    quantity = c(NA,4.27874802287663,-4.23764163264406,
+                 0.626705393139003,5.35138599056262,-5.23912450758093,
+                 1.66571058724219,5.74535253122247,-4.45168559478284,5.2876179051576,
+                 -4.85483402898994,0.916087049944403),
+    changes = c(NA, 3, -2, 0.999999999999998, 3, -2, 1, 3, -2, 3, -2, 1),
+    values = c(NA, 13, 11, 12, 15, 13, 14, 17, 15, 18, 16, 17)
+  )
+
+
+  result <- valueDecomposition(CES_sigma_2,
+                               pvar = "prices",
+                               qvar = "quantities",
+                               prodID = "prodID",
+                               pervar = "time",
+                               priceMethod = "montgomery")
+
+  expect_equal(expected, result)
+
+})
