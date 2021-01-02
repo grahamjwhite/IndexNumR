@@ -13,7 +13,8 @@ GEKSIndex(
   prodID,
   sample = "matched",
   window = 13,
-  splice = "mean"
+  splice = "mean",
+  biasAdjust = FALSE
 )
 }
 \arguments{
@@ -43,6 +44,10 @@ are removed prior to estimating the index for those periods.}
 \item{splice}{A character string specifying the splicing method. Valid methods are
 window, movement, half, mean, fbew or fbmw. The default is mean. See details for important
 considerations when using fbew and fbmw.}
+
+\item{biasAdjust}{whether to adjust for bias in the coefficients of the bilateral TPD index.
+The default is FALSE because making this adjustment will break transitivity of the
+GEKS index.}
 }
 \description{
 A function to calculate a GEKS multilateral price index

@@ -23,8 +23,8 @@
 #' This is not exposed to the user because GEKSIndex calls this
 #' @keywords internal
 #' @noRd
-GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
-                   sample="matched"){
+GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
+                   sample="matched", biasAdjust){
 
   # get the window length
   window <- max(x[[pervar]]) - min(x[[pervar]]) + 1
@@ -80,9 +80,9 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 
           # calculate the price index for 'base' period j and 'next' period k
           switch(tolower(indexMethod),
-                 fisher = {pindices[j,k] <- fisher_t(p0,p1,q0,q1)},
-                 tornqvist = {pindices[j,k] <- tornqvist_t(p0,p1,q0,q1)},
-                 tpd = {pindices[j,k] <- tpd_t(p0,p1,q0,q1)})
+                 fisher = {pindices[j,k] <- fisher_t(p0, p1, q0, q1)},
+                 tornqvist = {pindices[j,k] <- tornqvist_t(p0, p1, q0, q1)},
+                 tpd = {pindices[j,k] <- tpd_t(p0, p1, q0, q1, biasAdjust)})
         }
 
       }
@@ -119,6 +119,9 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 #' @param splice A character string specifying the splicing method. Valid methods are
 #' window, movement, half, mean, fbew or fbmw. The default is mean. See details for important
 #' considerations when using fbew and fbmw.
+#' @param biasAdjust whether to adjust for bias in the coefficients of the bilateral TPD index.
+#' The default is FALSE because making this adjustment will break transitivity of the
+#' GEKS index.
 #' @details The splicing methods are used to update the price index when new data become
 #' available without changing prior index values. The window, movement, half and mean splices
 #' use the most recent index value as the base period, which is multiplied by a price movement
@@ -142,8 +145,8 @@ GEKS_w <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
 #' Time Aggregation and the Construction of Price Indexes", Journal of
 #' Econometrics 161, 24-35.
 #' @export
-GEKSIndex <- function(x,pvar,qvar,pervar,indexMethod="tornqvist",prodID,
-                      sample="matched",window=13,splice="mean"){
+GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod="tornqvist", prodID,
+                      sample="matched", window=13, splice="mean", biasAdjust = FALSE){
 
   # check that only valid index methods are chosen
   if(!(tolower(indexMethod) %in% c("fisher","tornqvist", "tpd"))){

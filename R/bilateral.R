@@ -423,8 +423,9 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
 #' @export
 quantityIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres", prodID,
                           sample="matched", output="pop", chainMethod="pop",
-                          sigma=1.0001, basePeriod = 1, ...){
+                          sigma=1.0001, basePeriod = 1, biasAdjust = TRUE, ...){
   return(priceIndex(x, pvar=qvar, qvar=pvar, pervar = pervar, indexMethod=indexMethod,
                     prodID = prodID, sample = sample, output = output,
-                    chainMethod = chainMethod, sigma = sigma, basePeriod = basePeriod, ... = ...))
+                    chainMethod = chainMethod, sigma = sigma, basePeriod = basePeriod,
+                    biasAdjust = biasAdjust, ... = ...))
 }
