@@ -1,22 +1,28 @@
 context("unitValues functions")
 
-# test vectors of dates
-dat_year <- as.Date(c("2017-01-01","2017-02-01","2018-01-01","2018-04-02","2019-01-01"))
-dat_quarter <- as.Date(c("2017-01-01","2017-04-01","2017-08-02","2017-09-01"))
-dat_month <- as.Date(c("2017-01-01","2017-02-01","2017-02-02","2017-03-01"))
-dat_week <- as.Date(c("2016-12-19","2016-12-26","2017-01-02","2017-01-09","2016-12-20"))
+test_that("unitValues function returns the correct values", {
 
-test_that("time index functions return the correct index values",{
-  expect_equal(yearIndex(dat_year),c(1,1,2,2,3))
-  expect_equal(quarterIndex(dat_quarter),c(1,2,3,3))
-  expect_equal(monthIndex(dat_month),c(1,2,2,3))
-  expect_equal(weekIndex(dat_week),c(1,2,3,4,1))
-})
+  df <- CES_sigma_2
+  # convert the monthly time variable into quarterly
+  df$time <- ceiling(CES_sigma_2$time/3)
 
-test_that("correct indices are returned if dates are reversed",{
-  expect_equal(yearIndex(rev(dat_year)),rev(c(1,1,2,2,3)))
-  expect_equal(quarterIndex(rev(dat_quarter)),rev(c(1,2,3,3)))
-  expect_equal(monthIndex(rev(dat_month)),rev(c(1,2,2,3)))
-  expect_equal(weekIndex(rev(dat_week)),rev(c(1,2,3,4,1)))
+  # compute unit values using the quarterly time variable
+  result <- unitValues(df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID")
+
+  expected <- data.frame(
+    prodID = c(1L, 2L, 3L, 4L, 1L, 2L, 3L, 4L, 1L, 2L, 3L, 4L, 1L, 2L, 3L, 4L),
+    period = c(1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 3L, 4L, 4L, 4L, 4L),
+    quantities = c(1.6828282,10.3574383,5.7775985,
+                   34.2941714,3.1488225,5.2115454,20.0514504,26.9706014,4.4087007,
+                   10.3419066,14.2303051,31.8921328,6.401336,5.1532397,
+                   29.2651552,28.6050935),
+    unitValue = c(1.743535478,0.6622509274,0.9437975121,
+                  0.5468516194,1.4453811036,1.1237581288,0.5376119109,
+                  0.6975126784,1.2966820814,0.7996809619,0.7218112281,0.6817197566,
+                  1.145162195,1.2769666057,0.5183794879,0.7662432846)
+  )
+
+  expect_equal(result, expected)
+
 })
 
