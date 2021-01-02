@@ -8,9 +8,11 @@
 - Added the Geary-Khamis multilateral method
 - Added the function CESData() that calculates sample datasets using any value of sigma, assuming the data and methodology in Diewert and Fox (2017)
 - Added basePeriod parameter to priceIndex() and quantityIndex() so it is now possible to choose the base period when using output = "fixedbase" for bilateral indices. 
+- Added "new" and "leaving" columns to the count matrix as part of the evaluateMatched() function output. 
 
 ### Bug fixes
 
+- Fixed an issue with evaluateMatched() incorrectly calculating matched expenditures/counts for the output = "fixedbase" option.
 
 ## Package update 0.1.2 -> 0.1.3
 

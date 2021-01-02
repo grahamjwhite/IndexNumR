@@ -140,6 +140,8 @@ The first four columns of the output presents the base period information base_i
 \end{equation}
 where $I(t)$ is the set of products available in period $t$, $t=1$ refers to the current period as is used to compute column 8 and $t=0$ refers to the comparison period, which is used to compute column 4. 
 
+The count matrix has two additional columns, "new" and "leaving". The new column gives the number of products that exist in the current period but not the base period (products entering the sample). The leaving column gives the count of products that exist in the base period but not the current period (products leaving the sample). Matching removes both of these types of products. 
+
 ## Bilateral index numbers
 
 Bilateral index numbers are those that use data for two periods to compute each value of the index. All of the bilateral index numbers can be computed as period-on-period, chained or fixed base. Period-on-period simply measures the change from one period to the next. Chained indices give the cumulative change, and it is calculated as the cumulative product of the period-on-period index. The fixed base index compares each period to the base period. This is also called a direct index, because unlike a chained index, it does not go through other periods to measure the change since the base period. Formulae used to compute the bilateral index numbers from period t-1 to period t are as below.

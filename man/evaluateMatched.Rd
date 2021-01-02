@@ -25,12 +25,12 @@ done assuming a chained index or a fixed base index. No index is actually comput
 but the matching needs to know which periods are being compared. Default is chained.}
 }
 \value{
-A list of two matrices, one for expenditures and one for counts. Each
-matrix has eight columns. The first four columns present the base period information
-base_index (the index of the base period), base (base period expenditure or count),
+A list of two matrices, one for expenditures and one for counts.
+The first four columns present the base period information
+base_index (the base time period), base (base period expenditure or count),
 base_matched (the expenditure or count of the base period after matching),
 base_share (share of total expenditure in the base period that remains after
-matching). Columns 5-8 are defined analagously for the current period. The matched
+matching). Columns 5-8 are defined analogously for the current period. The matched
 numbers for the base period should be interpreted as the count or expenditure
 that remains after removal of products that exist in the base period, but not
 in the current period. That is, products that existed in the base period but no
@@ -41,6 +41,11 @@ of new products is captured in the current period matched expenditure and counts
 Therefore, a base period share that is less than 1 indicates that products have
 disappeared, while a current period share less than 1 indicates that new products
 have appeared.
+
+The count matrix has two additional columns, "new" and "leaving". The new column
+gives the number of products that exist in the current period but not the base period.
+The leaving column gives the count of products that exist in the base period
+but not the current period. Matching removes both of these types of products.
 }
 \description{
 Evaluate the counts and expenditure for each period with and without
