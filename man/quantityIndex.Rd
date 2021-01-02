@@ -16,6 +16,7 @@ quantityIndex(
   chainMethod = "pop",
   sigma = 1.0001,
   basePeriod = 1,
+  biasAdjust = TRUE,
   ...
 )
 }
@@ -58,6 +59,9 @@ mixScaleDissimilarity function using ...}
 
 \item{basePeriod}{The period to be used as the base when 'fixedbase' output is
 chosen. Default is 1 (the first period).}
+
+\item{biasAdjust}{whether to adjust for bias in the coefficients in the bilateral
+TPD index. The default is TRUE.}
 
 \item{...}{this is used to pass additional parameters to the mixScaleDissimilarity
 function.}
