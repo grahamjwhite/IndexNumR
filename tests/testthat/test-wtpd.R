@@ -73,3 +73,30 @@ test_that("WTPDIndex produces the right answer for different splices", {
                ))
 
 })
+
+# show that the method used by IndexNumR is the same as a pooled WLS regression when observations are missing
+test_that("IndexNumR equals a WLS regression on pooled data", {
+
+  # remove a product from some periods
+  df <- CES_sigma_2[-(45:48),]
+
+  # set up the regression data
+  df <- df[order(df$time, df$prodID),]
+  df$logP <- log(df$prices)
+  df$e <- df$prices * df$quantities
+  e <- stats::aggregate(e ~ time, data = df, FUN = sum)
+  colnames(e) <- c("time", "totalExp")
+  df <- merge(df, e, by = "time")
+  df$s <- df$e/df$totalExp
+
+  # run the WLS regression and extract time coefficients
+  reg <- stats::lm(logP ~ as.factor(time) + as.factor(prodID), data = df, weights = s)
+  b <- as.matrix(c(1, exp(coef(reg)[grep("time", names(coef(reg)))])))
+  attributes(b) <- list(dim = c(12,1))
+
+  # compute with IndexNumR
+  i <- WTPDIndex(CES_sigma_2[-(45:48),], pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", window = 12)
+
+  expect_equal(b, i)
+
+})
