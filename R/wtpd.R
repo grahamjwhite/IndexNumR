@@ -57,7 +57,7 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
   etn <- replace(etn, is.na(etn), 0)
 
   # calculate expenditure shares
-  et <- rowSums(etn, na.rm = TRUE)
+  et <- rowSums(etn)
   for(i in 1:obs){
     stn[i,] <- etn[i,]/et[i]
   }
@@ -70,10 +70,10 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
   })
 
   # calculate wnj (summing wtnj over time)
-  wnj <- Reduce(`+`, lapply(wtnj, function(x){replace(x, is.na(x), 0)}))
+  wnj <- Reduce(`+`, wtnj)
 
   # calculate ftnj
-  sums <- rowSums(wnj, na.rm = TRUE)
+  sums <- rowSums(wnj)
   ftnj <- lapply(wtnj, function(xx){
     result <- matrix(NA, nrow = n, ncol = n)
     for(i in 1:n){
@@ -83,7 +83,7 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
   })
 
   # calculate fnj
-  fnj <- t(apply(wnj, 1, function(xx){xx/sum(xx, na.rm = TRUE)}))
+  fnj <- t(apply(wnj, 1, function(xx){xx/sum(xx)}))
 
   # calculate fn
   ydiff <- lapply(1:obs, function(xx){
