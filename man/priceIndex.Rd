@@ -43,7 +43,7 @@ Geary-Khamis.}
 should be used.}
 
 \item{output}{A character string specifying whether a chained (output="chained")
-, fixed base (output="fixedBase") or period-on-period (output="pop")
+, fixed base (output="fixedbase") or period-on-period (output="pop")
 price index numbers should be returned. Default is period-on-period.}
 
 \item{chainMethod}{A character string specifying the method of chain linking

@@ -11,7 +11,7 @@ Status](https://travis-ci.org/grahamjwhite/IndexNumR.svg?branch=master)](https:/
 [![Codecov test
 coverage](https://codecov.io/gh/grahamjwhite/IndexNumR/branch/master/graph/badge.svg)](https://codecov.io/gh/grahamjwhite/IndexNumR?branch=master)
 
-[![Rdoc](http://www.rdocumentation.org/badges/version/IndexNumR)](http://www.rdocumentation.org/packages/IndexNumR)
+[![Rdoc](https://www.rdocumentation.org/badges/version/IndexNumR)](http://www.rdocumentation.org/packages/IndexNumR)
 
 [![CRAN](https://www.r-pkg.org/badges/version/IndexNumR)](https://www.r-pkg.org/badges/version/IndexNumR)
 <!-- badges: end -->

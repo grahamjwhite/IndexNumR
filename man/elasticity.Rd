@@ -29,7 +29,7 @@ There may be observations on multiple products for each time period.}
 \item{prodID}{A character string for the name of the product identifier}
 
 \item{compIndex}{The index number with which the CES index will be equated
-to calcuate the elasticity. Acceptable options are lloydmoulton, fisher
+to calculate the elasticity. Acceptable options are lloydmoulton, fisher
 or satovartia. The lloydmoulton option equates the 'base period' lloyd-moulton
 index with the 'current period' lloyd-moulton index.}
 

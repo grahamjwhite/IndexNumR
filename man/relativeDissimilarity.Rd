@@ -27,7 +27,7 @@ period index and a product identifier.}
 \item{prodID}{A string identifying the product ID.}
 
 \item{indexMethod}{A string identifying the index method to
-use in the calculation. Not relevent for similarityMethod = PLSpread.
+use in the calculation. Not relevant for similarityMethod = PLSpread.
 Supported methods are fisher and tornqvist. Default is Fisher.}
 
 \item{similarityMethod}{A string specifying the formula for calculating

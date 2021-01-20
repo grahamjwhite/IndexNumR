@@ -1,3 +1,9 @@
+## Resubmission
+
+- Fixed NOTE ("Change to non-FOSS package license"): an incorrect change was made to the license, and this has been corrected. License continues to be GPL-2.
+- Fixed hyperlink (http -> https) in README.md. 
+
+
 ## Package update 0.1.3 -> 0.2
 
 ### Improvements
