@@ -28,7 +28,7 @@
 #' @param pervar A string identifying the time index variable.
 #' @param prodID A string identifying the product ID.
 #' @param indexMethod A string identifying the index method to
-#' use in the calculation. Not relevent for similarityMethod = PLSpread.
+#' use in the calculation. Not relevant for similarityMethod = PLSpread.
 #' Supported methods are fisher and tornqvist. Default is Fisher.
 #' @param similarityMethod A string specifying the formula for calculating
 #' the relative dissimilarity. Valid options are logquadratic, asymplinear

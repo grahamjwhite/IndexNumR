@@ -28,7 +28,7 @@
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
 #' There may be observations on multiple products for each time period.
 #' @param compIndex The index number with which the CES index will be equated
-#' to calcuate the elasticity. Acceptable options are lloydmoulton, fisher
+#' to calculate the elasticity. Acceptable options are lloydmoulton, fisher
 #' or satovartia. The lloydmoulton option equates the 'base period' lloyd-moulton
 #' index with the 'current period' lloyd-moulton index.
 #' @param lower lower limit to search for sigma.

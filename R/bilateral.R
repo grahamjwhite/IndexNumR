@@ -235,7 +235,7 @@ gk_t <- function(p0, p1, q0, q1){
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
 #' @param output A character string specifying whether a chained (output="chained")
-#' , fixed base (output="fixedBase") or period-on-period (output="pop")
+#' , fixed base (output="fixedbase") or period-on-period (output="pop")
 #' price index numbers should be returned. Default is period-on-period.
 #' @param chainMethod A character string specifying the method of chain linking
 #' to use if the output option is set to "chained".

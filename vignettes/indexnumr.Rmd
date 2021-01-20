@@ -188,7 +188,7 @@ where $s^{t}_{n} = \frac{p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}$ 
 where $s^{t}_{n}$ is defined as above for the geometric laspeyres index.
 
 
-### Superlative and psuedo-superlative indexes
+### Superlative and pseudo-superlative indexes
 
 * Fisher index [@fisher:1921],
 \begin{equation*}
