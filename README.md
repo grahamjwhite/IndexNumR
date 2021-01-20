@@ -64,14 +64,55 @@ To estimate a simple chained Laspeyres price index using the
 `CES_sigma_2` dataset,
 
 ``` r
-priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",pervar = "time",prodID = "prodID", indexMethod = "laspeyres", output = "chained")
+library(IndexNumR)
+
+priceIndex(CES_sigma_2, 
+           pvar = "prices", 
+           qvar = "quantities", 
+           pervar = "time", 
+           prodID = "prodID", 
+           indexMethod = "laspeyres", 
+           output = "chained")
+#>            [,1]
+#>  [1,] 1.0000000
+#>  [2,] 0.9673077
+#>  [3,] 1.2905504
+#>  [4,] 1.3382002
+#>  [5,] 1.2482444
+#>  [6,] 1.7346552
+#>  [7,] 1.6530619
+#>  [8,] 1.4524186
+#>  [9,] 1.8386215
+#> [10,] 1.7126802
+#> [11,] 2.1810170
+#> [12,] 2.2000474
 ```
 
 A GEKS index with mean splicing and an 11 period window is estimated as
 follows,
 
 ``` r
-GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = "tornqvist", window=11, splice = "mean")
+GEKSIndex(CES_sigma_2, 
+          pvar = "prices", 
+          qvar = "quantities", 
+          pervar = "time", 
+          prodID = "prodID", 
+          indexMethod = "tornqvist", 
+          window = 11, 
+          splice = "mean")
+#>            [,1]
+#>  [1,] 1.0000000
+#>  [2,] 0.8927314
+#>  [3,] 1.0776386
+#>  [4,] 1.1127724
+#>  [5,] 0.9310834
+#>  [6,] 1.1785361
+#>  [7,] 1.1219447
+#>  [8,] 0.9380228
+#>  [9,] 1.0951667
+#> [10,] 0.9501914
+#> [11,] 1.1277725
+#> [12,] 1.1330748
 ```
 
 More examples are contained in the package vignette.

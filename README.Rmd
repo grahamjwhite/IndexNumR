@@ -53,14 +53,32 @@ devtools::install_github("grahamjwhite/IndexNumR")
 
 To estimate a simple chained Laspeyres price index using the `CES_sigma_2` dataset,
 
-```r
-priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",pervar = "time",prodID = "prodID", indexMethod = "laspeyres", output = "chained")
+```{r}
+library(IndexNumR)
+
+priceIndex(CES_sigma_2, 
+           pvar = "prices", 
+           qvar = "quantities", 
+           pervar = "time", 
+           prodID = "prodID", 
+           indexMethod = "laspeyres", 
+           output = "chained")
+
 ```
+
 A GEKS index with mean splicing and an 11 period window is estimated as follows,
 
-```r
-GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID", indexMethod = "tornqvist", window=11, splice = "mean")
+```{r}
+GEKSIndex(CES_sigma_2, 
+          pvar = "prices", 
+          qvar = "quantities", 
+          pervar = "time", 
+          prodID = "prodID", 
+          indexMethod = "tornqvist", 
+          window = 11, 
+          splice = "mean")
 ```
+
 More examples are contained in the package vignette. 
 ```r
 vignette("indexnumr", package = "IndexNumR")
