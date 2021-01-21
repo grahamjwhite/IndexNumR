@@ -2,6 +2,7 @@
 
 - Fixed hyperlink
 - Added a reference to a paper in the description that covers a number of the methods in the package. 
+- win-builder is showing 1 NOTE for possibly misspelled words in description ("CCDI", "Geary", "Khamis", "Tornqvist"). These are NOT misspelled.  
 
 ## Resubmission
 
