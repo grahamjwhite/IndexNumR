@@ -1,3 +1,8 @@
+## Resubmission 2
+
+- Fixed hyperlink
+- Added a reference to a paper in the description that covers a number of the methods in the package. 
+
 ## Resubmission
 
 - Fixed NOTE ("Change to non-FOSS package license"): an incorrect change was made to the license, and this has been corrected. License continues to be GPL-2.

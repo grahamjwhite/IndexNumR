@@ -5,9 +5,13 @@ Version: 0.2.0
 Author: Graham White
 Maintainer: Graham White <g.white@unswalumni.com>
 Description: Computes bilateral and multilateral index numbers. 
-    It has support for several standard bilateral indices as well as
-    the multilateral index number methods. 
-    It also supports updating of multilateral indexes using several splicing methods.
+    It has support for many standard bilateral indexes as well as
+    multilateral index number methods such as GEKS, GEKS-Tornqvist 
+    (or CCDI), Geary-Khamis and the weighted time product dummy
+    (for details on these methods see Diewert and Fox (2020) 
+    <doi:10.1080/07350015.2020.1816176>). 
+    It also supports updating of multilateral indexes using 
+    several splicing methods.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
