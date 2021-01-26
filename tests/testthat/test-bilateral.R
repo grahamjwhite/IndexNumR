@@ -11,24 +11,26 @@ indexEqual <- function(pOrq, indexMethod, outputType, result){
 
   switch(pOrq,
          price = expect_equal(priceIndex(CES_sigma_2,
-                                                     pvar = "prices",
-                                                     qvar = "quantities",
-                                                     pervar = "time",
-                                                     prodID = "prodID",
-                                                     indexMethod = !!indexMethod,
-                                                     sample = "matched",
-                                                     output = !!outputType,
-                                                     sigma = 2),
-                                        !!result),
+                                         pvar = "prices",
+                                         qvar = "quantities",
+                                         pervar = "time",
+                                         prodID = "prodID",
+                                         indexMethod = !!indexMethod,
+                                         sample = "matched",
+                                         output = !!outputType,
+                                         sigma = 2,
+                                         weights = "shares"),
+                              !!result),
          quantity = eval(bquote(expect_equal(quantityIndex(CES_sigma_2,
-                                                        pvar = "prices",
-                                                        qvar = "quantities",
-                                                        pervar = "time",
-                                                        prodID = "prodID",
-                                                        indexMethod = .(indexMethod),
-                                                        sample = "matched",
-                                                        output = .(outputType),
-                                                        sigma = 2),
+                                                           pvar = "prices",
+                                                           qvar = "quantities",
+                                                           pervar = "time",
+                                                           prodID = "prodID",
+                                                           indexMethod = .(indexMethod),
+                                                           sample = "matched",
+                                                           output = .(outputType),
+                                                           sigma = 2,
+                                                           weights = "shares"),
                                              .(result)))))
 
 
@@ -138,5 +140,42 @@ test_that("Indices return the same answer regardless of product ordering",{
   for(i in seq_along(indexMethods)){
     indexEqual(CESOrdered, indexMethods[i], CESUnordered)
   }
+
+})
+
+
+test_that("bilateral tpd with average weights gives a tornqvist index", {
+
+  tpd <- priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                    prodID = "prodID", indexMethod = "tpd", biasAdjust = FALSE,
+                    weights = "average")
+  torn <- priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                     prodID = "prodID", indexMethod = "tornqvist")
+
+  expect_equal(tpd, torn)
+
+})
+
+test_that("bilateral unweighted tpd gives a jevons index", {
+
+  tpd <- priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                    prodID = "prodID", indexMethod = "tpd", biasAdjust = FALSE,
+                    weights = "unweighted")
+  jev <- priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                     prodID = "prodID", indexMethod = "jevons")
+
+  expect_equal(tpd, jev)
+
+})
+
+test_that("bilateral unweighted tpd gives a matched-model jevons index with missing products", {
+
+  tpd <- priceIndex(CES_sigma_2[-15,], pvar = "prices", qvar = "quantities", pervar = "time",
+                    prodID = "prodID", indexMethod = "tpd", biasAdjust = FALSE,
+                    weights = "unweighted", sample = "")
+  jev <- priceIndex(CES_sigma_2[-15,], pvar = "prices", qvar = "quantities", pervar = "time",
+                    prodID = "prodID", indexMethod = "jevons", sample = "matched")
+
+  expect_equal(tpd, jev)
 
 })

@@ -172,26 +172,47 @@ geomPaasche_t <- function(p0, p1, q0, q1){
 #'
 #' @keywords internal
 #' @noRd
-tpd_t <- function(p0, p1, q0, q1, biasAdjust){
+tpd_t <- function(p0, p1, q0, q1, prodID0, prodID1, biasAdjust, weights){
 
   exp0 <- sum(p0*q0)
   exp1 <- sum(p1*q1)
-  s0 <- (p0*q0)/exp0
-  s1 <- (p1*q1)/exp1
+
+  switch(weights,
+         "shares" = {s0 <- (p0*q0)/exp0
+                     s1 <- (p1*q1)/exp1},
+         "average" = {s0Initial <- (p0*q0)/exp0
+                     s1Initial <- (p1*q1)/exp1
+
+                     df <- merge(data.frame(prodID = prodID0, s0 = s0Initial),
+                                 data.frame(prodID = prodID1, s1 = s1Initial),
+                                 all = TRUE)
+                     df$average <- 0.5*(ifelse(is.na(df$s0), 0, df$s0) + ifelse(is.na(df$s1), 0, df$s1))
+
+                     s0 <- df$average[!is.na(df$s0)]
+                     s1 <- df$average[!is.na(df$s1)]
+
+                     },
+         "unweighted" = {s0 <- rep(NA, length(p0))
+                         s1 <- rep(NA, length(p1))}
+  )
 
   df1 <- data.frame(lnP = log(p1),
-                    D = 1,
+                    D = factor(rep("1", length(p1)), levels = c("0", "1")),
                     s = s1,
-                    product = as.factor(seq_along(p1)))
+                    product = as.factor(prodID1))
 
   df0 <- data.frame(lnP = log(p0),
-                    D = 0,
+                    D = factor(rep("0", length(p0)), levels = c("0", "1")),
                     s = s0,
-                    product = as.factor(seq_along(p0)))
+                    product = as.factor(prodID0))
 
   regData <- rbind(df0, df1)
 
-  reg <- with(regData, stats::lm(lnP ~ D + product, weights = s))
+  if(weights == "unweighted"){
+    reg <- stats::lm(lnP ~ D + product, data = regData)
+  } else {
+    reg <- stats::lm(lnP ~ D + product, weights = s, data = regData)
+  }
 
   if(biasAdjust){
     coeffs <- kennedyBeta(reg)
@@ -200,7 +221,7 @@ tpd_t <- function(p0, p1, q0, q1, biasAdjust){
     coeffs <- stats::coef(reg)
   }
 
-  b <- coeffs[which(names(coeffs) == "D")]
+  b <- coeffs[which(names(coeffs) == "D1")]
 
   return(exp(b))
 }
@@ -244,12 +265,16 @@ gk_t <- function(p0, p1, q0, q1){
 #' weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
 #' and "mixScale" for the mix, scale or absolute dissimilarity measures.
 #' The default is period-on-period. Additional parameters can be passed to the
-#' mixScaleDissimilarity function using ...
+#' mixScaleDissimilarity function using \code{...}
 #' @param sigma The elasticity of substitution for the CES index method.
 #' @param basePeriod The period to be used as the base when 'fixedbase' output is
 #' chosen. Default is 1 (the first period).
 #' @param biasAdjust whether to adjust for bias in the coefficients in the bilateral
 #' TPD index. The default is TRUE.
+#' @param weights the type of weighting for the bilateral TPD index. Options are
+#' "unweighted" to use ordinary least squares, "shares" to use weighted least squares
+#' with expenditure share weights, and "average" to use weighted least squares
+#' with the average of the expenditure shares over the two periods.
 #' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
 #' function.
 #' @examples
@@ -269,7 +294,7 @@ gk_t <- function(p0, p1, q0, q1){
 #' @export
 priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                        sample = "matched", output = "pop", chainMethod = "pop",
-                       sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE, ...){
+                       sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE, weights = "average", ...){
 
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
@@ -284,6 +309,12 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   validOutput <- c("chained","pop","fixedbase")
   if(!(tolower(output) %in% validOutput)){
     stop("Not a valid output type. Please choose from chained, fixedbase or pop.")
+  }
+
+  # check that valid weights are given
+  validWeights <- c("unweighted", "average", "shares")
+  if(!(tolower(weights) %in% validWeights)){
+    stop("Not a valid weight type. Please choose from unweighted, shares or average.")
   }
 
   # check valid column names are given
@@ -386,7 +417,7 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
              ces = {plist[i,1] <- lloydMoulton_t0(p0,p1,q0,sigma = sigma)},
              geomlaspeyres = {plist[i,1] <- geomLaspeyres_t(p0, p1, q0, q1)},
              geompaasche = {plist[i,1] <- geomPaasche_t(p0, p1, q0, q1)},
-             tpd = {plist[i,1] <- tpd_t(p0, p1, q0, q1, biasAdjust)},
+             tpd = {plist[i,1] <- tpd_t(p0, p1, q0, q1, xt0[[prodID]], xt1[[prodID]], biasAdjust, weights)},
              gk = {plist[i,1] <- gk_t(p0, p1, q0, q1)}
       )
 
@@ -421,11 +452,21 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
 #' quantityIndex(CES_sigma_2, pvar="prices", qvar="quantities", pervar="time",
 #' prodID = "prodID", indexMethod = "fisher", output="chained")
 #' @export
-quantityIndex <- function(x,pvar,qvar,pervar,indexMethod="laspeyres", prodID,
-                          sample="matched", output="pop", chainMethod="pop",
-                          sigma=1.0001, basePeriod = 1, biasAdjust = TRUE, ...){
-  return(priceIndex(x, pvar=qvar, qvar=pvar, pervar = pervar, indexMethod=indexMethod,
-                    prodID = prodID, sample = sample, output = output,
-                    chainMethod = chainMethod, sigma = sigma, basePeriod = basePeriod,
-                    biasAdjust = biasAdjust, ... = ...))
+quantityIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
+                          sample = "matched", output = "pop", chainMethod = "pop",
+                          sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE, weights = "average", ...){
+  return(priceIndex(x,
+                    pvar = qvar,
+                    qvar = pvar,
+                    pervar = pervar,
+                    indexMethod = indexMethod,
+                    prodID = prodID,
+                    sample = sample,
+                    output = output,
+                    chainMethod = chainMethod,
+                    sigma = sigma,
+                    basePeriod = basePeriod,
+                    biasAdjust = biasAdjust,
+                    weights = weights,
+                    ... = ...))
 }

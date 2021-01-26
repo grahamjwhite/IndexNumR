@@ -243,7 +243,7 @@ This is a regression model approach where log prices are modelled as a function 
 \begin{equation*}
   \ln{p_{n}^{t}} = \alpha + \beta_{1} D^{t} + \sum_{n = 2}^{N}\beta_{n}D_{n} + \epsilon_{n}^{t},
 \end{equation*}
-where $D^{t}$ is equal to 1 in period $t$ and 0 in period $t-1$, and $D_{n}$ is equal to 1 if the product is product $n$ and 0 otherwise. The equation is estimated by weighted least squares (as suggested by [@diewert:2005b]), where the weights are the product expenditure shares.
+where $D^{t}$ is equal to 1 in period $t$ and 0 in period $t-1$, and $D_{n}$ is equal to 1 if the product is product $n$ and 0 otherwise. 
 
 The price index is then given by,
 \begin{equation*}
@@ -255,6 +255,9 @@ However, this is a biased estimate [@kennedy:1981], so *IndexNumR* optionally ca
 \begin{equation*}
   P(p^{t-1},p^{t},q^{t-1},q^{t}) = \exp({\hat{\beta_{1}} - 0.5 \times Var(\hat{\beta_{1}})})
 \end{equation*}
+
+The time-product-dummy equation can be estimated using three methods in IndexNumR using the `weights` parameter: ordinary least squares; weighted least squares where the weights are the product expenditure shares; or weighted least squares where the weights are the average of the expenditure shares in the two periods. In the first case, the index produced is the same as the matched sample Jevons index, which does not use quantity information. The second option produces a matched sample harmonic share weights index, and the last option produces the matched sample Tornqvist index. See [@diewert:2005b] for a discussion of these results.
+
 
 ### Examples
 

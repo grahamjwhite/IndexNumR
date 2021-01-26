@@ -24,7 +24,7 @@
 #' @keywords internal
 #' @noRd
 GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
-                   sample="matched", biasAdjust){
+                   sample="matched", biasAdjust, weights){
 
   # get the window length
   window <- max(x[[pervar]]) - min(x[[pervar]]) + 1
@@ -82,7 +82,7 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
           switch(tolower(indexMethod),
                  fisher = {pindices[j,k] <- fisher_t(p0, p1, q0, q1)},
                  tornqvist = {pindices[j,k] <- tornqvist_t(p0, p1, q0, q1)},
-                 tpd = {pindices[j,k] <- tpd_t(p0, p1, q0, q1, biasAdjust)})
+                 tpd = {pindices[j,k] <- tpd_t(p0, p1, q0, q1, xt0[[prodID]], xt1[[prodID]], biasAdjust, weights)})
         }
 
       }
@@ -94,7 +94,7 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
   # normalise to the first period
   pgeo <- pgeo/pgeo[1]
 
-  return(list(pgeo=pgeo, naPairs=naPairs))
+  return(list(pgeo = pgeo, naPairs = naPairs))
 }
 
 #' Compute a GEKS multilateral index
@@ -122,6 +122,11 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
 #' @param biasAdjust whether to adjust for bias in the coefficients of the bilateral TPD index.
 #' The default is FALSE because making this adjustment will break transitivity of the
 #' GEKS index.
+#' @param weights the type of weighting for the bilateral TPD index. Options are
+#' "unweighted" to use ordinary least squares, "shares" to use weighted least squares
+#' with expenditure share weights, and "average" to use weighted least squares
+#' with the average of the expenditure shares over the two periods. See details for more
+#' information
 #' @details The splicing methods are used to update the price index when new data become
 #' available without changing prior index values. The window, movement, half and mean splices
 #' use the most recent index value as the base period, which is multiplied by a price movement
@@ -146,7 +151,8 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
 #' Econometrics 161, 24-35.
 #' @export
 GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod="tornqvist", prodID,
-                      sample="matched", window=13, splice="mean", biasAdjust = FALSE){
+                      sample="matched", window=13, splice="mean", biasAdjust = FALSE,
+                      weights = "average"){
 
   # check that only valid index methods are chosen
   if(!(tolower(indexMethod) %in% c("fisher","tornqvist", "tpd"))){
@@ -195,8 +201,8 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod="tornqvist", prodID,
   xWindow <- x[x[[pervar]] >= 1 & x[[pervar]] <= window,]
 
   # call GEKS_w on first window
-  tempGEK <- GEKS_w(xWindow,pvar,qvar,pervar,indexMethod,prodID,
-                    sample)
+  tempGEK <- GEKS_w(xWindow, pvar, qvar, pervar, indexMethod, prodID,
+                    sample, biasAdjust, weights)
   pGEKS[1:window,1] <- tempGEK$pgeo
 
   # initiate a vector of warnings for NAs
@@ -234,7 +240,7 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod="tornqvist", prodID,
       }
 
       # call GEKS_w on this window
-      tempGEK <- GEKS_w(xWindow, pvar, qvar, pervar, indexMethod, prodID, sample)
+      tempGEK <- GEKS_w(xWindow, pvar, qvar, pervar, indexMethod, prodID, sample, biasAdjust, weights)
       new <- tempGEK$pgeo
 
       if(length(tempGEK$naPairs) > 0){
