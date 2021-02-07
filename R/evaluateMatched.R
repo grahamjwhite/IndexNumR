@@ -110,8 +110,8 @@ evaluateMatched <- function(x,pvar,qvar,pervar,prodID,output="chained"){
     counts[i-1,"current_index"] <- i
     counts[i-1,"current"] <- length(unique(xt1[[prodID]]))
 
-    counts[i-1,9] <- length(xt1[!(xt1[[prodID]] %in% xt0[[prodID]])])
-    counts[i-1,10] <- length(xt0[!(xt0[[prodID]] %in% xt1[[prodID]])])
+    counts[i-1,9] <- length(xt1[[prodID]][!(xt1[[prodID]] %in% xt0[[prodID]])])
+    counts[i-1,10] <- length(xt0[[prodID]][!(xt0[[prodID]] %in% xt1[[prodID]])])
 
     # remove the unmatched items
     xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
