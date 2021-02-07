@@ -17,6 +17,7 @@ priceIndex(
   sigma = 1.0001,
   basePeriod = 1,
   biasAdjust = TRUE,
+  weights = "average",
   ...
 )
 }
@@ -53,7 +54,7 @@ options "plspread" for the Paasche-Laspeyres spread, "asymplinear" for
 weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
 and "mixScale" for the mix, scale or absolute dissimilarity measures.
 The default is period-on-period. Additional parameters can be passed to the
-mixScaleDissimilarity function using ...}
+mixScaleDissimilarity function using \code{...}}
 
 \item{sigma}{The elasticity of substitution for the CES index method.}
 
@@ -62,6 +63,11 @@ chosen. Default is 1 (the first period).}
 
 \item{biasAdjust}{whether to adjust for bias in the coefficients in the bilateral
 TPD index. The default is TRUE.}
+
+\item{weights}{the type of weighting for the bilateral TPD index. Options are
+"unweighted" to use ordinary least squares, "shares" to use weighted least squares
+with expenditure share weights, and "average" to use weighted least squares
+with the average of the expenditure shares over the two periods.}
 
 \item{...}{this is used to pass additional parameters to the mixScaleDissimilarity
 function.}

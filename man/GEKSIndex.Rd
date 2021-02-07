@@ -14,7 +14,8 @@ GEKSIndex(
   sample = "matched",
   window = 13,
   splice = "mean",
-  biasAdjust = FALSE
+  biasAdjust = FALSE,
+  weights = "average"
 )
 }
 \arguments{
@@ -48,6 +49,12 @@ considerations when using fbew and fbmw.}
 \item{biasAdjust}{whether to adjust for bias in the coefficients of the bilateral TPD index.
 The default is FALSE because making this adjustment will break transitivity of the
 GEKS index.}
+
+\item{weights}{the type of weighting for the bilateral TPD index. Options are
+"unweighted" to use ordinary least squares, "shares" to use weighted least squares
+with expenditure share weights, and "average" to use weighted least squares
+with the average of the expenditure shares over the two periods. See details for more
+information}
 }
 \description{
 A function to calculate a GEKS multilateral price index

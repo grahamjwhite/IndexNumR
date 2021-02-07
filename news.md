@@ -1,10 +1,12 @@
-## Package update TBA
+## Package update 0.2.0 -> TBA
 
 ### Improvements
 
+- Added options for the weights when estimating the time-product-dummy index
 
 ### Bug fixes
 
+- Fixed issue with the time-product-dummy regression when there are missing products
 
 
 ## Package update 0.1.3 -> 0.2.0
