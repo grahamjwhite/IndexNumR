@@ -410,7 +410,7 @@ The user must choose the size of the window over which to apply the GEKS method,
 \begin{equation}
   \left[ \prod_{k=1}^{w}P^{k,1} \right]^{1/w}, \left[ \prod_{k=1}^{w}P^{k,2} \right]^{1/w}, \cdots, \left[ \prod_{k=1}^{w}P^{k,w} \right]^{1/w},
 \end{equation}
-where the term $P^{k,t}$ is the bilateral index between period $t$ and base period $k$. *IndexNumR* offers the Fisher,  Tornqvist and time-product-dummy index number methods for the index $P$ via the `indexMethod` option. The Tornqvist index method is the default. The $w\times w$ matrix of bilateral indexes is as follows,
+where the term $P^{k,t}$ is the bilateral index between period $t$ and base period $k$. *IndexNumR* offers the Fisher, Tornqvist, Walsh and time-product-dummy index number methods for the index $P$ via the `indexMethod` option. The Tornqvist index method is the default. The $w\times w$ matrix of bilateral indexes is as follows,
 \[P =
 \begin{pmatrix}
   P^{1,1} & \cdots & P^{1,w} \\
