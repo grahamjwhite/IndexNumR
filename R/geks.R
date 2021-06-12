@@ -82,7 +82,8 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
           switch(tolower(indexMethod),
                  fisher = {pindices[j,k] <- fisher_t(p0, p1, q0, q1)},
                  tornqvist = {pindices[j,k] <- tornqvist_t(p0, p1, q0, q1)},
-                 tpd = {pindices[j,k] <- tpd_t(p0, p1, q0, q1, xt0[[prodID]], xt1[[prodID]], biasAdjust, weights)})
+                 tpd = {pindices[j,k] <- tpd_t(p0, p1, q0, q1, xt0[[prodID]], xt1[[prodID]], biasAdjust, weights)},
+                 walsh = {pindices[j,k] <- walsh_t(p0, p1, q0, q1)})
         }
 
       }
@@ -110,7 +111,7 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
-#' number methods are fisher, tornqvist or tpd. The default is tornqvist.
+#' number methods are fisher, tornqvist, tpd or walsh. The default is tornqvist.
 #' @param sample A character string specifying whether matching is to be performed.
 #' The default is to use matching.
 #' If sample=matched then any products that are not present in comparison periods
@@ -150,12 +151,12 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
 #' Time Aggregation and the Construction of Price Indexes", Journal of
 #' Econometrics 161, 24-35.
 #' @export
-GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod="tornqvist", prodID,
-                      sample="matched", window=13, splice="mean", biasAdjust = FALSE,
+GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
+                      sample = "matched", window = 13, splice = "mean", biasAdjust = FALSE,
                       weights = "average"){
 
   # check that only valid index methods are chosen
-  if(!(tolower(indexMethod) %in% c("fisher","tornqvist", "tpd"))){
+  if(!(tolower(indexMethod) %in% c("fisher","tornqvist", "tpd", "walsh"))){
     stop("Not a valid index number method.")
   }
 
