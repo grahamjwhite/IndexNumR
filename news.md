@@ -4,6 +4,7 @@
 
 - Added options for the weights when estimating the time-product-dummy index
 - Added the wisp, hasp and mean_pub splicing methods. These are the same methods as window, half and mean splice, but splice onto the published series instead of the previously calculated window. 
+- Added the Walsh index as a valid bilateral index to use in GEKSIndex
 
 ### Bug fixes
 
