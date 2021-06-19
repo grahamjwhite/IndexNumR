@@ -43,8 +43,8 @@ are removed prior to estimating the index for those periods.}
 \item{window}{An integer specifying the length of the window.}
 
 \item{splice}{A character string specifying the splicing method. Valid methods are
-window, movement, half, mean, fbew or fbmw. The default is mean. See details for important
-considerations when using fbew and fbmw.}
+window, movement, half, mean, fbew or fbmw, wisp, hasp or mean_pub. The default is mean.
+See details for important considerations when using fbew and fbmw.}
 
 \item{biasAdjust}{whether to adjust for bias in the coefficients of the bilateral TPD index.
 The default is FALSE because making this adjustment will break transitivity of the
