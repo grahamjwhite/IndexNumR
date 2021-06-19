@@ -230,9 +230,9 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice =
       switch(splice,
              fbew = {pGK[i+window-1,1] <- fbewBase*new[length(new)]},
              fbmw = {pGK[i+window-1,1] <- fbewBase*new[length(new)]/new[length(new)-(i+window-1-base)]},
-             wisp = {pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1], pGEKS[(i-1):(i+window-2)], new, method="window")},
-             hasp = {pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1], pGEKS[(i-1):(i+window-2)], new, method="half")},
-             mean_pub = {pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1], pGEKS[(i-1):(i+window-2)], new, method="mean")},
+             wisp = {pGK[i+window-1,1] <- splice_t(pGK[i+window-2,1], pGK[(i-1):(i+window-2)], new, method="window")},
+             hasp = {pGK[i+window-1,1] <- splice_t(pGK[i+window-2,1], pGK[(i-1):(i+window-2)], new, method="half")},
+             mean_pub = {pGK[i+window-1,1] <- splice_t(pGK[i+window-2,1], pGK[(i-1):(i+window-2)], new, method="mean")},
              pGK[i+window-1,1] <- splice_t(pGK[i+window-2,1], old, new, method=splice))
 
     }

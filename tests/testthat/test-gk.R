@@ -68,4 +68,40 @@ test_that("GKIndex produces the right answer for different splices", {
                            1.000095564, 1.198013216, 0.975391622,
                            1.223185405, 1.230296382)))
 
+  # wisp
+  expect_equal(GKIndex(CES_sigma_2,
+                         pvar = "prices",
+                         qvar = "quantities",
+                         prodID = "prodID",
+                         pervar = "time",
+                         window = 11,
+                         splice = "wisp"),
+               as.matrix(c(1, 0.880516792639476, 1.14677616370861, 1.20478883103346,
+                           0.970884329042465, 1.29443693892348, 1.22885984521462, 1.00009556334273,
+                           1.19801321479787, 0.975391622972356, 1.22318540412509, 1.24310097571958)))
+
+  # hasp
+  expect_equal(GKIndex(CES_sigma_2,
+                         pvar = "prices",
+                         qvar = "quantities",
+                         prodID = "prodID",
+                         pervar = "time",
+                         window = 11,
+                         splice = "hasp"),
+               as.matrix(c(1, 0.880516792639476, 1.14677616370861, 1.20478883103346,
+                           0.970884329042465, 1.29443693892348, 1.22885984521462, 1.00009556334273,
+                           1.19801321479787, 0.975391622972356, 1.22318540412509, 1.23029638103244)))
+
+  # mean_pub
+  expect_equal(GKIndex(CES_sigma_2,
+                         pvar = "prices",
+                         qvar = "quantities",
+                         prodID = "prodID",
+                         pervar = "time",
+                         window = 11,
+                         splice = "mean_pub"),
+               as.matrix(c(1, 0.880516792639476, 1.14677616370861, 1.20478883103346,
+                           0.970884329042465, 1.29443693892348, 1.22885984521462, 1.00009556334273,
+                           1.19801321479787, 0.975391622972356, 1.22318540412509, 1.23044626729226)))
+
 })

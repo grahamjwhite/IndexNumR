@@ -72,6 +72,45 @@ test_that("WTPDIndex produces the right answer for different splices", {
 
                ))
 
+  # wisp
+  expect_equal(WTPDIndex(CES_sigma_2,
+                         pvar = "prices",
+                         qvar = "quantities",
+                         prodID = "prodID",
+                         pervar = "time",
+                         window = 11,
+                         splice = "wisp"),
+               as.matrix(c(1, 0.88125316126336, 1.11113003298188, 1.15577105831891,
+                           0.939283785493012, 1.22946886276831, 1.16928578010074, 0.962925047843644,
+                           1.13966638509599, 0.949589626761819, 1.16793031098926, 1.18221020311053)
+               ))
+
+  # hasp
+  expect_equal(WTPDIndex(CES_sigma_2,
+                         pvar = "prices",
+                         qvar = "quantities",
+                         prodID = "prodID",
+                         pervar = "time",
+                         window = 11,
+                         splice = "hasp"),
+               as.matrix(c(1, 0.88125316126336, 1.11113003298188, 1.15577105831891,
+                           0.939283785493012, 1.22946886276831, 1.16928578010074, 0.962925047843644,
+                           1.13966638509599, 0.949589626761819, 1.16793031098926, 1.17283457648912)
+               ))
+
+  # mean_pub
+  expect_equal(WTPDIndex(CES_sigma_2,
+                         pvar = "prices",
+                         qvar = "quantities",
+                         prodID = "prodID",
+                         pervar = "time",
+                         window = 11,
+                         splice = "mean_pub"),
+               as.matrix(c(1, 0.88125316126336, 1.11113003298188, 1.15577105831891,
+                           0.939283785493012, 1.22946886276831, 1.16928578010074, 0.962925047843644,
+                           1.13966638509599, 0.949589626761819, 1.16793031098926, 1.17283932343105)
+               ))
+
 })
 
 # show that the method used by IndexNumR is the same as a pooled WLS regression when observations are missing

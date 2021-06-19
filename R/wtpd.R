@@ -245,9 +245,9 @@ WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, s
       switch(splice,
              fbew = {pWTPD[i+window-1,1] <- fbewBase*new[length(new)]},
              fbmw = {pWTPD[i+window-1,1] <- fbewBase*new[length(new)]/new[length(new)-(i+window-1-base)]},
-             wisp = {pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1], pGEKS[(i-1):(i+window-2)], new, method="window")},
-             hasp = {pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1], pGEKS[(i-1):(i+window-2)], new, method="half")},
-             mean_pub = {pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1], pGEKS[(i-1):(i+window-2)], new, method="mean")},
+             wisp = {pWTPD[i+window-1,1] <- splice_t(pWTPD[i+window-2,1], pWTPD[(i-1):(i+window-2)], new, method="window")},
+             hasp = {pWTPD[i+window-1,1] <- splice_t(pWTPD[i+window-2,1], pWTPD[(i-1):(i+window-2)], new, method="half")},
+             mean_pub = {pWTPD[i+window-1,1] <- splice_t(pWTPD[i+window-2,1], pWTPD[(i-1):(i+window-2)], new, method="mean")},
              pWTPD[i+window-1,1] <- splice_t(pWTPD[i+window-2,1], old, new, method=splice))
 
     }
