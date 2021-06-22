@@ -4,7 +4,7 @@ load(system.file("testdata","testData_geks.RData",package = "IndexNumR"))
 
 test_that("geks splice functions return the correct values",{
 
-  splices <- c("window","movement","mean")
+  splices <- c("window", "movement", "mean", "half", "wisp", "hasp", "mean_pub")
 
   for(j in seq_along(splices)){
     expect_equal(GEKSIndex(CES_sigma_2,

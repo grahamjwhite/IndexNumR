@@ -151,7 +151,8 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
 #' across all periods in a given window. Default is not to match.
 #' @param window An integer specifying the length of the window.
 #' @param splice A character string specifying the splicing method. Valid methods are
-#' window, movement, half, mean, fbew or fbmw. The default is mean.
+#' window, movement, half, mean, fbew, fbmw, wisp, hasp or mean_pub. The default is mean.
+#' See details for important considerations when using fbew and fbmw.
 #' @details The splicing methods are used to update the price index when new data become
 #' available without changing prior index values. The window, movement, half and mean splices
 #' use the most recent index value as the base period, which is multiplied by a price movement
@@ -173,7 +174,7 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
 WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, splice = "mean"){
 
   # check that only valid splice methods are chosen
-  if(!(tolower(splice) %in% c("mean", "window", "movement", "half", "fbew", "fbmw"))){
+  if(!(tolower(splice) %in% c("mean", "window", "movement", "half", "fbew", "fbmw", "wisp", "hasp", "mean_pub"))){
     stop("Not a valid splicing method.")
   }
 
@@ -244,6 +245,9 @@ WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, s
       switch(splice,
              fbew = {pWTPD[i+window-1,1] <- fbewBase*new[length(new)]},
              fbmw = {pWTPD[i+window-1,1] <- fbewBase*new[length(new)]/new[length(new)-(i+window-1-base)]},
+             wisp = {pWTPD[i+window-1,1] <- splice_t(pWTPD[i+window-2,1], pWTPD[(i-1):(i+window-2)], new, method="window")},
+             hasp = {pWTPD[i+window-1,1] <- splice_t(pWTPD[i+window-2,1], pWTPD[(i-1):(i+window-2)], new, method="half")},
+             mean_pub = {pWTPD[i+window-1,1] <- splice_t(pWTPD[i+window-2,1], pWTPD[(i-1):(i+window-2)], new, method="mean")},
              pWTPD[i+window-1,1] <- splice_t(pWTPD[i+window-2,1], old, new, method=splice))
 
     }

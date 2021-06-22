@@ -14,6 +14,7 @@ vignette: >
 
 ```{r setup, include=FALSE}
 library(IndexNumR)
+
 ```
 
 # Introduction
@@ -28,6 +29,7 @@ In recent years, advances have been made in index number theory to address biase
 * multilaterals: provides multilateral indices for cross-section and panel data. Can also produce bilateral indices using Paasche, Laspeyres, Fisher and Tornqvist methods. 
 * productivity: calculates indices of productivity and profitability using common index number methods. 
 * IndexNumber: calculates Laspeyres, Paasche or Fisher indexes. 
+* PriceIndices: produces indices for a wide range of bilateral and multilateral methods, but limited to a monthly frequency. Provides splicing methods for extending multilateral indices as well as functions for preparation of the data. 
 
 # The *IndexNumR* package
 
@@ -521,7 +523,7 @@ The matrix $[I_{N} - F]$ is singular so a normalisation must be used to solve th
 
 The multilateral indexes are normalised by dividing by the first term, to give an index for the first $w$ periods that starts at 1. If the index only covers $w$ periods then no further calculation is required. However, if there are $T>w$ periods in the dataset then the index must be extended.
 
-Extending a multilateral index can be done in a multitude of ways. Statistical agencies generally do not revise price indices like the consumer price index, so the methods offered by *IndexNumR* to extend multilateral indexes are methods that do not lead to revisions. More specifically, these are called *splicing methods* and the options available are the *movement*, *window*, *half*, *mean*, *fbew (Fixed Base Expanding Window)* and *fbmw (Fixed Base Moving Window)*. The idea behind most of these methods is that we start by moving the window forward by one period and calculate the index for the new window. There will be $w-1$ overlapping periods between the initial index and the index computed on the window that has been rolled forward one period. Any one of these overlapping periods can be used to extend the multilateral index.  
+Extending a multilateral index can be done in a multitude of ways. Statistical agencies generally do not revise price indices like the consumer price index, so the methods offered by *IndexNumR* to extend multilateral indexes are methods that do not lead to revisions. More specifically, these are called *splicing methods* and the options available are the *movement*, *window*, *half*, *mean*, *fbew (Fixed Base Expanding Window)*,  *fbmw (Fixed Base Moving Window)*, *wisp (window splice on published data)*, *hasp (half-splice on published data)* and *mean splice on published data*. The idea behind most of these methods is that we start by moving the window forward by one period and calculate the index for the new window. There will be $w-1$ overlapping periods between the initial index and the index computed on the window that has been rolled forward one period. Any one of these overlapping periods can be used to extend the multilateral index. The variants of window, half and mean splice that are on published data use the same method as the classical counterparts, but splice onto the published series instead of the previously calculated window.   
 
 Let $P_{OLD}$ be the index computed over periods $1$ to $w$ and let $P_{NEW}$ be the index computed over the window rolled forward one period, from periods $2$ to $w+1$. Let the final index simply be $P$. For the first $w$ periods $P = P_{OLD}$, then $P^{w+1}$ is computed using the splicing methods as follows.
 
@@ -565,7 +567,7 @@ The splicing methods are used in this fashion to extend the series up to the fin
 # Assume that the data in CES_sigma_2 are quarterly data with time period
 # 1 corresponding to the December quarter. 
 
-splices <- c("window", "half", "movement", "mean", "fbew", "fbmw")
+splices <- c("window", "half", "movement", "mean", "fbew", "fbmw", "wisp", "hasp", "mean_pub")
 
 # estimate a GEKS index using the different splicing methods. Under
 # the above assumptions, the window must be 5 to ensure the base period is

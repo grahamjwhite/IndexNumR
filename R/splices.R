@@ -42,7 +42,7 @@ splice_t <- function(x, oldWindow, newWindow, method="mean"){
            movement = {pt <- x*splice(length(newWindow)-1, oldWindow, newWindow)},
            window = {pt <- x*splice(1, oldWindow, newWindow)},
            mean = {pt <- x*meanSplice(oldWindow, newWindow)},
-           half = {pt <- x*splice(length((newWindow)-1)/2, oldWindow, newWindow)}
+           half = {pt <- x*splice((length(newWindow)-1)/2+1, oldWindow, newWindow)}
     )
   }
 
