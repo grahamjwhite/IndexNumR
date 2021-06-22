@@ -23,7 +23,7 @@ test_that("geks splice functions return the correct values",{
 
 test_that("geks functions return the correct values for different index methods", {
 
-  methods <- c("fisher", "tornqvist", "tpd", "walsh")
+  methods <- c("fisher", "tornqvist", "tpd", "walsh", "jevons")
 
   for(j in seq_along(methods)){
     expect_equal(GEKSIndex(CES_sigma_2,
