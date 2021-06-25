@@ -237,6 +237,57 @@ gk_t <- function(p0, p1, q0, q1){
 
 }
 
+#' Drobish bilateral index
+#'
+#' @keywords internal
+#' @noRd
+dorbish_t <- function(p0, p1, q0, q1){
+
+  return((fixed_t(p0,p1,q0) + fixed_t(p0,p1,q1))/2)
+
+}
+
+#' Stuvel bilateral index
+#'
+#' @keywords internal
+#' @noRd
+stuvel_t <- function(p0, p1, q0, q1){
+
+  exp0 <- sum(p0*q0)
+  exp1 <- sum(p1*q1)
+
+  PL <- fixed_t(p0, p1, q0) # laspeyres price index
+  QL <- fixed_t(q0, q1, p0) # laspeyres quantity index
+
+  A <- 0.5*(PL-QL)
+
+  return(A + (A^2 + exp1/exp0)^0.5)
+
+}
+
+#' Marshall-Edgeworth bilateral index
+#'
+#' @keywords internal
+#' @noRd
+marshallEdgeworth_t <- function(p0, p1, q0, q1){
+
+  return(sum(p1*(q0+q1))/sum(p0*(q0+q1)))
+
+}
+
+#' Palgrave bilateral index
+#'
+#' @keywords internal
+#' @noRd
+palgrave_t <- function(p0, p1, q1){
+
+  exp1 <- sum(p1*q1)
+  s1 <- (p1*q1)/exp1
+
+  return(sum(s1*(p1/p0)))
+
+}
+
 #' Computes a bilateral price index
 #'
 #' A function to compute a price index given data on products over time
@@ -299,7 +350,8 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
                     "paasche","fisher","tornqvist","satovartia","walsh","ces",
-                    "geomlaspeyres", "geompaasche", "tpd", "gk")
+                    "geomlaspeyres", "geompaasche", "tpd", "gk", "dorbish",
+                    "stuvel", "marshalledgeworth", "palgrave")
 
   if(!(tolower(indexMethod) %in% validMethods)){
     stop("Not a valid index number method.")
@@ -418,7 +470,11 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
              geomlaspeyres = {plist[i,1] <- geomLaspeyres_t(p0, p1, q0, q1)},
              geompaasche = {plist[i,1] <- geomPaasche_t(p0, p1, q0, q1)},
              tpd = {plist[i,1] <- tpd_t(p0, p1, q0, q1, xt0[[prodID]], xt1[[prodID]], biasAdjust, weights)},
-             gk = {plist[i,1] <- gk_t(p0, p1, q0, q1)}
+             gk = {plist[i,1] <- gk_t(p0, p1, q0, q1)},
+             drobish = {plist[i,1] <- drobish_t(p0, p1, q0, q1)},
+             stuvel = {plist[i,1] <- stuvel_t(p0, p1, q0, q1)},
+             marshalledgeworth = {plist[i,1] <- marshallEdgeworth_t(p0, p1, q0, q1)},
+             palgrave = {plist[i,1] <- palgrave_t(p0, p1, q1)}
       )
 
       # if similarity chain linking then multiply the index by the link period index
