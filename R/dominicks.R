@@ -59,9 +59,9 @@
 #' }
 #'
 #' @param x the name of the category to retrieve, see details for list.
-#' @param movementFile the path to the movement csv file for one product category. The default is NULL,
+#' @param movementcsv the path to the movement csv file for one product category. The default is NULL,
 #' which downloads the file from the website.
-#' @param UPCFile the path to the UPC csv file for one product category. The default is NULL,
+#' @param UPCcsv the path to the UPC csv file for one product category. The default is NULL,
 #' which downloads the file from the website.
 #' @export
 #' @references James M. Kilts Center, University of Chicago Booth School of Business
@@ -69,14 +69,17 @@
 #' \dontrun{
 #' analgesics <- getDominicksCategoryData("Analgesics")
 #' }
-dominicksData <- function(x, movementFile = NULL, UPCFile = NULL){
+dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
 
-  if(!is.null(movementFile) & !file.exists(movementFile)){
-    stop(paste("movement file", movementFile, "does not exist."))
+  dlMove <- ifelse(is.null(movementcsv), TRUE, FALSE)
+  dlUPC <- ifelse(is.null(UPCcsv), TRUE, FALSE)
+
+  if(!dlMove && !file.exists(movementcsv)){
+    stop(paste("movement file", movementcsv, "does not exist."))
   }
 
-  if(!is.null(UPCFile) & !file.exists(UPCFile)){
-    stop(paste("UPC file", UPCFile, "does not exist."))
+  if(!dlUPC && !file.exists(UPCcsv)){
+    stop(paste("UPC file", UPCcsv, "does not exist."))
   }
 
   movementBaseURL <- "https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/movement_csv-files/"
@@ -109,20 +112,21 @@ dominicksData <- function(x, movementFile = NULL, UPCFile = NULL){
                      "woat.csv", "wptw.csv", "Not Available", "wsdr.csv", "wsha.csv",
                      "wsna.csv", "wsoa.csv", "wtbr.csv", "wtna.csv", "wtpa.csv", "wtti.csv")
 
-  if(UPCfiles[xPos] == "Not available"){
+  if(UPCfiles[xPos] == "Not Available"){
     stop(paste("Category", x, "is a category, but the csv files are not available."))
   }
 
   # get files if needed
-  if(is.null(UPCFile)){
+  if(dlUPC){
     UPCfilename <- UPCfiles[xPos]
     UPCcsv <- tempfile(fileext = ".csv")
     download.file(url = paste0(UPCBaseURL, UPCfilename), destfile = UPCcsv)
-    UPCFile <- read.csv(UPCcsv)
-    unlink(UPCcsv)
   }
 
-  if(is.null(movementFile)){
+  UPCFile <- read.csv(UPCcsv)
+  if(dlUPC) unlink(UPCcsv)
+
+  if(dlMove){
     movementFilename <- movementFiles[xPos]
     movementZip <- tempfile(fileext = ".zip")
     download.file(url = paste0(movementBaseURL,
@@ -130,9 +134,11 @@ dominicksData <- function(x, movementFile = NULL, UPCFile = NULL){
                                       sub(pattern = "\\.csv", replacement = "_csv.zip", movementFilename),
                                       sub(pattern = "\\.csv", replacement = ".zip", movementFilename))),
                   destfile = movementZip)
-    movementFile <- read.csv(unz(movementZip, filename = movementFilename))
-    unlink(movementZip)
+    movementcsv <- unz(movementZip, filename = movementFilename)
   }
+
+  movementFile <- read.csv(movementcsv)
+  if(dlMove) unlink(movementZip)
 
   # clean files and calculate required columns
   movementFile <- movementFile[movementFile$OK == 1 & movementFile$PRICE > 0,]

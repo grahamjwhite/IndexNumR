@@ -4,15 +4,15 @@
 \alias{dominicksData}
 \title{Get data from the Dominicks dataset}
 \usage{
-dominicksData(x, movementFile = NULL, UPCFile = NULL)
+dominicksData(x, movementcsv = NULL, UPCcsv = NULL)
 }
 \arguments{
 \item{x}{the name of the category to retrieve, see details for list.}
 
-\item{movementFile}{the path to the movement csv file for one product category. The default is NULL,
+\item{movementcsv}{the path to the movement csv file for one product category. The default is NULL,
 which downloads the file from the website.}
 
-\item{UPCFile}{the path to the UPC csv file for one product category. The default is NULL,
+\item{UPCcsv}{the path to the UPC csv file for one product category. The default is NULL,
 which downloads the file from the website.}
 }
 \description{
