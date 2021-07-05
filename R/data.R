@@ -33,3 +33,20 @@
 #' Scanner Data", Discussion Paper 17-02, Vancouver School of Economics,
 #' The University of British Columbia.
 "CES_sigma_2"
+
+
+#' Date information for the Dominicks data
+#'
+#' Table from the \href{https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/dominicks-manual-and-codebook_kiltscenter.aspx}{Dominicks Data Manual},
+#' that gives the start and end date of each of the weeks in the movement
+#' files.
+#'
+#' @format A data frame with 400 rows and 4 columns:
+#' \describe{
+#'   \item{week}{the number of the week}
+#'   \item{start}{date the week started}
+#'   \item{end}{date the week ended}
+#'   \item{specialEvents}{special events, such as Halloween, that occurred during the week}
+#' }
+#' @source Dominicks Data Manual, Chicago Booth Kilts Center for Marketing, 2018, pages 21-28.
+"DominicksWeeks"
