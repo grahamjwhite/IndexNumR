@@ -18,6 +18,7 @@ priceIndex(
   basePeriod = 1,
   biasAdjust = TRUE,
   weights = "average",
+  loweBase = 1,
   ...
 )
 }
@@ -68,6 +69,9 @@ TPD index. The default is TRUE.}
 "unweighted" to use ordinary least squares, "shares" to use weighted least squares
 with expenditure share weights, and "average" to use weighted least squares
 with the average of the expenditure shares over the two periods.}
+
+\item{loweBase}{the period from which quantities are taken for the lowe index.
+The default is period 1.}
 
 \item{...}{this is used to pass additional parameters to the mixScaleDissimilarity
 function.}
