@@ -75,7 +75,7 @@ The products available are:
 }
 \examples{
 \dontrun{
-analgesics <- getDominicksCategoryData("Analgesics")
+analgesics <- dominicksData("Analgesics")
 }
 }
 \references{
