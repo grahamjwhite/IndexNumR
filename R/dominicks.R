@@ -67,7 +67,7 @@
 #' @references James M. Kilts Center, University of Chicago Booth School of Business
 #' @examples
 #' \dontrun{
-#' analgesics <- getDominicksCategoryData("Analgesics")
+#' analgesics <- dominicksData("Analgesics")
 #' }
 dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
 
@@ -93,7 +93,7 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
                   "Snack Crackers", "Soaps", "Toothbrushes", "Canned Tuna", "Toothpastes",
                   "Bathroom Tissues")
 
-  xPos <- grep(x, categories, ignore.case = TRUE)
+  xPos <- grep(paste0("^", x, "$"), categories, ignore.case = TRUE)
 
   if(length(xPos) == 0){
     stop(paste("Category", x, "does not exist in the Dominicks data"))
