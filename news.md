@@ -4,6 +4,7 @@
 
 - Added options for the weights when estimating the time-product-dummy index
 - Added the Walsh index as a valid bilateral index to use in GEKSIndex
+- Added the bilateral indexes Palgrave, Marshall-Edgeworth, Drobish and Stuvel
 
 ### Bug fixes
 

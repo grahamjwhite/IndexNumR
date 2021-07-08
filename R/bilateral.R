@@ -241,7 +241,7 @@ gk_t <- function(p0, p1, q0, q1){
 #'
 #' @keywords internal
 #' @noRd
-dorbish_t <- function(p0, p1, q0, q1){
+drobish_t <- function(p0, p1, q0, q1){
 
   return((fixed_t(p0,p1,q0) + fixed_t(p0,p1,q1))/2)
 
@@ -302,8 +302,8 @@ palgrave_t <- function(p0, p1, q1){
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
 #' number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-#' harmonic, tornqvist, satovartia, walsh, CES, geomLaspeyres, geomPaasche, tpd and
-#' Geary-Khamis.
+#' harmonic, tornqvist, satovartia, walsh, CES, geomLaspeyres, geomPaasche, tpd,
+#' Geary-Khamis (gk), drobish, palgrave, stuvel, marshalledgeworth.
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
 #' @param output A character string specifying whether a chained (output="chained")
@@ -353,7 +353,7 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
                     "paasche","fisher","tornqvist","satovartia","walsh","ces",
-                    "geomlaspeyres", "geompaasche", "tpd", "gk", "dorbish",
+                    "geomlaspeyres", "geompaasche", "tpd", "gk", "drobish",
                     "stuvel", "marshalledgeworth", "palgrave", "lowe")
 
   if(!(tolower(indexMethod) %in% validMethods)){

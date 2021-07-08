@@ -146,7 +146,6 @@ The count matrix has two additional columns, "new" and "leaving". The new column
 
 Bilateral index numbers are those that use data for two periods to compute each value of the index. All of the bilateral index numbers can be computed as period-on-period, chained or fixed base. Period-on-period simply measures the change from one period to the next. Chained indices give the cumulative change, and it is calculated as the cumulative product of the period-on-period index. The fixed base index compares each period to the base period. This is also called a direct index, because unlike a chained index, it does not go through other periods to measure the change since the base period. Formulae used to compute the bilateral index numbers from period t-1 to period t are as below.
 
-### Elementary indexes
 
 * Carli index [@carli:1804],
 \begin{equation*}
@@ -163,14 +162,12 @@ P(p^{t-1},p^{t}) = \frac{1}{N}\sum_{n=1}^{N}\left(\frac{p^{t}_{n}}{p^{t-1}_{n}}\
 	P(p^{t-1},p^{t}) = \frac{\sum_{n=1}^{N}p^{t}_{n}}{\sum_{n=1}^{N}p^{t-1}_{n}}
 \end{equation*}
 
-### Fixed-basket indexes
-
 * Laspeyres index [@lasp:1871],
 \begin{equation*}
 	P(p^{t-1},p^{t},q^{t-1}) = \frac{\sum_{n=1}^{N}p^{t}_{n}q^{t-1}_{n}}{\sum_{n=1}^{N}p^{t-1}_{n}q^{t-1}_{n}}
 \end{equation*}
 
-* Paasche index [@paasche:1874],
+* Paasche index [@paasche:1874]
 \begin{equation*}
 	P(p^{t-1},p^{t},q^{t}) = \frac{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t-1}_{n}q^{t}_{n}}
 \end{equation*}
@@ -187,8 +184,27 @@ where $s^{t}_{n} = \frac{p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}$ 
 \end{equation*}
 where $s^{t}_{n}$ is defined as above for the geometric laspeyres index.
 
+* Lowe index
+\begin{equation*}
+	P(p^{t-1},p^{t},q^{b}) = \frac{\sum_{n=1}^{N}p^{t}_{n}q^{b}_{n}}{\sum_{n=1}^{N}p^{t-1}_{n}q^{b}_{n}},
+\end{equation*}
+where $q^{b}$ is the vector of quantities from a base period that is not necessarily period $t$ or $t-1$. 
 
-### Superlative and pseudo-superlative indexes
+* Drobish index [@drobish:1871]
+\begin{equation*}
+  P(p^{t-1},p^{t},q^{t-1},q^{t}) = (P_{L}+P_{P})/2,
+\end{equation*}
+where $P_{L}$ is the Laspeyres price index and $P_{P}$ is the Paasche price index.
+
+* Marshall-Edgeworth index
+\begin{equation*}
+  P(p^{t-1},p^{t},q^{t-1},q^{t}) = \frac{\sum_{n=1}^{N}p_{n}^{t}(q_{n}^{t-1}+q_{n}^{t})}{\sum_{n=1}^{N}p_{n}^{t-1}(q_{n}^{t-1}+q_{n}^{t})}
+\end{equation*}
+
+* Palgrave index
+\begin{equation*}
+  P(p^{t-1},p^{t},q^{t-1},q^{t}) = \sum_{n=1}^{N}s^{t}_{n}\frac{p^{t}_{n}}{p^{t-1}_{n}}
+\end{equation*}
 
 * Fisher index [@fisher:1921],
 \begin{equation*}
@@ -226,7 +242,12 @@ and $w^{*}_{n}$ is the logarithmic mean of the shares,
 \end{equation*}
 where h() is the harmonic mean. 
 
-### Constant elasticity of substitution (CES) framework indexes
+* Stuvel index [@stuvel:1957]
+\begin{equation*}
+  P(p^{t-1},p^{t},q^{t-1},q^{t}) = A + \sqrt{A^2 + E^{t}/E^{t-1}},
+\end{equation*}
+where $E^{t}$ is total expenditure in period $t$, $A = (P_{L}-Q_{L})/2$, $P_{L}$ is the laspeyres price index and $Q_{L}$ is the laspeyres quantity index.
+
 
 * CES index, also known as the Lloyd-Moulton index [@lloyd:1975; @Moult:1996],
 \begin{equation*}
