@@ -288,6 +288,19 @@ palgrave_t <- function(p0, p1, q1){
 
 }
 
+#' Young bilateral index
+#'
+#' @keywords internal
+#' @noRd
+young_t <- function(p0, p1, pb, qb){
+
+  expb <- sum(pb*qb)
+  sb <- (pb*qb)/expb
+
+  return(sum(sb*p1/p0))
+
+}
+
 #' Computes a bilateral price index
 #'
 #' A function to compute a price index given data on products over time
@@ -326,8 +339,10 @@ palgrave_t <- function(p0, p1, q1){
 #' "unweighted" to use ordinary least squares, "shares" to use weighted least squares
 #' with expenditure share weights, and "average" to use weighted least squares
 #' with the average of the expenditure shares over the two periods.
-#' @param loweBase the period from which quantities are taken for the lowe index.
-#' The default is period 1.
+#' @param loweYoungBase the period used as the base for the lowe or
+#' young type indexes. The default is period 1. This can be a vector of values to
+#' use multiple periods. For example, if the data are monthly and start in January, specifying
+#' 1:12 will use the first twelve months as the base.
 #' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
 #' function.
 #' @examples
@@ -348,13 +363,13 @@ palgrave_t <- function(p0, p1, q1){
 priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                        sample = "matched", output = "pop", chainMethod = "pop",
                        sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE,
-                       weights = "average", loweBase = 1, ...){
+                       weights = "average", loweYoungBase = 1, ...){
 
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
                     "paasche","fisher","tornqvist","satovartia","walsh","ces",
                     "geomlaspeyres", "geompaasche", "tpd", "gk", "drobish",
-                    "stuvel", "marshalledgeworth", "palgrave", "lowe")
+                    "stuvel", "marshalledgeworth", "palgrave", "lowe", "young")
 
   if(!(tolower(indexMethod) %in% validMethods)){
     stop("Not a valid index number method.")
@@ -420,9 +435,9 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
     xt0 <- x[x[[pervar]] == basePeriod,]
   }
 
-  # if lowe index method chosen then set xtb to the loweBase period
-  if(tolower(indexMethod) == "lowe"){
-    xtb <- x[x[[pervar]] == loweBase,]
+  # if lowe index method chosen then set xtb to the loweYoungBase period
+  if(tolower(indexMethod) %in% c("lowe", "young")){
+    xtb <- x[x[[pervar]] %in% loweYoungBase,]
   }
 
   for(i in 2:n){
@@ -447,7 +462,7 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
       xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
 
       # because the base period can differ from period 1 and 0 for lowe index
-      if(tolower(indexMethod) == "lowe"){
+      if(tolower(indexMethod) %in% c("lowe", "young")){
         xt1 <- xt1[xt1[[prodID]] %in% unique(xtb[[prodID]]),]
         xt0 <- xt0[xt0[[prodID]] %in% unique(xtb[[prodID]]),]
 
@@ -469,7 +484,12 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
       q0 <- xt0[[qvar]]
       q1 <- xt1[[qvar]]
 
-      if(tolower(indexMethod == "lowe")) qb <- xtb[[qvar]]
+      if(tolower(indexMethod %in% c("lowe", "young"))){
+        qb <- xtb[[qvar]]
+        if(tolower(indexMethod == "young")){
+          pb <- xtb[[pvar]]
+        }
+      }
 
       # compute the index
       switch(tolower(indexMethod),
@@ -481,6 +501,7 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
              laspeyres = {plist[i,1] <- fixed_t(p0,p1,q0)},
              paasche = {plist[i,1] <- fixed_t(p0,p1,q1)},
              lowe = {plist[i,1] <- fixed_t(p0,p1,qb)},
+             young = {plist[i,1] <- young_t(p0,p1,pb,qb)},
              fisher = {plist[i,1] <- fisher_t(p0,p1,q0,q1)},
              tornqvist = {plist[i,1] <- tornqvist_t(p0,p1,q0,q1)},
              satovartia = {plist[i,1] <- satoVartia_t(p0,p1,q0,q1)},
