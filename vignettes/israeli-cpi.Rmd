@@ -16,6 +16,8 @@ library(IndexNumR)
 library(kableExtra)
 library(ggplot2)
 
+devtools::load_all()
+
 ```
 
 # Month-on-month Indexes
@@ -276,7 +278,6 @@ multis %>%
   tidyr::pivot_longer(-date, names_to = "method", values_to = "indexValues") %>%
   ggplot2::ggplot(ggplot2::aes(x = date, y = indexValues, colour = method)) +
   ggplot2::geom_line() +
-  ggplot2::labs(y = "", x = "", title = "Weighted Time-Product-Dummy Indexes Using Different Splices 
-                for Seven Kinds of Vegetables")
+  ggplot2::labs(y = "", x = "", title = "Multilateral index numbers for Seven Kinds of Vegetables")
 
 ```
