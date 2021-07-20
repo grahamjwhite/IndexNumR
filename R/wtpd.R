@@ -236,7 +236,12 @@ WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, s
       fbewBase <- pWTPD[base,1]
 
       # fetch the next window of data
-      xWindow <- x[x[[pervar]]>=i & x[[pervar]] < i + window,]
+      if(splice == "fbew"){
+        xWindow <- x[x[[pervar]] >= base & x[[pervar]] < i + window,]
+      }
+      else {
+        xWindow <- x[x[[pervar]] >= i & x[[pervar]] < i + window,]
+      }
 
       # call wtpd_w on this window
       new <- wtpd_w(xWindow, pvar, qvar, pervar, prodID, sample)
