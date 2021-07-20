@@ -1,0 +1,282 @@
+---
+title: "An Empirical Illustration of Index Construction using Israeli Data on Vegetables"
+author: "Graham White"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+bibliography: "indexnumrbib.bib"
+vignette: >
+  %\VignetteIndexEntry{An Empirical Illustration of Index Construction using Israeli Data on Vegetables}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(IndexNumR)
+library(kableExtra)
+library(ggplot2)
+
+```
+
+# Month-on-month Indexes
+
+##  Bilateral Indexes
+
+### Chained indexes
+
+```{r momCh, fig.width=7, fig.height=5}
+methods <- c("fisher", "laspeyres", "paasche", "tornqvist", "ces", "walsh", "satovartia")
+
+monthOnMonth <- list()
+for(method in methods){
+    monthOnMonth[[method]] <- IndexNumR::priceIndex(IsraeliCPI$vegetables, 
+                                                                         pvar = "price",
+                                                                         qvar = "quantity",
+                                                                         prodID = "prodID",
+                                                                         pervar = "month",
+                                                                         indexMethod = method,
+                                                                         output = "chained")
+}
+
+monthOnMonth <- data.frame(date = unique(IsraeliCPI$vegetables$date), as.data.frame(monthOnMonth)) 
+  
+monthOnMonth %>% 
+  knitr::kable() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped"))
+
+monthOnMonth %>%
+  tidyr::pivot_longer(-date, names_to = "method", values_to = "indexValues") %>%
+  ggplot2::ggplot(ggplot2::aes(x = date, y = indexValues, colour = method)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(y = "", x = "", title = "Monthly Chained Price Indexes for Seven Kinds of Vegetables")
+
+```
+
+### Fixed base indexes
+
+```{r momFB, fig.width=7, fig.height=5}
+methods <- c("fisher", "laspeyres", "paasche", "tornqvist", "ces", "walsh", "satovartia")
+
+monthOnMonth <- list()
+for(method in methods){
+    monthOnMonth[[method]] <- IndexNumR::priceIndex(IsraeliCPI$vegetables, 
+                                                                         pvar = "price",
+                                                                         qvar = "quantity",
+                                                                         prodID = "prodID",
+                                                                         pervar = "month",
+                                                                         indexMethod = method,
+                                                                         output = "fixedbase")
+}
+
+monthOnMonth <- data.frame(date = unique(IsraeliCPI$vegetables$date), as.data.frame(monthOnMonth)) 
+  
+monthOnMonth %>% 
+  knitr::kable() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped"))
+
+monthOnMonth %>%
+  tidyr::pivot_longer(-date, names_to = "method", values_to = "indexValues") %>%
+  ggplot2::ggplot(ggplot2::aes(x = date, y = indexValues, colour = method)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(y = "", x = "", title = "Monthly Fixed Base Price Indexes for Seven Kinds of Vegetables")
+
+```
+
+## GEKS Indexes Using Different Splicing Methods
+
+```{r geksSplices, fig.width=7, fig.height=5}
+
+splices <- c("movement", "half", "window", "mean", "fbew", "fbmw")
+
+geksSplices <- list()
+for(splice in splices){
+  
+  geksSplices[[splice]] <- IndexNumR::GEKSIndex(IsraeliCPI$vegetables, 
+                                            pvar = "price",
+                                            qvar = "quantity",
+                                            prodID = "prodID",
+                                            pervar = "month",
+                                            indexMethod = "fisher",
+                                            window = 13,
+                                            splice = splice)
+                                            
+}
+
+geksSplices <- data.frame(date = unique(IsraeliCPI$vegetables$date), 
+                          as.data.frame(geksSplices))
+
+geksSplices %>%
+  knitr::kable() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped"))
+
+geksSplices %>%
+  tidyr::pivot_longer(-date, names_to = "method", values_to = "indexValues") %>%
+  ggplot2::ggplot(ggplot2::aes(x = date, y = indexValues, colour = method)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(y = "", x = "", title = "GEKS Indexes Using Different Splices 
+                for Seven Kinds of Vegetables")
+
+```
+
+## GEKS Indexes Using Different Bilateral Indexes
+
+```{r geksBilaterals, fig.width=7, fig.height=5}
+
+bilaterals <- c("fisher", "tornqvist", "walsh", "jevons")
+
+geksBilaterals <- list()
+for(bilateral in bilaterals){
+  
+  geksBilaterals[[bilateral]] <- IndexNumR::GEKSIndex(IsraeliCPI$vegetables, 
+                                            pvar = "price",
+                                            qvar = "quantity",
+                                            prodID = "prodID",
+                                            pervar = "month",
+                                            indexMethod = bilateral,
+                                            window = 13,
+                                            splice = "mean")
+                                            
+}
+
+geksBilaterals <- data.frame(date = unique(IsraeliCPI$vegetables$date), 
+                             as.data.frame(geksBilaterals))
+
+geksBilaterals %>%
+  knitr::kable() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped"))
+
+geksBilaterals %>%
+  tidyr::pivot_longer(-date, names_to = "method", values_to = "indexValues") %>%
+  ggplot2::ggplot(ggplot2::aes(x = date, y = indexValues, colour = method)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(y = "", x = "", title = "GEKS Indexes Using Different Bilateral Indexes 
+                for Seven Kinds of Vegetables")
+
+```
+
+## Geary-Khamis Indexes Using Different Splicing Methods
+
+```{r gkSplices, fig.width=7, fig.height=5}
+
+splices <- c("movement", "half", "window", "mean", "fbew", "fbmw")
+
+gkSplices <- list()
+for(splice in splices){
+  
+  gkSplices[[splice]] <- IndexNumR::GKIndex(IsraeliCPI$vegetables, 
+                                            pvar = "price",
+                                            qvar = "quantity",
+                                            prodID = "prodID",
+                                            pervar = "month",
+                                            window = 13,
+                                            splice = splice)
+                                            
+}
+
+gkSplices <- data.frame(date = unique(IsraeliCPI$vegetables$date), 
+                          as.data.frame(gkSplices))
+
+gkSplices %>%
+  knitr::kable() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped"))
+
+gkSplices %>%
+  tidyr::pivot_longer(-date, names_to = "method", values_to = "indexValues") %>%
+  ggplot2::ggplot(ggplot2::aes(x = date, y = indexValues, colour = method)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(y = "", x = "", title = "Geary-Khamis Indexes Using Different Splices 
+                for Seven Kinds of Vegetables")
+
+```
+
+## Weighted Time-Product-Dummy Indexes Using Different Splicing Methods
+
+```{r wtpdSplices, fig.width=7, fig.height=5}
+
+splices <- c("movement", "half", "window", "mean", "fbew", "fbmw")
+
+wtpdSplices <- list()
+for(splice in splices){
+  
+  wtpdSplices[[splice]] <- IndexNumR::WTPDIndex(IsraeliCPI$vegetables, 
+                                            pvar = "price",
+                                            qvar = "quantity",
+                                            prodID = "prodID",
+                                            pervar = "month",
+                                            window = 13,
+                                            splice = splice)
+                                            
+}
+
+wtpdSplices <- data.frame(date = unique(IsraeliCPI$vegetables$date), 
+                          as.data.frame(wtpdSplices))
+
+wtpdSplices %>%
+  knitr::kable() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped"))
+
+wtpdSplices %>%
+  tidyr::pivot_longer(-date, names_to = "method", values_to = "indexValues") %>%
+  ggplot2::ggplot(ggplot2::aes(x = date, y = indexValues, colour = method)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(y = "", x = "", title = "Weighted Time-Product-Dummy Indexes Using Different Splices 
+                for Seven Kinds of Vegetables")
+
+```
+
+## A comparison of multilateral methods
+
+```{r multi, fig.width=7, fig.height=5}
+
+geks <- IndexNumR::GEKSIndex(IsraeliCPI$vegetables, 
+                             pvar = "price",
+                             qvar = "quantity",
+                             prodID = "prodID",
+                             pervar = "month",
+                             indexMethod = "fisher",
+                             window = 13,
+                             splice = "mean")
+
+ccdi <- IndexNumR::GEKSIndex(IsraeliCPI$vegetables, 
+                             pvar = "price",
+                             qvar = "quantity",
+                             prodID = "prodID",
+                             pervar = "month",
+                             indexMethod = "tornqvist",
+                             window = 13,
+                             splice = "mean")
+
+gk <- IndexNumR::GKIndex(IsraeliCPI$vegetables, 
+                             pvar = "price",
+                             qvar = "quantity",
+                             prodID = "prodID",
+                             pervar = "month",
+                             window = 13,
+                             splice = "mean")
+
+wtpd <- IndexNumR::WTPDIndex(IsraeliCPI$vegetables, 
+                             pvar = "price",
+                             qvar = "quantity",
+                             prodID = "prodID",
+                             pervar = "month",
+                             window = 13,
+                             splice = "mean")
+
+multis <- data.frame(date = unique(IsraeliCPI$vegetables$date),
+                     geks = geks,
+                     ccdi = ccdi,
+                     gk = gk,
+                     wtpd = wtpd)
+
+multis %>%
+  knitr::kable() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped"))
+
+multis %>%
+  tidyr::pivot_longer(-date, names_to = "method", values_to = "indexValues") %>%
+  ggplot2::ggplot(ggplot2::aes(x = date, y = indexValues, colour = method)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(y = "", x = "", title = "Weighted Time-Product-Dummy Indexes Using Different Splices 
+                for Seven Kinds of Vegetables")
+
+```

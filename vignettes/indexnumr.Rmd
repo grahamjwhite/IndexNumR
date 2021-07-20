@@ -555,7 +555,7 @@ The mean splice uses the geometric mean of the movements between the last period
 \begin{equation}
   P^{w+1} = P^{base} \times \frac{P_{NEW}^{w+1}}{P_{NEW}^{base}}
 \end{equation}
-This method uses a fixed base period that is updated periodically. For example, if the data are monthly then the base period could be each December month, which would be achieved by ensuring that December is the first period in the data and specifying a window length of 13. The splice is calculated by using the movement between the final data point and the base period in the new window to extend the index. If the new data point being calculated is the first period after the base period, then this method is the same as the movement splice. Using the same example, if each December is the base period, then each January this method will produce the same result as the movement splice.
+This method uses a fixed base period that is updated periodically. For example, if the data are monthly then the base period could be each December month, which would be achieved by ensuring that December is the first period in the data and specifying a window length of 13. The splice is calculated by using the movement between the final data point and the base period in the new window to extend the index. If the new data point being calculated is the first period after the base period, then this method produces the same price growth as the movement splice. Using the same example, if each December is the base period, then this method will produce the same price growth for January on December as the movement splice.
 
 * FBEW [@chessa:2016]
   
