@@ -120,16 +120,16 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
   if(dlUPC){
     UPCfilename <- UPCfiles[xPos]
     UPCcsv <- tempfile(fileext = ".csv")
-    download.file(url = paste0(UPCBaseURL, UPCfilename), destfile = UPCcsv)
+    utils::download.file(url = paste0(UPCBaseURL, UPCfilename), destfile = UPCcsv)
   }
 
-  UPCFile <- read.csv(UPCcsv)
+  UPCFile <- utils::read.csv(UPCcsv)
   if(dlUPC) unlink(UPCcsv)
 
   if(dlMove){
     movementFilename <- movementFiles[xPos]
     movementZip <- tempfile(fileext = ".zip")
-    download.file(url = paste0(movementBaseURL,
+    utils::download.file(url = paste0(movementBaseURL,
                                ifelse(movementFilename == "wana.csv",
                                       sub(pattern = "\\.csv", replacement = "_csv.zip", movementFilename),
                                       sub(pattern = "\\.csv", replacement = ".zip", movementFilename))),
@@ -137,20 +137,20 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
     movementcsv <- unz(movementZip, filename = movementFilename)
   }
 
-  movementFile <- read.csv(movementcsv)
+  movementFile <- utils::read.csv(movementcsv)
   if(dlMove) unlink(movementZip)
 
   # clean files and calculate required columns
   movementFile <- movementFile[movementFile$OK == 1 & movementFile$PRICE > 0,]
   movementFile$QUANTITY <- movementFile$MOVE / movementFile$QTY
-  movementFile <- subset(movementFile, select = -c(MOVE, QTY, PRICE_HEX, PROFIT_HEX, OK))
+  movementFile <- subset(movementFile, select = -c("MOVE", "QTY", "PRICE_HEX", "PROFIT_HEX", "OK"))
   movementFile$EXPENDITURE <- movementFile$PRICE * movementFile$QUANTITY
   names(movementFile) <- tolower(names(movementFile))
   names(UPCFile) <- tolower(names(UPCFile))
 
   # merge with weeks and UPC file
   merged <- merge(movementFile, UPCFile, by = "upc")
-  merged <- merge(merged, DominicksWeeks, by = "week")
+  merged <- merge(merged, IndexNumR::DominicksWeeks, by = "week")
 
   return(merged)
 

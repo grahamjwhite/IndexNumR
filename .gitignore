@@ -6,3 +6,5 @@ revdep
 doc
 Meta
 CRAN-RELEASE
+/doc/
+/Meta/
