@@ -143,7 +143,8 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
   # clean files and calculate required columns
   movementFile <- movementFile[movementFile$OK == 1 & movementFile$PRICE > 0,]
   movementFile$QUANTITY <- movementFile$MOVE / movementFile$QTY
-  movementFile <- subset(movementFile, select = -c("MOVE", "QTY", "PRICE_HEX", "PROFIT_HEX", "OK"))
+  keepCols <- !colnames(movementFile) %in% c("MOVE", "QTY", "PRICE_HEX", "PROFIT_HEX", "OK")
+  movementFile <- movementFile[,keepCols]
   movementFile$EXPENDITURE <- movementFile$PRICE * movementFile$QUANTITY
   names(movementFile) <- tolower(names(movementFile))
   names(UPCFile) <- tolower(names(UPCFile))
