@@ -11,8 +11,6 @@ Status](https://travis-ci.org/grahamjwhite/IndexNumR.svg?branch=master)](https:/
 [![Codecov test
 coverage](https://codecov.io/gh/grahamjwhite/IndexNumR/branch/master/graph/badge.svg)](https://codecov.io/gh/grahamjwhite/IndexNumR?branch=master)
 
-[![Rdoc](https://www.rdocumentation.org/badges/version/IndexNumR)](https://www.rdocumentation.org/packages/IndexNumR)
-
 [![CRAN](https://www.r-pkg.org/badges/version/IndexNumR)](https://www.r-pkg.org/badges/version/IndexNumR)
 <!-- badges: end -->
 
@@ -29,9 +27,9 @@ chained.
 
 Multilateral indices can be computed in the time series context using
 the GEKS, Weighted Time Product Dummy or Geary-Khamis indexes, and
-updating is provided via the window, movement, half or mean splice
-methods. The GEKS method is computed using either the Fisher or
-Tornqvist superlative index number methods.
+updating is provided via the window, movement, half, mean, fbew or fbmw
+splicing methods. The GEKS method is computed using either the Fisher,
+Tornqvist, Walsh, Jevons or TPD index number methods.
 
 The package also provides functions to compute measures of dissimilarity
 between time periods, which can be used to choose the linking period for
@@ -41,6 +39,10 @@ A sample dataset is included called CES\_sigma\_2, which is a dataset
 containing prices and quantities on four products over twelve periods,
 but additional datasets assuming different values of the elasticity of
 substitution can be computed using the function `CESData`.
+
+There is also a function `dominicksData` that can be used to download
+the Dominicks Finer Foods scanner data from the [Chicago Booth School of
+Business](https://www.chicagobooth.edu/research/kilts/datasets/dominicks).
 
 ## Installation
 

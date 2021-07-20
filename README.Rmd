@@ -27,11 +27,13 @@ An R package for computation of index numbers
 
 IndexNumR provides a set of functions for computing various bilateral and multilateral indices. It is designed to compute price or quantity indices over time. Bilateral indices include Laspeyres, Paasche, Fisher, Tornqvist, Sato-Vartia, Walsh, CES, geometric Laspeyres, geometric Paasche, time-product-dummy and Geary-Khamis as well as elementary indices Dutot, Carli, Harmonic mean, CSWD and Jevons. All of these bilateral indices can be computed as period-on-period, fixed-base or chained. 
 
-Multilateral indices can be computed in the time series context using the GEKS, Weighted Time Product Dummy or Geary-Khamis indexes, and updating is provided via the window, movement, half or mean splice methods. The GEKS method is computed using either the Fisher or Tornqvist superlative index number methods.
+Multilateral indices can be computed in the time series context using the GEKS, Weighted Time Product Dummy or Geary-Khamis indexes, and updating is provided via the window, movement, half, mean, fbew or fbmw splicing methods. The GEKS method is computed using either the Fisher, Tornqvist, Walsh, Jevons or TPD index number methods.
 
 The package also provides functions to compute measures of dissimilarity between time periods, which can be used to choose the linking period for chained indices. 
 
 A sample dataset is included called CES_sigma_2, which is a dataset containing prices and quantities on four products over twelve periods, but additional datasets assuming different values of the elasticity of substitution can be computed using the function `CESData`. 
+
+There is also a function `dominicksData` that can be used to download the Dominicks Finer Foods scanner data from the [Chicago Booth School of Business](https://www.chicagobooth.edu/research/kilts/datasets/dominicks). 
 
 ## Installation
 

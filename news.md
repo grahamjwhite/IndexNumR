@@ -1,4 +1,4 @@
-## Package update 0.2.0 -> TBA
+## Package update 0.2.0 -> 0.3.0
 
 ### Improvements
 
