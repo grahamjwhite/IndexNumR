@@ -211,7 +211,7 @@ tpd_t <- function(p0, p1, q0, q1, prodID0, prodID1, biasAdjust, weights){
   if(weights == "unweighted"){
     reg <- stats::lm(lnP ~ D + product, data = regData)
   } else {
-    reg <- stats::lm(lnP ~ D + product, weights = s, data = regData)
+    reg <- stats::lm(lnP ~ D + product, weights = regData$s, data = regData)
   }
 
   if(biasAdjust){

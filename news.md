@@ -1,4 +1,4 @@
-## Package update 0.2.0 -> TBA
+## Package update 0.2.0 -> 0.3.0
 
 ### Improvements
 
@@ -10,6 +10,8 @@
 ### Bug fixes
 
 - Fixed issue with the time-product-dummy regression when there are missing products
+- Bug in the FBEW splice for the WTPD multilateral method
+- Fixed an issue with the half-splice splicing method
 
 
 ## Package update 0.1.3 -> 0.2.0
