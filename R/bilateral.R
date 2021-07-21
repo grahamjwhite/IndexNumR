@@ -360,12 +360,13 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
     links <- maximumSimilarityLinks(similarityMatrix)
   }
 
-  # if fixed base requested, set xt0 to the first period data
-  if(tolower(output) == "fixedbase"){
-    xt0 <- x[x[[pervar]] == basePeriod,]
-  }
-
   for(i in 2:n){
+
+    # if fixed base requested, set xt0 to the first period data
+    if(tolower(output) == "fixedbase"){
+      xt0 <- x[x[[pervar]] == basePeriod,]
+    }
+
     # if chained or period-on-period requested then set xt0
     # to the previous period
     if(tolower(output) == "chained" & tolower(chainMethod)=="pop" |
