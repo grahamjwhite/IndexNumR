@@ -35,7 +35,8 @@ across all periods in a given window. Default is not to match.}
 \item{window}{An integer specifying the length of the window.}
 
 \item{splice}{A character string specifying the splicing method. Valid methods are
-window, movement, half, mean, fbew or fbmw. The default is mean.}
+window, movement, half, mean, fbew, fbmw, wisp, hasp or mean_pub. The default is mean.
+See details for important considerations when using fbew and fbmw.}
 }
 \description{
 A function to calculate a weighted-time-product-dummy multilateral index.

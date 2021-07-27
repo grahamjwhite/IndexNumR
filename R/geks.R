@@ -83,7 +83,8 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
                  fisher = {pindices[j,k] <- fisher_t(p0, p1, q0, q1)},
                  tornqvist = {pindices[j,k] <- tornqvist_t(p0, p1, q0, q1)},
                  tpd = {pindices[j,k] <- tpd_t(p0, p1, q0, q1, xt0[[prodID]], xt1[[prodID]], biasAdjust, weights)},
-                 walsh = {pindices[j,k] <- walsh_t(p0, p1, q0, q1)})
+                 walsh = {pindices[j,k] <- walsh_t(p0, p1, q0, q1)},
+                 jevons = {pindices[j,k] <- jevons_t(p0, p1)})
         }
 
       }
@@ -111,15 +112,15 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
-#' number methods are fisher, tornqvist, tpd or walsh. The default is tornqvist.
+#' number methods are fisher, tornqvist, tpd, jevons or walsh. The default is tornqvist.
 #' @param sample A character string specifying whether matching is to be performed.
 #' The default is to use matching.
 #' If sample=matched then any products that are not present in comparison periods
 #' are removed prior to estimating the index for those periods.
 #' @param window An integer specifying the length of the window.
 #' @param splice A character string specifying the splicing method. Valid methods are
-#' window, movement, half, mean, fbew or fbmw. The default is mean. See details for important
-#' considerations when using fbew and fbmw.
+#' window, movement, half, mean, fbew or fbmw, wisp, hasp or mean_pub. The default is mean.
+#' See details for important considerations when using fbew and fbmw.
 #' @param biasAdjust whether to adjust for bias in the coefficients of the bilateral TPD index.
 #' The default is FALSE because making this adjustment will break transitivity of the
 #' GEKS index.
@@ -156,12 +157,12 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
                       weights = "average"){
 
   # check that only valid index methods are chosen
-  if(!(tolower(indexMethod) %in% c("fisher","tornqvist", "tpd", "walsh"))){
+  if(!(tolower(indexMethod) %in% c("fisher","tornqvist", "tpd", "walsh", "jevons"))){
     stop("Not a valid index number method.")
   }
 
   # check that only valid splice methods are chosen
-  if(!(tolower(splice) %in% c("mean", "window", "movement", "half", "fbew", "fbmw"))){
+  if(!(tolower(splice) %in% c("mean", "window", "movement", "half", "fbew", "fbmw", "wisp", "hasp", "mean_pub"))){
     stop("Not a valid splicing method.")
   }
 
@@ -253,6 +254,9 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
       switch(splice,
              fbew = {pGEKS[i+window-1,1] <- fbewBase*new[length(new)]},
              fbmw = {pGEKS[i+window-1,1] <- fbewBase*new[length(new)]/new[length(new)-(i+window-1-base)]},
+             wisp = {pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1], pGEKS[(i-1):(i+window-2)], new, method="window")},
+             hasp = {pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1], pGEKS[(i-1):(i+window-2)], new, method="half")},
+             mean_pub = {pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1], pGEKS[(i-1):(i+window-2)], new, method="mean")},
              pGEKS[i+window-1,1] <- splice_t(pGEKS[i+window-2,1], old, new, method=splice))
 
     }

@@ -211,7 +211,7 @@ tpd_t <- function(p0, p1, q0, q1, prodID0, prodID1, biasAdjust, weights){
   if(weights == "unweighted"){
     reg <- stats::lm(lnP ~ D + product, data = regData)
   } else {
-    reg <- stats::lm(lnP ~ D + product, weights = s, data = regData)
+    reg <- stats::lm(lnP ~ D + product, weights = regData$s, data = regData)
   }
 
   if(biasAdjust){
@@ -430,17 +430,18 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
     links <- maximumSimilarityLinks(similarityMatrix)
   }
 
-  # if fixed base requested, set xt0 to the first period data
-  if(tolower(output) == "fixedbase"){
-    xt0 <- x[x[[pervar]] == basePeriod,]
-  }
-
-  # if lowe index method chosen then set xtb to the loweYoungBase period
-  if(tolower(indexMethod) %in% c("lowe", "young")){
-    xtb <- x[x[[pervar]] %in% loweYoungBase,]
-  }
-
   for(i in 2:n){
+
+    # if fixed base requested, set xt0 to the first period data
+    if(tolower(output) == "fixedbase"){
+      xt0 <- x[x[[pervar]] == basePeriod,]
+    }
+
+    # if lowe index method chosen then set xtb to the loweYoungBase period
+    if(tolower(indexMethod) %in% c("lowe", "young")){
+      xtb <- x[x[[pervar]] %in% loweYoungBase,]
+    }
+
     # if chained or period-on-period requested then set xt0
     # to the previous period
     if(tolower(output) == "chained" & tolower(chainMethod)=="pop" |

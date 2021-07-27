@@ -31,7 +31,7 @@ must contain integers starting at period 1 and increasing in increments of 1 per
 There may be observations on multiple products for each time period.}
 
 \item{indexMethod}{A character string to select the index number method. Valid index
-number methods are fisher, tornqvist, tpd or walsh. The default is tornqvist.}
+number methods are fisher, tornqvist, tpd, jevons or walsh. The default is tornqvist.}
 
 \item{prodID}{A character string for the name of the product identifier}
 
@@ -43,8 +43,8 @@ are removed prior to estimating the index for those periods.}
 \item{window}{An integer specifying the length of the window.}
 
 \item{splice}{A character string specifying the splicing method. Valid methods are
-window, movement, half, mean, fbew or fbmw. The default is mean. See details for important
-considerations when using fbew and fbmw.}
+window, movement, half, mean, fbew or fbmw, wisp, hasp or mean_pub. The default is mean.
+See details for important considerations when using fbew and fbmw.}
 
 \item{biasAdjust}{whether to adjust for bias in the coefficients of the bilateral TPD index.
 The default is FALSE because making this adjustment will break transitivity of the
