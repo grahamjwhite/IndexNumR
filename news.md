@@ -1,8 +1,16 @@
+## Package update 0.2.0 -> TBA
+
+### Improvements
+- Added the Palgrave, Drobish, Stuvel, Marshall-Edgeworth, Lowe and Young bilateral indexes.
+
+### Bug fixes
+- Fixed matching with bilateral fixed base indexes when products leave from, and later return to the sample. 
+
+
 ## Package update 0.2.0 -> 0.3.0
 
 ### Improvements
 
-- Added options for the weights when estimating the time-product-dummy index
 - Added the wisp, hasp and mean_pub splicing methods. These are the same methods as window, half and mean splice, but splice onto the published series instead of the previously calculated window. 
 - Added the Walsh and Jevons indexes as bilateral indexes in the GEKSIndex function.
 - Added a function for retrieving data from the Chicago Booth School of Business Dominicks Finer Foods dataset. 

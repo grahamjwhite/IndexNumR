@@ -18,6 +18,7 @@ priceIndex(
   basePeriod = 1,
   biasAdjust = TRUE,
   weights = "average",
+  loweYoungBase = 1,
   ...
 )
 }
@@ -35,8 +36,8 @@ There may be observations on multiple products for each time period.}
 
 \item{indexMethod}{A character string to select the index number method. Valid index
 number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-harmonic, tornqvist, satovartia, walsh, CES, geomLaspeyres, geomPaasche, tpd and
-Geary-Khamis.}
+harmonic, tornqvist, satovartia, walsh, CES, geomLaspeyres, geomPaasche, tpd,
+Geary-Khamis (gk), drobish, palgrave, stuvel, marshalledgeworth.}
 
 \item{prodID}{A character string for the name of the product identifier}
 
@@ -68,6 +69,11 @@ TPD index. The default is TRUE.}
 "unweighted" to use ordinary least squares, "shares" to use weighted least squares
 with expenditure share weights, and "average" to use weighted least squares
 with the average of the expenditure shares over the two periods.}
+
+\item{loweYoungBase}{the period used as the base for the lowe or
+young type indexes. The default is period 1. This can be a vector of values to
+use multiple periods. For example, if the data are monthly and start in January, specifying
+1:12 will use the first twelve months as the base.}
 
 \item{...}{this is used to pass additional parameters to the mixScaleDissimilarity
 function.}
