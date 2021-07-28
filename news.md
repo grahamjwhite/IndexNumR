@@ -1,3 +1,12 @@
+## Package update 0.2.0 -> TBA
+
+### Improvements
+- Added the Palgrave, Drobish, Stuvel, Marshall-Edgeworth, Lowe and Young bilateral indexes.
+
+### Bug fixes
+- Fixed matching with bilateral fixed base indexes when products leave from, and later return to the sample. 
+
+
 ## Package update 0.2.0 -> 0.3.0
 
 ### Improvements
