@@ -10,8 +10,12 @@
 #'
 #' Some function parameters can have a considerable impact on the outputs, so it is
 #' recommended that the user read the documentation for these functions carefully.
-#' There is also very detailed information in the package vignette, which
-#' can be accessed with \code{browseVignettes("IndexNumR")}.
+#'
+#' @section Vignettes:
+#' There is very detailed information about the functions in the package vignette, which
+#' can be accessed with,
+#'
+#' \code{browseVignettes("IndexNumR")}.
 #'
 #' @section Bilateral index functions:
 #'
