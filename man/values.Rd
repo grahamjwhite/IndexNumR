@@ -11,7 +11,9 @@ values(
   pervar,
   prodID,
   sample = "matched",
-  matchPeriod = "previous"
+  matchPeriod = "previous",
+  basePeriod = 1,
+  valuePeriod = "current"
 )
 }
 \arguments{
@@ -33,10 +35,19 @@ should be used.}
 
 \item{matchPeriod}{A character string specifying which period is used
 to determine the set of products used for matching. Options are
-"following" or "previous". "following" calculates the expenditures in the current period,
-filtering out any products that do not appear in the following period.
-"previous" is calculated similarly, using the set of products in the
-previous period to filter the current period sample.}
+"following", "previous", "base" or "current". expenditures are calculated
+for the valuePeriod, after filtering out products that do not occur in
+the "following", "previous", "base" or "current" periods respectively. The
+terms "following" and "previous" should be interpreted as relative to the
+current period.}
+
+\item{basePeriod}{the base period to use when matchPeriod = "base".
+Default is the first period.}
+
+\item{valuePeriod}{A character string specifying which period's values
+to return with matching applied if requested. "current" returns the
+current period values, "previous" returns the previous period's values, and
+"base" returns the base period values. Default is "current".}
 }
 \description{
 Compute the total value (expenditure), for each time period in
