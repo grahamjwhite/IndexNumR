@@ -127,6 +127,9 @@ twoStepIndex <- function(x, pvar, qvar, pervar, prodID, subgroup,
     xt[[pervar]][xt[[pervar]] == basePeriod] <- 1
     xt[[pervar]][xt[[pervar]] == i] <- 2
 
+    # match the two periods
+    xt <- windowMatch(xt, pervar, prodID)
+
     # set the two period dataset for the first step
     stepOneArgs$x <- xt
 
@@ -135,22 +138,11 @@ twoStepIndex <- function(x, pvar, qvar, pervar, prodID, subgroup,
                                          indexFunction = stepOneFunction,
                                          indexArgs = stepOneArgs)
 
-    # calculate the quantities, using the right matching
-    matchPeriod <- if (multiIndex) {
-      "previous"
-    } else {
-      switch (
-        tolower(stepOneArgs$indexMethod),
-        "laspeyres" = "following",
-        "paasche" = "previous",
-        "previous"
-      )
-    }
-
     xtsplit <- split(xt, xt[[subgroup]])
 
     vt <- lapply(xtsplit, values, pvar = pvar, qvar = qvar, pervar = pervar, prodID = prodID,
-                 sample = "matched", matchPeriod = matchPeriod)
+                 sample = "")
+
     pt <- lapply(groupIndexes, `[[`, "prices")
     pt <- lapply(pt, as.matrix)
     qt <- mapply(function(x, y){x/y}, vt, pt, SIMPLIFY = FALSE)
