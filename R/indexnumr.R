@@ -2,18 +2,13 @@
 #'
 #' @section Author:
 #' Graham White
-#' 
-#' @description 
+#'
+#' @description
 #' IndexNumR is a package for computing bilateral and multilateral index numbers.
 #' The package has been designed with performance in mind, to enable computing
 #' index numbers on large datasets within a reasonable timeframe. It also aims
 #' to make a large number of index number methods available, along with access to datasets
-#' to enable research and experimentation. 
-#'
-#' @description IndexNumR computes bilateral and multilateral index numbers. The
-#' main intent is to make a wide array of different methods available. With multilateral
-#' methods the number of computations increases significantly, so IndexNumR tries
-#' to implement these methods with performance in mind.
+#' to enable research and experimentation.
 #'
 #' @section Notes:
 #' I'd like to thank all those that have commented on, or tested the code so that
