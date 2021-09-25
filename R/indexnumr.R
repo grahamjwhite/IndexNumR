@@ -3,6 +3,11 @@
 #' @section Author:
 #' Graham White
 #'
+#' @description IndexNumR computes bilateral and multilateral index numbers. The
+#' main intent is to make a wide array of different methods available. With multilateral
+#' methods the number of computations increases significantly, so IndexNumR tries
+#' to implement these methods with performance in mind.
+#'
 #' @section Notes:
 #' I'd like to thank all those that have commented on, or tested the code so that
 #' it could be improved. In particular, I'd like to thank Professor Kevin
