@@ -99,13 +99,21 @@ test_that("GEKS index returns the same answer regardless of product ordering",{
 
 test_that("intGEKS gives the same result as GEKS with no product change", {
 
-  intFalse <- GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
-            prodID = "prodID", indexMethod = "tornqvist", window = 12, intGEKS = FALSE)
+  indexMethods <- c("fisher", "tornqvist", "tpd", "walsh", "jevons")
 
-  intTrue <- GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
-                        prodID = "prodID", indexMethod = "tornqvist", window = 12, intGEKS = TRUE)
+  testMethod <- function(method){
+    intFalse <- GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", indexMethod = method, window = 12, intGEKS = FALSE)
 
-  expect_equal(intFalse, intTrue)
+    intTrue <- GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                         prodID = "prodID", indexMethod = method, window = 12, intGEKS = TRUE)
+
+    expect_equal(intFalse, intTrue)
+  }
+
+  for(i in 1:length(indexMethods)){
+    testMethod(indexMethods[i])
+  }
 
 })
 
