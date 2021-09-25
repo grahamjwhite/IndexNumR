@@ -15,7 +15,8 @@ GEKSIndex(
   window = 13,
   splice = "mean",
   biasAdjust = FALSE,
-  weights = "average"
+  weights = "average",
+  intGEKS = FALSE
 )
 }
 \arguments{
@@ -55,6 +56,10 @@ GEKS index.}
 with expenditure share weights, and "average" to use weighted least squares
 with the average of the expenditure shares over the two periods. See details for more
 information}
+
+\item{intGEKS}{whether to estimate the intersection GEKS method. This method performs
+additional product matching over the sample = "matched" option. See Lamboray and Krsinich
+2015 for more information.}
 }
 \description{
 A function to calculate a GEKS multilateral price index
@@ -85,4 +90,8 @@ prodID = "prodID", indexMethod = "fisher", window=11, splice = "mean")
 Ivancic, L., W.E. Diewert and K.J. Fox (2011), "Scanner Data,
 Time Aggregation and the Construction of Price Indexes", Journal of
 Econometrics 161, 24-35.
+
+Lamboray, C. and F. Krsinich (2015), "A Modification of the GEKS Index When
+Product Turnover is High", Paper presented at the fourteenth Ottawa Group
+meeting, 20-22 May 2015, Tokyo, Japan.
 }

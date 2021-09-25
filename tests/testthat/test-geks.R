@@ -96,3 +96,41 @@ test_that("GEKS index returns the same answer regardless of product ordering",{
   }
 
 })
+
+test_that("intGEKS gives the same result as GEKS with no product change", {
+
+  indexMethods <- c("fisher", "tornqvist", "tpd", "walsh", "jevons")
+
+  testMethod <- function(method){
+    intFalse <- GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", indexMethod = method, window = 12, intGEKS = FALSE)
+
+    intTrue <- GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                         prodID = "prodID", indexMethod = method, window = 12, intGEKS = TRUE)
+
+    expect_equal(intFalse, intTrue)
+  }
+
+  for(i in 1:length(indexMethods)){
+    testMethod(indexMethods[i])
+  }
+
+})
+
+
+test_that("can replicate intGEKS result in Lamboray & Krsinich", {
+
+  x1 <- c(1, 1*cumprod(rep(0.99, 7)))
+  x2 <- c(1, 1*(0.9), 1*(0.9^2), 1*(0.9^3), rep(NA, 4))
+  x3 <- c(rep(NA, 4), 1, 1*(0.9), 1*(0.9^2), 1*(0.9^3))
+
+  df <- data.frame(p = c(x1, x2, x3), q = rep(1, 24), prod = c(rep(1, 8), rep(2, 8), rep(3, 8)), t = rep(1:8, 3))
+  df <- df[!is.na(df$p),]
+
+  ind <- IndexNumR::GEKSIndex(df, pvar = "p", qvar = "q", pervar = "t", prodID = "prod",
+                              window = 8, sample = "matched", indexMethod = "tornqvist", intGEKS = TRUE)
+
+  # test for the result in table 2 in Lamboray and Krsinich (2016)
+  expect_equal(ind[5]/ind[4], 0.99)
+
+})
