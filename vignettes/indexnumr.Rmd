@@ -450,6 +450,17 @@ where the term $P^{k,t}$ is the bilateral index between period $t$ and base peri
 \]
 So that the first term of the GEKS index is the geometric mean of the elements in the first column of the above matrix, the second term is the geometric mean of the second column, and so on. Note that *IndexNumR* makes use of two facts about the matrix above to speed up computation: it is (inversely) symmetric so that $P^{j,k} = 1/P^{k,j}$; and the diagonal elements are 1. 
 
+#### Intersection GEKS (int-GEKS)
+
+The intersection GEKS (int-GEKS) was developed by Claude Lamboray and Frances Krsinich [@lambkrsinich:2015] to deal with the asymmetry with which products enter the index, when there are appearing or disappearing products. The issue arises because when calculating the GEKS index comparing two adjacent periods, products that are not matched for the two periods may still contribute to the index, either in period $t-1$ or period $t$, but not both. 
+
+To see this, note that the GEKS index between periods $t-1$ and $t$, using the window going from period 1 to $w$, can be written as:
+\begin{equation}
+  P^{t-1,t}_{[1:w]} = \prod_{k=1}^{w}(P_{t-1,k}\times P_{k,t})^{1/w},
+\end{equation}
+
+where $P_{t-1,k}$ is the bilateral price index between periods $t-1$ and $k$, and $P_{k,t}$ is similarly defined. The usual GEKS procedure performed by *IndexNumR* when using the function `GEKSIndex` and specifying `sample = matched`, performs matching between period $t$ and period $k$ only. The int-GEKS method performs matching between periods $t-1$, $t$ and $k$. Since more matching is performed, fewer data points are used in estimating the index, particularly if product turnover is high. It is also computationally somewhat slower, as more matching must be performed.  
+
 ### The Geary-Khamis method
 
 The Geary-Khamis, or GK method, was introduced by Geary [@geary:1958] and extended by Khamis [@khamis:1970; @khamis:1972]. This method involves calculating a set of quality adjustment factors, $b_{n}$, simultaneously with the price levels, $P_{t}$. The two equations that determine both of these are:

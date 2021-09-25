@@ -1,7 +1,8 @@
-## Package update 0.2.0 -> TBA
+## Package update 0.3.0 -> 0.4.0
 
 ### Improvements
 - Added the Palgrave, Drobish, Stuvel, Marshall-Edgeworth, Lowe and Young bilateral indexes.
+- Added the intersection GEKS (int-GEKS method)
 
 ### Bug fixes
 - Fixed matching with bilateral fixed base indexes when products leave from, and later return to the sample. 
