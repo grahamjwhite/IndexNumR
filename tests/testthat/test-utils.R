@@ -43,3 +43,40 @@ test_that("KennedyBeta calculates the correct adjustment", {
                                    prodID4 = -1.364739583))
 
 })
+
+
+test_that("checkTypes can detect bad variable types", {
+
+  bad <- letters[1:5]
+  good <- 1:5
+
+  df <- data.frame(p = bad, q = good, period = good, prodID = LETTERS[1:5])
+
+  expect_error(expect_warning(checkTypes(df, "p", "q", "period")),
+               "Please correct input data types. Price variable is not numeric and cannot be coerced to numeric")
+
+  df <- data.frame(p = good, q = bad, period = good, prodID = LETTERS[1:5])
+
+  expect_error(expect_warning(checkTypes(df, "p", "q", "period")),
+               "Please correct input data types. Quantity variable is not numeric and cannot be coerced to numeric")
+
+  df <- data.frame(p = good, q = good, period = bad, prodID = LETTERS[1:5])
+
+  expect_error(expect_warning(checkTypes(df, "p", "q", "period")),
+               "Please correct input data types. Time period variable is not numeric and cannot be coerced to numeric")
+
+
+})
+
+
+test_that("windowMatch removes products correctly", {
+
+  # remove product 1 from last few periods and product 3 from first few periods
+  df <- CES_sigma_2[-c(8:12, 25:26),]
+
+  # window matching should only return products 2 and 4
+  wmdf <- windowMatch(df, "time", "prodID")
+
+  expect_equal(wmdf, CES_sigma_2[CES_sigma_2$prodID %in% c(2, 4),])
+
+})

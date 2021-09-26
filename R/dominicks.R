@@ -74,6 +74,9 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
   dlMove <- ifelse(is.null(movementcsv), TRUE, FALSE)
   dlUPC <- ifelse(is.null(UPCcsv), TRUE, FALSE)
 
+  movementBaseURL <- "https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/movement_csv-files/"
+  UPCBaseURL <- "https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/upc_csv-files/"
+
   if(!dlMove && !file.exists(movementcsv)){
     stop(paste("movement file", movementcsv, "does not exist."))
   }
@@ -82,8 +85,42 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
     stop(paste("UPC file", UPCcsv, "does not exist."))
   }
 
-  movementBaseURL <- "https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/movement_csv-files/"
-  UPCBaseURL <- "https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/upc_csv-files/"
+  # get files if needed
+  if(dlUPC){
+    UPCfilename <- getDominicksFileName(x, "upc")
+    UPCcsv <- tempfile(fileext = ".csv")
+    utils::download.file(url = paste0(UPCBaseURL, UPCfilename), destfile = UPCcsv)
+  }
+
+  UPCFile <- utils::read.csv(UPCcsv)
+  if(dlUPC) unlink(UPCcsv)
+
+  if(dlMove){
+    movementFilename <- getDominicksFileName(x, "movement")
+    movementZip <- tempfile(fileext = ".zip")
+    utils::download.file(url = paste0(movementBaseURL,
+                               ifelse(movementFilename == "wana.csv",
+                                      sub(pattern = "\\.csv", replacement = "_csv.zip", movementFilename),
+                                      sub(pattern = "\\.csv", replacement = ".zip", movementFilename))),
+                  destfile = movementZip)
+    movementcsv <- unz(movementZip, filename = movementFilename)
+  }
+
+  movementFile <- utils::read.csv(movementcsv)
+  if(dlMove) unlink(movementZip)
+
+  # clean files and calculate required columns
+  merged <- cleanAndMergeDominicks(movementFile, UPCFile)
+
+  return(merged)
+
+}
+
+#' get the file name for given category and file type
+#'
+#' @keywords internal
+#' @noRd
+getDominicksFileName <- function(category, upcORMovement){
 
   categories <- c("Analgesics", "Bath Soap", "Beer", "Bottled Juices", "Cereals",
                   "Cheeses", "Cigarettes", "Cookies", "Crackers", "Canned Soup",
@@ -93,10 +130,10 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
                   "Snack Crackers", "Soaps", "Toothbrushes", "Canned Tuna", "Toothpastes",
                   "Bathroom Tissues")
 
-  xPos <- grep(paste0("^", x, "$"), categories, ignore.case = TRUE)
+  xPos <- grep(paste0("^", category, "$"), categories, ignore.case = TRUE)
 
   if(length(xPos) == 0){
-    stop(paste("Category", x, "does not exist in the Dominicks data"))
+    stop(paste("Category", category, "does not exist in the Dominicks data"))
   }
 
   UPCfiles <- c("upcana.csv", "upcbat.csv", "upcber.csv", "upcbjc.csv", "upccer.csv",
@@ -116,29 +153,18 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
     stop(paste("Category", x, "is a category, but the csv files are not available."))
   }
 
-  # get files if needed
-  if(dlUPC){
-    UPCfilename <- UPCfiles[xPos]
-    UPCcsv <- tempfile(fileext = ".csv")
-    utils::download.file(url = paste0(UPCBaseURL, UPCfilename), destfile = UPCcsv)
-  }
+  switch(upcORMovement,
+         "upc" = UPCfiles[xPos],
+         "movement" = movementFiles[xPos])
 
-  UPCFile <- utils::read.csv(UPCcsv)
-  if(dlUPC) unlink(UPCcsv)
+}
 
-  if(dlMove){
-    movementFilename <- movementFiles[xPos]
-    movementZip <- tempfile(fileext = ".zip")
-    utils::download.file(url = paste0(movementBaseURL,
-                               ifelse(movementFilename == "wana.csv",
-                                      sub(pattern = "\\.csv", replacement = "_csv.zip", movementFilename),
-                                      sub(pattern = "\\.csv", replacement = ".zip", movementFilename))),
-                  destfile = movementZip)
-    movementcsv <- unz(movementZip, filename = movementFilename)
-  }
 
-  movementFile <- utils::read.csv(movementcsv)
-  if(dlMove) unlink(movementZip)
+#' clean and merge movement and upc files
+#'
+#' @keywords internal
+#' @noRd
+cleanAndMergeDominicks <- function(movementFile, UPCFile){
 
   # clean files and calculate required columns
   movementFile <- movementFile[movementFile$OK == 1 & movementFile$PRICE > 0,]
@@ -156,3 +182,4 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
   return(merged)
 
 }
+
