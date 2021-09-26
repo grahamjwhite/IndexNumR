@@ -74,9 +74,9 @@ checkTypes <- function(x, pvar, qvar, pervar){
 
   if(!inherits(x[[pervar]], "numeric")){
     coerced <- try(as.numeric(x[[pervar]]), silent = TRUE)
-    if(inherits(coerced, "try-error")){
+    if(inherits(coerced, "try-error") | any(is.na(coerced))){
       check = FALSE
-      message("Time period variable is not numeric and cannot be coerced to numeric")
+      m <- "Time period variable is not numeric and cannot be coerced to numeric"
     }
     else {
       x[[pervar]] <- coerced
@@ -85,9 +85,9 @@ checkTypes <- function(x, pvar, qvar, pervar){
 
   if(!inherits(x[[pvar]], "numeric")){
     coerced <- try(as.numeric(x[[pvar]]), silent = TRUE)
-    if(inherits(coerced, "try-error")){
+    if(inherits(coerced, "try-error") | any(is.na(coerced))){
       check = FALSE
-      message("Price variable is not numeric and cannot be coerced to numeric")
+      m <- "Price variable is not numeric and cannot be coerced to numeric"
     }
     else {
       x[[pvar]] <- coerced
@@ -96,9 +96,9 @@ checkTypes <- function(x, pvar, qvar, pervar){
 
   if(!inherits(x[[qvar]], "numeric")){
     coerced <- try(as.numeric(x[[qvar]]), silent = TRUE)
-    if(inherits(coerced, "try-error")){
+    if(inherits(coerced, "try-error") | any(is.na(coerced))){
       check = FALSE
-      message("Quantity variable is not numeric and cannot be coerced to numeric")
+      m <- "Quantity variable is not numeric and cannot be coerced to numeric"
     }
     else {
       x[[qvar]] <- coerced
@@ -109,7 +109,7 @@ checkTypes <- function(x, pvar, qvar, pervar){
     return(x)
   }
   else {
-    stop("Please correct input data types")
+    stop(paste("Please correct input data types.", m), call. = FALSE)
   }
 
 }
