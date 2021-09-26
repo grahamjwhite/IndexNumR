@@ -150,7 +150,7 @@ getDominicksFileName <- function(category, upcORMovement){
                      "wsna.csv", "wsoa.csv", "wtbr.csv", "wtna.csv", "wtpa.csv", "wtti.csv")
 
   if(UPCfiles[xPos] == "Not Available"){
-    stop(paste("Category", x, "is a category, but the csv files are not available."))
+    stop(paste("Category", category, "is a category, but the csv files are not available."))
   }
 
   switch(upcORMovement,
