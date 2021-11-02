@@ -168,10 +168,24 @@ cleanAndMergeDominicks <- function(movementFile, UPCFile){
 
   # clean files and calculate required columns
   movementFile <- movementFile[movementFile$OK == 1 & movementFile$PRICE > 0,]
-  movementFile$QUANTITY <- movementFile$MOVE / movementFile$QTY
+
+  # MOVE is the number of units sold, QTY is the number of units in a bundle
+  # and PRICE is the price of a bundle, so expenditure is given by PRICE * MOVE / QTY
+  movementFile$EXPENDITURE <- movementFile$PRICE * movementFile$MOVE / movementFile$QTY
+
+  # we want to use the quantity of individual units sold, which is MOVE, not the number
+  # of units in a bundle
+  movementFile$QUANTITY <- movementFile$MOVE
+
+  # we need to make the price for a single unit, so that it correctly corresponds to QUANTITY
+  # since PRICE is the bundle price, we calculate the unit price as PRICE / QTY
+  movementFile$PRICE <- movementFile$PRICE / movementFile$QTY
+
+  # remove the columns we don't need
   keepCols <- !colnames(movementFile) %in% c("MOVE", "QTY", "PRICE_HEX", "PROFIT_HEX", "OK")
   movementFile <- movementFile[,keepCols]
-  movementFile$EXPENDITURE <- movementFile$PRICE * movementFile$QUANTITY
+
+  # lower case names are nicer to work with
   names(movementFile) <- tolower(names(movementFile))
   names(UPCFile) <- tolower(names(UPCFile))
 
