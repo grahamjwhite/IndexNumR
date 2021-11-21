@@ -2,6 +2,8 @@
 title: "IndexNumR: A Package for Index Number Calculation"
 author: "Graham White"
 date: "`r Sys.Date()`"
+params:
+  dev: TRUE
 output: 
   rmarkdown::html_vignette:
     toc: true
@@ -13,7 +15,11 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-library(IndexNumR)
+if(params$dev){
+  devtools::load_all()
+} else {
+  library(IndexNumR)
+}
 
 ```
 
@@ -675,6 +681,57 @@ valueDecomposition(CES_sigma_2,
 ```
 
 Note that for this decomposition, the method is specified for the price indicator and *IndexNumR* uses the appropriate quantity indicator. For Bennet and Montgomery indicators the same method is used for the quantity indicator as for the price indicator. If a Laspeyres price indicator is requested  then the corresponding volume indicator is a Paasche indicator. The reverse is true if the Paasche indicator is used for prices.  
+
+## Two-stage price indexes
+
+Instead of calculating the price index in one step, we can instead use two stages where one stage aggregates the data based on some identifier such as store, geographic region, or product category, and the second stage aggregates into a single index. This enables the use of a different index number method to aggregate at the two stages. At present, *IndexNumR* has support for bilateral index number methods, but support for multilateral methods (and combining a bilateral method with a multilateral one) are planned for future releases. At this time, similarity chain-linking is also not supported.  
+
+*IndexNumR* performs two-stage aggregation with the function `twoStepIndex`. The function calls the underlying index number function `priceIndex` using two sets of parameters, one for each stage of aggregation. To run the function, start by specifying the list of parameters to be passed to the underlying `priceIndex` function for each stage. These lists must be named using the correct parameter names (see `?priceIndex` for the help documentation). If optional parameters are not specified, the defaults from `priceIndex` will be used. The parameters `pvar`, `qvar`, `pervar`, and `prodID` can be specified in the `twoStageIndex` function, rather than in the list of parameters. The following example uses a Laspeyres index at both stages of aggregation, producing the well-known result that the Laspeyres index is consistent in aggregation. That is, the same result is produced using either one or two stage aggregation. 
+
+```{r twoStageParam}
+# create a second category for the CES_Sigma_2 data set to aggregate over
+# this places products 1 and 2 in group 1, and products 3 and 4 in group 2. 
+df <- CES_sigma_2
+df$productGroup <- c(rep(1, 24), rep(2, 24))
+
+head(df)
+
+# specify a list of arguments for the underlying priceIndex function
+# for a fixed base laspeyres index
+argsList <- list(indexMethod = "laspeyres", output = "fixedbase")
+
+# run the two-stage aggregation
+twoStep <- twoStepIndex(df, pvar = "prices", qvar = "quantities", pervar = "time",
+                        prodID = "prodID", subgroup = "productGroup", output = "fixedbase",
+                        stepOneArgs = argsList, 
+                        stepTwoArgs = argsList)
+
+oneStep <- priceIndex(df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID",
+                      output = "fixedbase", indexMethod = "laspeyres")
+
+print(data.frame(oneStep, twoStep))
+
+```
+
+We can also show the well-known result that superlative indexes are approximately consistent in aggregation.
+
+```{r twoStageSuper}
+
+# using a Fisher index
+argsList <- list(indexMethod = "fisher", output = "fixedbase")
+
+# run the two-stage aggregation
+twoStep <- twoStepIndex(df, pvar = "prices", qvar = "quantities", pervar = "time",
+                        prodID = "prodID", subgroup = "productGroup", output = "fixedbase",
+                        stepOneArgs = argsList, 
+                        stepTwoArgs = argsList)
+
+oneStep <- priceIndex(df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID",
+                      output = "fixedbase", indexMethod = "fisher")
+
+print(data.frame(oneStep, twoStep))
+
+```
 
 # Development
 
