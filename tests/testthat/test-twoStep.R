@@ -9,8 +9,9 @@ test_that("two-step index function works with bilateral indexes", {
                    chainMethod = "pop", sample = "matched")
 
   twoStep <- twoStepIndex(df, "prices", "quantities", "time", "prodID", "group",
-                          stepOneArgs = argsList, stepTwoArgs = argsList, output = "chained",
-                          stepOneFunction = priceIndex, stepTwoFunction = priceIndex)
+                          stepOneArgs = argsList, stepTwoArgs = argsList, output = "chained"
+                          #stepOneFunction = priceIndex, stepTwoFunction = priceIndex
+                          )
   oneStep <- priceIndex(df, "prices", "quantities", "time", prodID = "prodID", output = 'chained')
 
   # when a laspeyres index is used, these should be equal
@@ -21,8 +22,9 @@ test_that("two-step index function works with bilateral indexes", {
   argsList$output <- "chained"
 
   twoStep <- twoStepIndex(df, "prices", "quantities", "time", "prodID", "group",
-                          stepOneArgs = argsList, stepTwoArgs = argsList, output = "chained",
-                          stepOneFunction = priceIndex, stepTwoFunction = priceIndex)
+                          stepOneArgs = argsList, stepTwoArgs = argsList, output = "chained"
+                          #stepOneFunction = priceIndex, stepTwoFunction = priceIndex
+                          )
   oneStep <- priceIndex(df, "prices", "quantities", "time", prodID = "prodID", output = 'chained',
                         indexMethod = "paasche")
 
@@ -33,8 +35,9 @@ test_that("two-step index function works with bilateral indexes", {
   argsList$output <- "fixedbase"
 
   twoStep <- twoStepIndex(df, "prices", "quantities", "time", "prodID", "group",
-                          stepOneArgs = argsList,stepTwoArgs = argsList, output = "fixedbase",
-                          stepOneFunction = priceIndex, stepTwoFunction = priceIndex)
+                          stepOneArgs = argsList,stepTwoArgs = argsList, output = "fixedbase"
+                          #stepOneFunction = priceIndex, stepTwoFunction = priceIndex
+                          )
   oneStep <- priceIndex(df, "prices", "quantities", "time", prodID = "prodID", output = 'fixedbase',
                         indexMethod = "paasche")
 
@@ -45,8 +48,9 @@ test_that("two-step index function works with bilateral indexes", {
   argsList$output <- "fixedbase"
 
   twoStep <- twoStepIndex(df, "prices", "quantities", "time", "prodID", "group",
-                          stepOneArgs = argsList,stepTwoArgs = argsList, output = "fixedbase",
-                          stepOneFunction = priceIndex, stepTwoFunction = priceIndex)
+                          stepOneArgs = argsList,stepTwoArgs = argsList, output = "fixedbase"
+                          #stepOneFunction = priceIndex, stepTwoFunction = priceIndex
+                          )
   oneStep <- priceIndex(df, "prices", "quantities", "time", prodID = "prodID", output = 'fixedbase',
                         indexMethod = "laspeyres")
 
@@ -66,8 +70,9 @@ test_that("two-step index function is the same as one step with product change",
                    chainMethod = "pop", sample = "matched")
 
   twoStep <- twoStepIndex(df, "prices", "quantities", "time", "prodID", "group",
-                           stepOneArgs = argsList, stepTwoArgs = argsList, output = "chained",
-                           stepOneFunction = priceIndex, stepTwoFunction = priceIndex)
+                          stepOneArgs = argsList, stepTwoArgs = argsList, output = "chained"
+                          #stepOneFunction = priceIndex, stepTwoFunction = priceIndex
+                          )
   oneStep <- priceIndex(df, "prices", "quantities", "time", prodID = "prodID", output = 'chained')
 
   # when a laspeyres index is used, these should be equal
@@ -78,8 +83,9 @@ test_that("two-step index function is the same as one step with product change",
   argsList$output <- "chained"
 
   twoStep <- twoStepIndex(df, "prices", "quantities", "time", "prodID", "group",
-                           stepOneArgs = argsList, stepTwoArgs = argsList, output = "chained",
-                           stepOneFunction = priceIndex, stepTwoFunction = priceIndex)
+                          stepOneArgs = argsList, stepTwoArgs = argsList, output = "chained"
+                          #stepOneFunction = priceIndex, stepTwoFunction = priceIndex
+                          )
   oneStep <- priceIndex(df, "prices", "quantities", "time", prodID = "prodID", output = 'chained',
                         indexMethod = "paasche")
 
@@ -90,8 +96,9 @@ test_that("two-step index function is the same as one step with product change",
   argsList$output <- "fixedbase"
 
   twoStep <- twoStepIndex(df, "prices", "quantities", "time", "prodID", "group",
-                           stepOneArgs = argsList, stepTwoArgs = argsList, output = "fixedbase",
-                           stepOneFunction = priceIndex, stepTwoFunction = priceIndex)
+                          stepOneArgs = argsList, stepTwoArgs = argsList, output = "fixedbase"
+                          #stepOneFunction = priceIndex, stepTwoFunction = priceIndex
+                          )
   oneStep <- priceIndex(df, "prices", "quantities", "time", prodID = "prodID", output = 'fixedbase',
                         indexMethod = "paasche")
 
@@ -102,8 +109,9 @@ test_that("two-step index function is the same as one step with product change",
   argsList$output <- "fixedbase"
 
   twoStep <- twoStepIndex(df, "prices", "quantities", "time", "prodID", "group",
-                           stepOneArgs = argsList, stepTwoArgs = argsList, output = "fixedbase",
-                           stepOneFunction = priceIndex, stepTwoFunction = priceIndex)
+                          stepOneArgs = argsList, stepTwoArgs = argsList, output = "fixedbase"
+                          #stepOneFunction = priceIndex, stepTwoFunction = priceIndex
+                          )
   oneStep <- priceIndex(df, "prices", "quantities", "time", prodID = "prodID", output = 'fixedbase',
                         indexMethod = "laspeyres")
 
