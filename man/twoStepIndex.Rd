@@ -12,8 +12,6 @@ twoStepIndex(
   prodID,
   subgroup,
   output = "pop",
-  stepOneFunction = priceIndex,
-  stepTwoFunction = priceIndex,
   stepOneArgs = list(),
   stepTwoArgs = list()
 )
@@ -38,12 +36,6 @@ must be a factor variable, or a variable coercible to a factor.}
 \item{output}{A character string specifying whether a chained (output="chained")
 , fixed base (output="fixedbase") or period-on-period (output="pop")
 price index numbers should be returned. Default is period-on-period.}
-
-\item{stepOneFunction}{the index number function to be used for the the first
-step aggregation.}
-
-\item{stepTwoFunction}{the index number function to be used for the second
-step aggregation.}
 
 \item{stepOneArgs}{arguments to be passed to the price index function
 in the first step as a named list. All arguments must be named.}

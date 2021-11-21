@@ -65,10 +65,6 @@ subgroupPriceIndexes <- function(subgroup, indexFunction, indexArgs){
 #' @inheritParams priceIndex
 #' @param subgroup the name of the variable containing the subgroup ID. This
 #' must be a factor variable, or a variable coercible to a factor.
-#' @param stepOneFunction the index number function to be used for the the first
-#' step aggregation.
-#' @param stepTwoFunction the index number function to be used for the second
-#' step aggregation.
 #' @param stepOneArgs arguments to be passed to the price index function
 #' in the first step as a named list. All arguments must be named.
 #' @param stepTwoArgs arguments to be passed to the price index function
@@ -77,10 +73,14 @@ subgroupPriceIndexes <- function(subgroup, indexFunction, indexArgs){
 #'
 twoStepIndex <- function(x, pvar, qvar, pervar, prodID, subgroup,
                           output = "pop",
-                          stepOneFunction = priceIndex,
-                          stepTwoFunction = priceIndex,
+                          #stepOneFunction = priceIndex, these will be enabled in a future release
+                          #stepTwoFunction = priceIndex,
                           stepOneArgs = list(),
                           stepTwoArgs = list()){
+
+  # at the current time, only bilateral indexes are supported.
+  stepOneFunction <- priceIndex
+  stepTwoFunction <- priceIndex
 
   x <- x[order(x[[pervar]], x[[prodID]]),]
 
