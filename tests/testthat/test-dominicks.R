@@ -33,9 +33,9 @@ test_that("dominicks data cleaning code works", {
   merged <- cleanAndMergeDominicks(dfmove, dfupc)
   expected <- structure(list(week = c(1, 1, 1),
                              upc = c(1, 1, 2),
-                             price = c(1, 2, 3),
-                             quantity = c(1, 1, 1),
+                             price = c(0.5, 0.666666666666667, 0.75),
                              expenditure = c(1, 2, 3),
+                             quantity = 2:4,
                              description = c("item1", "item1", "item2"),
                              start = structure(c(7196, 7196, 7196), class = "Date"),
                              end = structure(c(7202, 7202, 7202), class = "Date"),

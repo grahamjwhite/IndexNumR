@@ -14,10 +14,13 @@
 #' result with data detailing the dates of each of the weeks in the movement file.
 #'
 #' @details
-#' Only two transformations are performed on the data:
+#' The following transformations are performed on the data:
 #' \itemize{
-#'     \item The quantity of interest is calculated as MOVE/QTY (then MOVE and QTY are dropped)
-#'     \item All observations where the variable OK equals 0, or price is less than or equal to 0, are dropped
+#'     \item The quantity variable is set to MOVE, which is the number of individual units sold
+#'     \item The price variable is set to PRICE/QTY, which is the unit price. This accounts
+#'     for the fact that sometimes products are sold in bundles (e.g., two-for-one promotions).
+#'     \item expenditure is given by PRICE*MOVE/QTY.
+#'     \item All observations where the variable OK equals 0, or price is less than or equal to 0, are dropped.
 #' }
 #'
 #' If you have already downloaded the movement and UPC csv files for a category from
@@ -168,10 +171,24 @@ cleanAndMergeDominicks <- function(movementFile, UPCFile){
 
   # clean files and calculate required columns
   movementFile <- movementFile[movementFile$OK == 1 & movementFile$PRICE > 0,]
-  movementFile$QUANTITY <- movementFile$MOVE / movementFile$QTY
+
+  # MOVE is the number of units sold, QTY is the number of units in a bundle
+  # and PRICE is the price of a bundle, so expenditure is given by PRICE * MOVE / QTY
+  movementFile$EXPENDITURE <- movementFile$PRICE * movementFile$MOVE / movementFile$QTY
+
+  # we want to use the quantity of individual units sold, which is MOVE, not the number
+  # of units in a bundle
+  movementFile$QUANTITY <- movementFile$MOVE
+
+  # we need to make the price for a single unit, so that it correctly corresponds to QUANTITY
+  # since PRICE is the bundle price, we calculate the unit price as PRICE / QTY
+  movementFile$PRICE <- movementFile$PRICE / movementFile$QTY
+
+  # remove the columns we don't need
   keepCols <- !colnames(movementFile) %in% c("MOVE", "QTY", "PRICE_HEX", "PROFIT_HEX", "OK")
   movementFile <- movementFile[,keepCols]
-  movementFile$EXPENDITURE <- movementFile$PRICE * movementFile$QUANTITY
+
+  # lower case names are nicer to work with
   names(movementFile) <- tolower(names(movementFile))
   names(UPCFile) <- tolower(names(UPCFile))
 
