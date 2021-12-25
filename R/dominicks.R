@@ -14,10 +14,13 @@
 #' result with data detailing the dates of each of the weeks in the movement file.
 #'
 #' @details
-#' Only two transformations are performed on the data:
+#' The following transformations are performed on the data:
 #' \itemize{
-#'     \item The quantity of interest is calculated as MOVE/QTY (then MOVE and QTY are dropped)
-#'     \item All observations where the variable OK equals 0, or price is less than or equal to 0, are dropped
+#'     \item The quantity variable is set to MOVE, which is the number of individual units sold
+#'     \item The price variable is set to PRICE/QTY, which is the unit price. This accounts
+#'     for the fact that sometimes products are sold in bundles (e.g., two-for-one promotions).
+#'     \item expenditure is given by PRICE*MOVE/QTY.
+#'     \item All observations where the variable OK equals 0, or price is less than or equal to 0, are dropped.
 #' }
 #'
 #' If you have already downloaded the movement and UPC csv files for a category from
