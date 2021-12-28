@@ -327,7 +327,8 @@ young_t <- function(p0, p1, pb, qb){
 #' Valid options are "pop" for period-on-period, and similarity chain linked
 #' options "plspread" for the Paasche-Laspeyres spread, "asymplinear" for
 #' weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
-#' and "mixScale" for the mix, scale or absolute dissimilarity measures.
+#' and "mixScale" for the mix, scale or absolute dissimilarity measures,
+#' or "predictedShare" for the predicted share relative price dissimilarity.
 #' The default is period-on-period. Additional parameters can be passed to the
 #' mixScaleDissimilarity function using \code{...}
 #' @param sigma The elasticity of substitution for the CES index method.
@@ -365,6 +366,11 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                        sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE,
                        weights = "average", loweYoungBase = 1, ...){
 
+  # if we're using the predicted share measure then impute carry prices
+  if(output == "chained" & chainMethod == "predictedShare"){
+    x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)
+  }
+
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
                     "paasche","fisher","tornqvist","satovartia","walsh","ces",
@@ -391,6 +397,13 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
   if(colNameCheck$result == FALSE){
     stop(colNameCheck$message)
+  }
+
+  # check valid chainMethod given
+  validChainMethods <- c("pop", "plspread", "asymplinear", "logquadratic", "mixscale",
+                         "predictedShare")
+  if(!chainMethod %in% validChainMethods){
+    stop("Not a valid chainMethod. Please choose from", paste(validChainMethods, collapse = ", "))
   }
 
   # check column types
@@ -425,7 +438,9 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                                                                     similarityMethod = "asymplinear")},
            mixscale = {similarityMatrix <- mixScaleDissimilarity(x,pvar=pvar,qvar=qvar,
                                                                  pervar=pervar,prodID=prodID,
-                                                                 ...)})
+                                                                 ...)},
+           predictedshare = {similarityMatrix <- predictedShareDissimilarity(x, pvar, qvar,
+                                                                             pervar, prodID)})
     # use the similarity matrix to compute links
     links <- maximumSimilarityLinks(similarityMatrix)
   }

@@ -53,7 +53,8 @@ to use if the output option is set to "chained".
 Valid options are "pop" for period-on-period, and similarity chain linked
 options "plspread" for the Paasche-Laspeyres spread, "asymplinear" for
 weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
-and "mixScale" for the mix, scale or absolute dissimilarity measures.
+and "mixScale" for the mix, scale or absolute dissimilarity measures,
+or "predictedShare" for the predicted share relative price dissimilarity.
 The default is period-on-period. Additional parameters can be passed to the
 mixScaleDissimilarity function using \code{...}}
 

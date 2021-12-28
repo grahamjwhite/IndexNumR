@@ -256,3 +256,42 @@ maximumSimilarityLinks <- function(x){
   colnames(result) <- c("xt","x0","dissimilarity")
   return(as.data.frame(result))
 }
+
+
+#' Predicted share measure of relative price dissimilarity
+#'
+#' @inheritParams priceIndex
+#' @export
+predictedShareDissimilarity <- function(x, pvar, qvar, pervar, prodID){
+
+  s <- predictedShares(x, pvar, qvar, pervar, prodID)
+  n <- max(x[[pervar]])
+  cn <- utils::combn(n, 2) # first row = y, second row = z
+
+  # initialise a results matrix
+  res <- matrix(0, nrow = ncol(cn), ncol = 3)
+  res[,1:2] <- t(cn)
+
+  for(i in 1:ncol(cn)){
+
+    y <- cn[1,i]
+    z <- cn[2,i]
+
+    # the diagonals contain the shares for period y and z
+    syn <- sapply(s, `[`, y, y)
+    szn <- sapply(s, `[`, z, z)
+
+    # the off-diagonals contain the 'predicted' shares
+    szyn <- sapply(s, `[`, y, z)
+    syzn <- sapply(s, `[`, z, y)
+
+    res[i, 3] <- sum((syn - szyn)^2) + sum((szn - syzn)^2)
+
+  }
+
+  colnames(res) <- c("period_i","period_j","dissimilarity")
+
+  return(as.data.frame(res))
+
+}
+
