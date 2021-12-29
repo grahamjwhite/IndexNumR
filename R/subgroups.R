@@ -68,3 +68,39 @@ subgroupPriceIndexes <- function(subgroup, indexFunction, indexArgs){
 
 }
 
+
+#' Estimate an index using year-over-year calculations
+#'
+#' @param freq the frequency of the data. Either "monthly" or "quarterly".
+#' @inheritParams subGroupPriceIndexes
+#' @export
+yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
+
+  indexArgs <- within(indexArgs,{
+    # sort the dataset by time period and product ID
+    x <- x[order(x[[pervar]], x[[prodID]]),]
+
+    # convert frequency to integer
+    freqInt <- switch(freq,
+                      "monthly" = 12,
+                      "quarterly" = 4)
+
+    # create the subgroup column using a vector of 1:freqInt
+    lookup <- data.frame(min(x[[pervar]]):max(x[[pervar]]))
+    lookup$subgroup <- rep(1:freqInt, len = nrow(lookup))
+    colnames(lookup) <- c(pervar, "subgroup")
+
+    x <- merge(x, lookup)
+
+    # re-scale the time variable so that each subgroup time index starts at 1
+    x[[pervar]] <- ifelse(x[[pervar]] %% freqInt == 0,
+                          x[[pervar]]/freqInt,
+                          (x[[pervar]] + freqInt - x[[pervar]] %% freqInt)/freqInt)
+
+  })
+
+  indexes <- subgroupPriceIndexes("subgroup", indexFunction, indexArgs)
+
+  return(indexes)
+
+}

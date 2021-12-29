@@ -26,6 +26,8 @@ imputeCarryPrices <- function(x, pvar, qvar, pervar, prodID){
 
   # list of products
   prods <- sort(unique(x[[prodID]]))
+  # list of time periods
+  pers <- sort(unique(x[[pervar]]))
   # number of periods
   n <- length(pers)
 
@@ -77,8 +79,14 @@ imputeCarryPrices <- function(x, pvar, qvar, pervar, prodID){
     # add the new observations onto the dataset
     x <- merge(x, newObs, all.x = TRUE, all.y = TRUE)
 
+    # convert columns back to numeric
+    x[[pvar]] <- as.numeric(x[[pvar]])
+    x[[qvar]] <- as.numeric(x[[qvar]])
+    x[[pervar]] <- as.numeric(x[[pervar]])
+
     # ensure dataset still sorted by time period and product ID
     x <- x[order(x[[pervar]], x[[prodID]]),]
+
   }
 
   return(x)
