@@ -97,6 +97,8 @@ yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
                           x[[pervar]]/freqInt,
                           (x[[pervar]] + freqInt - x[[pervar]] %% freqInt)/freqInt)
 
+    rm(lookup, freqInt)
+
   })
 
   indexes <- subgroupPriceIndexes("subgroup", indexFunction, indexArgs)

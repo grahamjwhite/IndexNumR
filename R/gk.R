@@ -127,6 +127,9 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
 #' @param splice the splicing method to use to extend the index. Valid methods are
 #' window, movement, half, mean, fbew, fbmw, wisp, hasp or mean_pub. The default is mean.
 #' See details for important considerations when using fbew and fbmw.
+#' @param imputePrices the type of price imputation to use for missing prices.
+#' Currently only "carry" is supported to used carry-forward/carry-backward prices.
+#' Default is NULL to not impute missing prices.
 #' @details The splicing methods are used to update the price index when new data become
 #' available without changing prior index values. The window, movement, half and mean splices
 #' use the most recent index value as the base period, which is multiplied by a price movement
@@ -151,7 +154,8 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
 #' Khamis, S. H. 1970. “Properties and Conditions for the Existence of a New Type of Index Number.”
 #' Sankhya: The Indian Journal of Statistics, Series B (1960-2002) 32: 81–98.
 #' @export
-GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice = "mean"){
+GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice = "mean",
+                    imputePrices = NULL){
 
   # check that only valid splice methods are chosen
   if(!(tolower(splice) %in% c("mean", "window", "movement", "half", "fbew", "fbmw", "wisp", "hasp", "mean_pub"))){
@@ -178,6 +182,13 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice =
   n <- max(x[[pervar]], na.rm = TRUE)
   if(n < window){
     stop("The window length exceeds the number of periods in the data")
+  }
+
+  # apply price imputation
+  if(!is.null(imputePrices)){
+    switch(imputePrices,
+           "carry" = {x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)},
+           stop("Invalid imputePrices argument"))
   }
 
   # sort the dataset by time period and product ID

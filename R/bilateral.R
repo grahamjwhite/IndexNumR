@@ -344,6 +344,9 @@ young_t <- function(p0, p1, pb, qb){
 #' young type indexes. The default is period 1. This can be a vector of values to
 #' use multiple periods. For example, if the data are monthly and start in January, specifying
 #' 1:12 will use the first twelve months as the base.
+#' @param imputePrices the type of price imputation to use for missing prices.
+#' Currently only "carry" is supported to used carry-forward/carry-backward prices.
+#' Default is NULL to not impute missing prices.
 #' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
 #' function.
 #' @examples
@@ -364,11 +367,14 @@ young_t <- function(p0, p1, pb, qb){
 priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                        sample = "matched", output = "pop", chainMethod = "pop",
                        sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE,
-                       weights = "average", loweYoungBase = 1, ...){
+                       weights = "average", loweYoungBase = 1,
+                       imputePrices = NULL, ...){
 
-  # if we're using the predicted share measure then impute carry prices
-  if(output == "chained" & chainMethod == "predictedShare"){
-    x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)
+  # apply price imputation
+  if(!is.null(imputePrices)){
+    switch(imputePrices,
+           "carry" = {x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)},
+           stop("Invalid imputePrices argument"))
   }
 
   # check that a valid method is chosen
