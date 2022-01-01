@@ -65,8 +65,8 @@ shares <- function(x, pvar, qvar, pervar, prodID){
 #' @export
 predictedShares <- function(x, pvar, qvar, pervar, prodID){
 
-  # fill missing observations using carry forward/backward prices
-  x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)
+  # fill any missing observations with zero
+  x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
 
   # list of products
   prods <- sort(unique(x[[prodID]]))

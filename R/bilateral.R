@@ -370,13 +370,6 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                        weights = "average", loweYoungBase = 1,
                        imputePrices = NULL, ...){
 
-  # apply price imputation
-  if(!is.null(imputePrices)){
-    switch(imputePrices,
-           "carry" = {x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)},
-           stop("Invalid imputePrices argument"))
-  }
-
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
                     "paasche","fisher","tornqvist","satovartia","walsh","ces",
@@ -420,6 +413,13 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   if(timeCheck$result == FALSE){
     stop(paste("The time period variable is not continuous.",
                 "Missing periods:", timeCheck$missing))
+  }
+
+  # apply price imputation
+  if(!is.null(imputePrices)){
+    switch(imputePrices,
+           "carry" = {x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)},
+           stop("Invalid imputePrices argument"))
   }
 
   # sort the dataset by time period and product ID
