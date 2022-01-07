@@ -16,26 +16,27 @@
 
 
 
-#' Calculate a price index on subgroups
+#' Calculate price indexes for product groups
 #'
-#' @param subgroup the name of the variable containing the subgroup ID. This
+#' @param group the name of the variable containing the group ID. This
 #' must be a factor variable, or a variable coercible to a factor.
 #' @param indexFunction the function to use to calculate the index. Available
 #' options are `priceIndex`, `GEKSIndex`, `GKIndex`, `WTPDIndex`.
 #' @param indexArgs arguments for the price index function as a named list.
 #' All arguments must be named.
+#' @return a list of indexes, one for each group
 #' @export
 #' @examples
 #' \dontrun{
 #' df <- CES_sigma_2
-#' df$subgroupID <- c(rep(1, 24), rep(2, 24))
+#' df$groupID <- c(rep(1, 24), rep(2, 24))
 #'
 #' args <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time",
 #' prodID = "prodID", indexMethod = "fisher", output = "chained")
 #'
-#' subgroupPriceIndexes("subgroupID", priceIndex, args)
+#' groupPriceIndexes("groupID", priceIndex, args)
 #' }
-subgroupPriceIndexes <- function(subgroup, indexFunction, indexArgs){
+groupIndexes <- function(group, indexFunction, indexArgs){
 
   within(indexArgs,{
     # sort the dataset by time period and product ID
@@ -43,22 +44,22 @@ subgroupPriceIndexes <- function(subgroup, indexFunction, indexArgs){
   })
 
   # get the groups
-  groups <- sort(unique(indexArgs$x[[subgroup]]))
+  groups <- sort(unique(indexArgs$x[[group]]))
 
   # apply the price index function
   subPrices <- lapply(groups,
-                      function(group){
+                      function(y){
 
                         # create inputs with only subgroup required
                         inputs <- indexArgs
-                        inputs$x <- inputs$x[inputs$x[[subgroup]] == group,]
+                        inputs$x <- inputs$x[inputs$x[[group]] == y,]
 
                         # call the index number function
                         p <- do.call(indexFunction, inputs)
 
                         retVal <- data.frame(prices = p,
                                              time = unique(inputs$x[[inputs$pervar]]),
-                                             subgroup = group)
+                                             group = y)
 
                         return(retVal)
 
@@ -69,10 +70,11 @@ subgroupPriceIndexes <- function(subgroup, indexFunction, indexArgs){
 }
 
 
-#' Estimate an index using year-over-year calculations
+#' Estimate year-over-year indexes
 #'
 #' @param freq the frequency of the data. Either "monthly" or "quarterly".
-#' @inheritParams subGroupPriceIndexes
+#' @inheritParams groupIndexes
+#' @return a list of indexes with one element for each month or quarter
 #' @export
 yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
 
@@ -87,8 +89,8 @@ yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
 
     # create the subgroup column using a vector of 1:freqInt
     lookup <- data.frame(min(x[[pervar]]):max(x[[pervar]]))
-    lookup$subgroup <- rep(1:freqInt, len = nrow(lookup))
-    colnames(lookup) <- c(pervar, "subgroup")
+    lookup$group <- rep(1:freqInt, len = nrow(lookup))
+    colnames(lookup) <- c(pervar, "group")
 
     x <- merge(x, lookup)
 
@@ -101,7 +103,7 @@ yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
 
   })
 
-  indexes <- subgroupPriceIndexes("subgroup", indexFunction, indexArgs)
+  indexes <- groupIndexes("group", indexFunction, indexArgs)
 
   return(indexes)
 
