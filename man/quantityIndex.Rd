@@ -18,6 +18,8 @@ quantityIndex(
   basePeriod = 1,
   biasAdjust = TRUE,
   weights = "average",
+  loweYoungBase = 1,
+  imputePrices = NULL,
   ...
 )
 }
@@ -69,6 +71,15 @@ TPD index. The default is TRUE.}
 "unweighted" to use ordinary least squares, "shares" to use weighted least squares
 with expenditure share weights, and "average" to use weighted least squares
 with the average of the expenditure shares over the two periods.}
+
+\item{loweYoungBase}{the period used as the base for the lowe or
+young type indexes. The default is period 1. This can be a vector of values to
+use multiple periods. For example, if the data are monthly and start in January, specifying
+1:12 will use the first twelve months as the base.}
+
+\item{imputePrices}{the type of price imputation to use for missing prices.
+Currently only "carry" is supported to used carry-forward/carry-backward prices.
+Default is NULL to not impute missing prices.}
 
 \item{...}{this is used to pass additional parameters to the mixScaleDissimilarity
 function.}

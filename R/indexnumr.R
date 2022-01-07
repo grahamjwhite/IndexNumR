@@ -43,6 +43,13 @@
 #'    \item {\code{\link{WTPDIndex}}}
 #' }
 #'
+#' @section Other index number functions:
+#'
+#' \itemize{
+#'     \item{\code{\link{groupIndexes}}}
+#'     \item{\code{\link{yearOverYearIndexes}}}
+#' }
+#'
 #' @section Data preparation functions:
 #'
 #' Use these functions to perform various operations on the data before
@@ -50,6 +57,7 @@
 #'
 #' \itemize{
 #'     \item{\code{\link{unitValues}}}
+#'     \item{\code{\link{imputeCarryPrices}}}
 #' }
 #'
 #' @section Data exploration functions:

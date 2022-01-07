@@ -19,6 +19,7 @@ priceIndex(
   biasAdjust = TRUE,
   weights = "average",
   loweYoungBase = 1,
+  imputePrices = NULL,
   ...
 )
 }
@@ -75,6 +76,10 @@ with the average of the expenditure shares over the two periods.}
 young type indexes. The default is period 1. This can be a vector of values to
 use multiple periods. For example, if the data are monthly and start in January, specifying
 1:12 will use the first twelve months as the base.}
+
+\item{imputePrices}{the type of price imputation to use for missing prices.
+Currently only "carry" is supported to used carry-forward/carry-backward prices.
+Default is NULL to not impute missing prices.}
 
 \item{...}{this is used to pass additional parameters to the mixScaleDissimilarity
 function.}

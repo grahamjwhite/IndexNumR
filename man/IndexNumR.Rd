@@ -57,6 +57,15 @@ These functions compute multilateral indexes
 }
 }
 
+\section{Other index number functions}{
+
+
+\itemize{
+    \item{\code{\link{groupIndexes}}}
+    \item{\code{\link{yearOverYearIndexes}}}
+}
+}
+
 \section{Data preparation functions}{
 
 
@@ -65,6 +74,7 @@ using other functions, such as index number functions.
 
 \itemize{
     \item{\code{\link{unitValues}}}
+    \item{\code{\link{imputeCarryPrices}}}
 }
 }
 

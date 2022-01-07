@@ -4,7 +4,17 @@
 \alias{GKIndex}
 \title{Compute the Geary-Khamis index}
 \usage{
-GKIndex(x, pvar, qvar, pervar, prodID, sample = "", window, splice = "mean")
+GKIndex(
+  x,
+  pvar,
+  qvar,
+  pervar,
+  prodID,
+  sample = "",
+  window,
+  splice = "mean",
+  imputePrices = NULL
+)
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier
@@ -28,6 +38,10 @@ across all periods in a given window. Default is not to match.}
 \item{splice}{the splicing method to use to extend the index. Valid methods are
 window, movement, half, mean, fbew, fbmw, wisp, hasp or mean_pub. The default is mean.
 See details for important considerations when using fbew and fbmw.}
+
+\item{imputePrices}{the type of price imputation to use for missing prices.
+Currently only "carry" is supported to used carry-forward/carry-backward prices.
+Default is NULL to not impute missing prices.}
 }
 \description{
 Compute the Geary-Khamis index
