@@ -111,6 +111,78 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
 
 }
 
+#' Compute GK index for a window using the iterative method
+#' @keywords internal
+#' @noRd
+gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/1e12,
+                           maxIter = 100){
+
+  # list of time periods
+  pers <- sort(unique(x[[pervar]]))
+  # total time periods
+  obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
+  # number of products
+  n <- length(unique(x[[prodID]]))
+
+  # if matching requested, keep only products that occur through the whole window
+  if(sample == "matched"){
+    x <- windowMatch(x, pervar, prodID)
+  }
+  else {
+    # fill out the gaps from missing/new products with zeros.
+    # this makes some operations easier, but won't contribute to the calculations
+    x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
+  }
+
+  qtn <- matrix(x[[qvar]], nrow = obs, byrow = TRUE)
+  # sum quantity for each product for all time periods
+  qt <- colSums(qtn)
+  # quantity shares
+  stn <- matrix(NA, nrow = obs, ncol = n)
+  for(i in 1:n){
+    stn[,i] <- qtn[,i]/qt[i]
+  }
+
+  calcPi <- function(P){
+    pi <- numeric(n)
+    for(i in 1:n){
+      pi[i] <- sum(stn[,i]*(x[x[[prodID]] == pers[i],][[pvar]]/P))
+    }
+    return(pi)
+  }
+
+  calcP <- function(Pi){
+    pindex <- numeric(obs)
+    for(i in 1:obs){
+      temp <- x[x[[pervar]] == pers[i],]
+      pindex[i] <- (temp[[pvar]]%*%temp[[qvar]])/(t(Pi)%*%temp[[qvar]])
+    }
+    return(pindex)
+  }
+
+  # initial calculation of P
+  pi <- rep(1, n)
+  p <- calcP(pi)
+
+  # iterate to solve
+  diff <- rep(1, obs)
+  iter <- 0
+  while(any(abs(diff) > tolerance) && iter <= maxIter){
+    prevP <- p
+    pi <- calcPi(p)
+    p <- calcP(pi)
+    diff <- p - prevP
+    iter <- iter + 1
+  }
+
+  if(iter == 100){
+    warning("Convergence not reached for given tolerance. GK iterations stopped at maxIter iterations. Try increasing the tolerance or maxIter to reach convergence.")
+  }
+
+  return(as.matrix(p/p[1]))
+
+}
+
 #' Compute the Geary-Khamis index
 #'
 #' @param x A dataframe containing price, quantity, a time period identifier
