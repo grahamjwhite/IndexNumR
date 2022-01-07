@@ -451,7 +451,12 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
     links <- maximumSimilarityLinks(similarityMatrix)
   }
 
-  for(i in 2:n){
+  for(i in 1:n){
+
+    if(i == basePeriod){
+      plist[i,1] <- 1
+      next
+    }
 
     # if fixed base requested, set xt0 to the first period data
     if(tolower(output) == "fixedbase"){
@@ -572,7 +577,9 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
 #' @export
 quantityIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                           sample = "matched", output = "pop", chainMethod = "pop",
-                          sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE, weights = "average", ...){
+                          sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE,
+                          weights = "average", loweYoungBase = 1,
+                          imputePrices = NULL, ...){
   return(priceIndex(x,
                     pvar = qvar,
                     qvar = pvar,
