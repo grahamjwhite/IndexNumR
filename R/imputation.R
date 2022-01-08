@@ -61,8 +61,13 @@ imputeCarryPrices <- function(x, pvar, qvar, pervar, prodID){
           fillPrice <- xprod[[pvar]][xprod[[pervar]] == carryBackwardPeriod]
         }
 
-        retVal <- c(period, prod, fillPrice, 0)
-        names(retVal) <- c(pervar, prodID, pvar, qvar)
+        if(qvar == ""){
+          retVal <- c(period, prod, fillPrice)
+          names(retVal) <- c(pervar, prodID, pvar)
+        } else {
+          retVal <- c(period, prod, fillPrice, 0)
+          names(retVal) <- c(pervar, prodID, pvar, qvar)
+        }
 
         return(retVal)
 
@@ -81,13 +86,52 @@ imputeCarryPrices <- function(x, pvar, qvar, pervar, prodID){
 
     # convert columns back to numeric
     x[[pvar]] <- as.numeric(x[[pvar]])
-    x[[qvar]] <- as.numeric(x[[qvar]])
+    if(!qvar == "") x[[qvar]] <- as.numeric(x[[qvar]])
     x[[pervar]] <- as.numeric(x[[pervar]])
 
     # ensure dataset still sorted by time period and product ID
     x <- x[order(x[[pervar]], x[[prodID]]),]
 
   }
+
+  return(x)
+
+}
+
+
+#' Impute quantities when only prices are available
+#'
+#' @inheritParams priceIndex
+#' @keywords internal
+#' @noRd
+imputeQuantities <- function(x, pvar, pervar, prodID){
+
+  # make sure data are sorted by time period and product ID
+  x <- x[order(x[[pervar]], x[[prodID]]),]
+
+  # total time periods
+  obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
+
+  # generate some zero quantities to begin with
+  x$quantities <- 0
+
+  # fill the remaining missing observations with zero
+  x <- fillMissing(x, pvar, "quantities", pervar, prodID,
+                   priceReplace = 0, quantityReplace = 0)
+
+  # form price matrix
+  p <- matrix(x[[pvar]], nrow = obs, byrow = TRUE)
+
+  # get the number of products available in each period
+  numProds <- rowSums(replace(p, p > 0, 1))
+
+  # calculate the imputed quantities
+  imputedQty <- sapply(1:nrow(p), function(i){
+    1/p[i,]*numProds[i]
+  })
+  imputedQty[is.infinite(imputedQty)] <- 0
+
+  x$quantities <- as.vector(imputedQty)
 
   return(x)
 

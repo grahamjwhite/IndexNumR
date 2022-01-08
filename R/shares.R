@@ -60,6 +60,10 @@ shares <- function(x, pvar, qvar, pervar, prodID){
 
 #' Predicted shares for predicted share relative price dissimilarity
 #'
+#' You should not need to call this function directly unless the shares
+#' themselves are of interest. \code{\link{predictedShareDissimilarity}}
+#' will call this function internally.
+#'
 #' @inheritParams priceIndex
 #' @return a list of matrices
 #' @export
