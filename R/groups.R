@@ -27,7 +27,6 @@
 #' @return a list of indexes, one for each group
 #' @export
 #' @examples
-#' \dontrun{
 #' df <- CES_sigma_2
 #' df$groupID <- c(rep(1, 24), rep(2, 24))
 #'
@@ -35,7 +34,7 @@
 #' prodID = "prodID", indexMethod = "fisher", output = "chained")
 #'
 #' groupPriceIndexes("groupID", priceIndex, args)
-#' }
+#'
 groupIndexes <- function(group, indexFunction, indexArgs){
 
   within(indexArgs,{
@@ -72,10 +71,22 @@ groupIndexes <- function(group, indexFunction, indexArgs){
 
 #' Estimate year-over-year indexes
 #'
+#' Year-over-year indexes are indexes where the months or quarters of the
+#' year are split in separate datasets and an index estimated on each.
+#' Therefore, year-over-year indexes estimated on a dataset with five full years
+#' of observations at a monthly frequency will have 12 separate indexes,
+#' each with 5 observations.
+#'
 #' @param freq the frequency of the data. Either "monthly" or "quarterly".
 #' @inheritParams groupIndexes
 #' @return a list of indexes with one element for each month or quarter
 #' @export
+#' @examples
+#' args <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+#' prodID = "prodID", indexMethod = "fisher", output = "chained")
+#'
+#' yearOverYearIndexes("quarterly", priceIndex, args)
+#'
 yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
 
   indexArgs <- within(indexArgs,{
