@@ -42,7 +42,13 @@ geomean <- function(x, na.rm = TRUE){
 #' @keywords internal
 #' @noRd
 checkNames <- function(x, namesVector){
+
   goodNames <- colnames(x)
+
+  # remove columns specified as empty strings to allow qvar = "" for
+  # elementary indexes
+  namesVector <- namesVector[!namesVector == ""]
+
   badNames <- namesVector[!(namesVector %in% goodNames)]
 
   if(length(badNames >= 1)){
@@ -94,14 +100,17 @@ checkTypes <- function(x, pvar, qvar, pervar){
     }
   }
 
-  if(!inherits(x[[qvar]], "numeric")){
-    coerced <- try(as.numeric(x[[qvar]]), silent = TRUE)
-    if(inherits(coerced, "try-error") | any(is.na(coerced))){
-      check = FALSE
-      m <- "Quantity variable is not numeric and cannot be coerced to numeric"
-    }
-    else {
-      x[[qvar]] <- coerced
+  # don't check qvar for elementary indexes
+  if(!qvar == ""){
+    if(!inherits(x[[qvar]], "numeric")){
+      coerced <- try(as.numeric(x[[qvar]]), silent = TRUE)
+      if(inherits(coerced, "try-error") | any(is.na(coerced))){
+        check = FALSE
+        m <- "Quantity variable is not numeric and cannot be coerced to numeric"
+      }
+      else {
+        x[[qvar]] <- coerced
+      }
     }
   }
 

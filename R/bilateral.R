@@ -308,7 +308,9 @@ young_t <- function(p0, p1, pb, qb){
 #' @param x A dataframe containing price, quantity, a time period identifier
 #' and a product identifier. It must have column names.
 #' @param pvar A character string for the name of the price variable
-#' @param qvar A character string for the name of the quantity variable
+#' @param qvar A character string for the name of the quantity variable. For
+#' elementary indexes a quantity variable is not required for the calculations
+#' and you must specify qvar = "".
 #' @param prodID A character string for the name of the product identifier
 #' @param pervar A character string for the name of the time variable. This variable
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
@@ -328,7 +330,7 @@ young_t <- function(p0, p1, pb, qb){
 #' options "plspread" for the Paasche-Laspeyres spread, "asymplinear" for
 #' weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
 #' and "mixScale" for the mix, scale or absolute dissimilarity measures,
-#' or "predictedShare" for the predicted share relative price dissimilarity.
+#' or "predictedshare" for the predicted share relative price dissimilarity.
 #' The default is period-on-period. Additional parameters can be passed to the
 #' mixScaleDissimilarity function using \code{...}
 #' @param sigma The elasticity of substitution for the CES index method.
@@ -400,7 +402,7 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
 
   # check valid chainMethod given
   validChainMethods <- c("pop", "plspread", "asymplinear", "logquadratic", "mixscale",
-                         "predictedShare")
+                         "predictedshare")
   if(!chainMethod %in% validChainMethods){
     stop("Not a valid chainMethod. Please choose from", paste(validChainMethods, collapse = ", "))
   }
