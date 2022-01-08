@@ -119,10 +119,12 @@ gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/
 
   # list of time periods
   pers <- sort(unique(x[[pervar]]))
+  # list of products
+  prods <- sort(unique(x[[prodID]]))
   # total time periods
   obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
   # number of products
-  n <- length(unique(x[[prodID]]))
+  n <- length(prods)
 
   # if matching requested, keep only products that occur through the whole window
   if(sample == "matched"){
@@ -146,7 +148,7 @@ gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/
   calcPi <- function(P){
     pi <- numeric(n)
     for(i in 1:n){
-      pi[i] <- sum(stn[,i]*(x[x[[prodID]] == pers[i],][[pvar]]/P))
+      pi[i] <- sum(stn[,i]*(x[x[[prodID]] == prods[i],][[pvar]]/P))
     }
     return(pi)
   }
@@ -202,6 +204,15 @@ gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/
 #' @param imputePrices the type of price imputation to use for missing prices.
 #' Currently only "carry" is supported to used carry-forward/carry-backward prices.
 #' Default is NULL to not impute missing prices.
+#' @param solveMethod the method to use to solve for the quality adjustment factors
+#' and the price levels. "inverse" uses a matrix inverse operation, is much more efficient, but
+#' may not work if there are many missing observations.
+#' "iterative" iterates between the equations for the quality adjustment factors and price levels
+#' and is much slower, but can be used even when there are a large number of missing observations.
+#' @param tolerance the tolerance for the iterative solving method. Smaller numbers will produce more
+#' accurate results, but take more iterations. Default is 1/1e12, which may be a little larger
+#' than machine precision, given by .Machine$double.eps.
+#' @param maxIter the maximum number of iterations for the iterative solving method.
 #' @details The splicing methods are used to update the price index when new data become
 #' available without changing prior index values. The window, movement, half and mean splices
 #' use the most recent index value as the base period, which is multiplied by a price movement
@@ -212,6 +223,11 @@ gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/
 #' right window length chosen. For example, if you have monthly data and want December
 #' of each year to be the base period, then the first period in the data must be December
 #' and the window must be set to 13.
+#'
+#' It is recommended to use the matrix inverse method of solving the GK equations (the default)
+#' because the performance difference can be significant. If the matrix inverse method does
+#' not work then switch to the iterative method. The tolerance and maximum number of iterations
+#' in the iterative method can be adjusted to balance performance and precision.
 #' @examples
 #' # compute a Geary-Khamis index with mean splicing
 #' GKIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
@@ -227,7 +243,8 @@ gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/
 #' Sankhya: The Indian Journal of Statistics, Series B (1960-2002) 32: 81–98.
 #' @export
 GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice = "mean",
-                    imputePrices = NULL){
+                    imputePrices = NULL, solveMethod = "inverse", tolerance = 1/1e12,
+                    maxIter = 100){
 
   # check that only valid splice methods are chosen
   if(!(tolower(splice) %in% c("mean", "window", "movement", "half", "fbew", "fbmw", "wisp", "hasp", "mean_pub"))){
@@ -238,6 +255,11 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice =
   colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
   if(colNameCheck$result == FALSE){
     stop(colNameCheck$message)
+  }
+
+  # check valid solveMethods are given
+  if(!tolower(solveMethod) %in% c("inverse", "iterative")){
+    stop("Not a valid solveMethod.")
   }
 
   # check that the time period variable is continuous
@@ -278,7 +300,10 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice =
   xWindow <- x[x[[pervar]] >= 1 & x[[pervar]] <= window,]
 
   # call gk_w on first window
-  pGK[1:window,1] <- gk_w(xWindow, pvar, qvar, pervar, prodID, sample)
+  pGK[1:window,1] <- switch(solveMethod,
+                            "inverse" = gk_w(xWindow, pvar, qvar, pervar, prodID, sample),
+                            "iterative" = gk_w_iterative(xWindow, pvar, qvar, pervar,
+                                                         prodID, sample, tolerance, maxIter))
 
   # use a splicing method to compute the rest of the index
   if(n > window){
@@ -307,7 +332,10 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice =
       }
 
       # call gk_w on this window
-      new <- gk_w(xWindow, pvar, qvar, pervar, prodID, sample)
+      new <- switch(solveMethod,
+                    "inverse" = gk_w(xWindow, pvar, qvar, pervar, prodID, sample),
+                    "iterative" = gk_w_iterative(xWindow, pvar, qvar, pervar,
+                                                 prodID, sample, tolerance, maxIter))
 
       # splice the new datapoint on
       switch(splice,
