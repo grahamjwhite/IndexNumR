@@ -17,11 +17,8 @@
 
 #' Fill all missing prices with carry forward/backward prices
 #'
-#'
-#'
 #' @inheritParams priceIndex
-#' @keywords internal
-#' @noRd
+#' @export
 imputeCarryPrices <- function(x, pvar, qvar, pervar, prodID){
 
   # list of products
@@ -102,8 +99,7 @@ imputeCarryPrices <- function(x, pvar, qvar, pervar, prodID){
 #' Impute quantities when only prices are available
 #'
 #' @inheritParams priceIndex
-#' @keywords internal
-#' @noRd
+#' @export
 imputeQuantities <- function(x, pvar, pervar, prodID){
 
   # make sure data are sorted by time period and product ID

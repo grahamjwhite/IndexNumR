@@ -19,5 +19,16 @@ All arguments must be named.}
 a list of indexes with one element for each month or quarter
 }
 \description{
-Estimate year-over-year indexes
+Year-over-year indexes are indexes where the months or quarters of the
+year are split in separate datasets and an index estimated on each.
+Therefore, year-over-year indexes estimated on a dataset with five full years
+of observations at a monthly frequency will have 12 separate indexes,
+each with 5 observations.
+}
+\examples{
+args <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+prodID = "prodID", indexMethod = "fisher", output = "chained")
+
+yearOverYearIndexes("quarterly", priceIndex, args)
+
 }

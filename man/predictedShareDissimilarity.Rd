@@ -12,7 +12,9 @@ and a product identifier. It must have column names.}
 
 \item{pvar}{A character string for the name of the price variable}
 
-\item{qvar}{A character string for the name of the quantity variable}
+\item{qvar}{A character string for the name of the quantity variable. For
+elementary indexes a quantity variable is not required for the calculations
+and you must specify qvar = "".}
 
 \item{pervar}{A character string for the name of the time variable. This variable
 must contain integers starting at period 1 and increasing in increments of 1 period.

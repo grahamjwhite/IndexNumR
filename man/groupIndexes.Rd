@@ -23,7 +23,6 @@ a list of indexes, one for each group
 Calculate price indexes for product groups
 }
 \examples{
-\dontrun{
 df <- CES_sigma_2
 df$groupID <- c(rep(1, 24), rep(2, 24))
 
@@ -31,5 +30,5 @@ args <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time",
 prodID = "prodID", indexMethod = "fisher", output = "chained")
 
 groupPriceIndexes("groupID", priceIndex, args)
-}
+
 }
