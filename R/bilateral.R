@@ -447,8 +447,9 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
            mixscale = {similarityMatrix <- mixScaleDissimilarity(x,pvar=pvar,qvar=qvar,
                                                                  pervar=pervar,prodID=prodID,
                                                                  ...)},
-           predictedshare = {similarityMatrix <- predictedShareDissimilarity(x, pvar, qvar,
-                                                                             pervar, prodID)})
+           predictedshare = {similarityMatrix <- relativeDissimilarity(x, pvar, qvar,
+                                                                       pervar, prodID,
+                                                                       similarityMethod = "predictedshare")})
     # use the similarity matrix to compute links
     links <- maximumSimilarityLinks(similarityMatrix)
   }
