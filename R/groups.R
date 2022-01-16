@@ -59,6 +59,7 @@ groupIndexes <- function(group, indexFunction, indexArgs){
                         retVal <- data.frame(prices = p,
                                              time = unique(inputs$x[[inputs$pervar]]),
                                              group = y)
+                        colnames(retVal) <- c("prices", "time", group)
 
                         return(retVal)
 
@@ -89,19 +90,24 @@ groupIndexes <- function(group, indexFunction, indexArgs){
 #'
 yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
 
+  # convert frequency to integer
+  freqInt <- switch(freq,
+                    "monthly" = 12,
+                    "quarterly" = 4)
+
+  freqName <- switch (freq,
+                      "monthly" = "month",
+                      "quarterly" = "quarter"
+  )
+
   indexArgs <- within(indexArgs,{
     # sort the dataset by time period and product ID
     x <- x[order(x[[pervar]], x[[prodID]]),]
 
-    # convert frequency to integer
-    freqInt <- switch(freq,
-                      "monthly" = 12,
-                      "quarterly" = 4)
-
     # create the subgroup column using a vector of 1:freqInt
     lookup <- data.frame(min(x[[pervar]]):max(x[[pervar]]))
-    lookup$group <- rep(1:freqInt, len = nrow(lookup))
-    colnames(lookup) <- c(pervar, "group")
+    lookup[[freqName]] <- rep(1:freqInt, len = nrow(lookup))
+    colnames(lookup) <- c(pervar, freqName)
 
     x <- merge(x, lookup)
 
@@ -110,11 +116,11 @@ yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
                           x[[pervar]]/freqInt,
                           (x[[pervar]] + freqInt - x[[pervar]] %% freqInt)/freqInt)
 
-    rm(lookup, freqInt)
+    rm(lookup)
 
   })
 
-  indexes <- groupIndexes("group", indexFunction, indexArgs)
+  indexes <- groupIndexes(freqName, indexFunction, indexArgs)
 
   return(indexes)
 
