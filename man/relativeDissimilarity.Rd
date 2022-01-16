@@ -31,8 +31,8 @@ use in the calculation. Not relevant for similarityMethod = PLSpread.
 Supported methods are fisher and tornqvist. Default is Fisher.}
 
 \item{similarityMethod}{A string specifying the formula for calculating
-the relative dissimilarity. Valid options are logquadratic, asymplinear
-and PLSpread. Default is logquadratic.}
+the relative dissimilarity. Valid options are logquadratic, asymplinear,
+PLSpread and predictedshare. Default is logquadratic.}
 }
 \value{
 A matrix of dissimilarity measures.
