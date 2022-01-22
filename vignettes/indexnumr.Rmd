@@ -16,7 +16,7 @@ vignette: >
 library(IndexNumR)
 library(tidyr)
 
-devtools::load_all()
+#devtools::load_all()
 
 ```
 

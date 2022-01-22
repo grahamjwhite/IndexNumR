@@ -71,6 +71,13 @@ test_that("error is thrown when output method is specified",{
                "Not a valid output type. Please choose from chained, fixedbase or pop.")
 })
 
+test_that("Error is thrown for an invalid tpd weight type", {
+  expect_error(priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",
+                          pervar = "time",prodID = "prodID",indexMethod = "laspeyres",
+                          sample="matched", output = "chained", weights = "wrong_weights"),
+               "Not a valid weight type. Please choose from unweighted, shares or average.")
+})
+
 rm(testData)
 
 #load CES_sigma_2 and make period 3 missing
