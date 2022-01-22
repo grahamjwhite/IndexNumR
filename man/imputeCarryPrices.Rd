@@ -12,9 +12,8 @@ and a product identifier. It must have column names.}
 
 \item{pvar}{A character string for the name of the price variable}
 
-\item{qvar}{A character string for the name of the quantity variable. For
-elementary indexes a quantity variable is not required for the calculations
-and you must specify qvar = "".}
+\item{qvar}{A character string for the name of the quantity variable.
+If there is no quantity variable you must specify qvar = "".}
 
 \item{pervar}{A character string for the name of the time variable. This variable
 must contain integers starting at period 1 and increasing in increments of 1 period.
@@ -22,6 +21,20 @@ There may be observations on multiple products for each time period.}
 
 \item{prodID}{A character string for the name of the product identifier}
 }
+\value{
+the input data frame with missing observations filled
+}
 \description{
-Fill all missing prices with carry forward/backward prices
+If a missing product has a previous price then that previous price
+is carried forward until the next real observation. If there is
+no previous price then the next real observation is found and
+carried backward. If a price observation is filled, and a quantity
+variable is specified, then the corresponding quantity is set to zero.
+Prices can be filled with no quantity variable by specifying
+qvar = "".
+}
+\examples{
+# create a dataset with missing prices for products 1 and 2
+df <- CES_sigma_2[-c(1,2,14,15),]
+imputeCarryPrices(df, "prices", "quantities", "time", "prodID")
 }

@@ -17,8 +17,23 @@
 
 #' Fill all missing prices with carry forward/backward prices
 #'
+#' If a missing product has a previous price then that previous price
+#' is carried forward until the next real observation. If there is
+#' no previous price then the next real observation is found and
+#' carried backward. If a price observation is filled, and a quantity
+#' variable is specified, then the corresponding quantity is set to zero.
+#' Prices can be filled with no quantity variable by specifying
+#' qvar = "".
+#'
+#' @param qvar A character string for the name of the quantity variable.
+#' If there is no quantity variable you must specify qvar = "".
 #' @inheritParams priceIndex
+#' @return the input data frame with missing observations filled
 #' @export
+#' @examples
+#' # create a dataset with missing prices for products 1 and 2
+#' df <- CES_sigma_2[-c(1,2,14,15),]
+#' imputeCarryPrices(df, "prices", "quantities", "time", "prodID")
 imputeCarryPrices <- function(x, pvar, qvar, pervar, prodID){
 
   # list of products
@@ -97,6 +112,12 @@ imputeCarryPrices <- function(x, pvar, qvar, pervar, prodID){
 
 
 #' Impute quantities when only prices are available
+#'
+#' This procedure calculates quantities in such a way that
+#' the expenditure shares on all products are equal in each
+#' period. It is used to compute quantities for the predicted
+#' share measure of relative price dissimilarity when there are
+#' none available.
 #'
 #' @inheritParams priceIndex
 #' @export

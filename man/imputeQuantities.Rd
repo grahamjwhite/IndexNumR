@@ -19,5 +19,9 @@ There may be observations on multiple products for each time period.}
 \item{prodID}{A character string for the name of the product identifier}
 }
 \description{
-Impute quantities when only prices are available
+This procedure calculates quantities in such a way that
+the expenditure shares on all products are equal in each
+period. It is used to compute quantities for the predicted
+share measure of relative price dissimilarity when there are
+none available.
 }

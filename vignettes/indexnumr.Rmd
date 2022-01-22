@@ -680,52 +680,6 @@ result
 
 On the assumptions in the above example, periods 1, 5 and 9 are Decembers. Periods 1-5 are computed using full information and periods 6-12 are computed using the splicing methods. Notice that fbew = fbmw in period 9 (December) and fbmw = movement in period 6 (January).
 
-
-## Group indexes
-
-If a variable is available in the data set that identifies the group to which a product belongs, it is possible to estimate indexes on each of the groups in the sample using the function `groupIndexes`.  An example is if products come from different geographic regions, or belong to different product categories. `groupIndexes` will split the data into the different groups and estimate a price index on each group. Any of the price index functions can be used by specifying the `indexFunction` parameter and then supplying the arguments to the price index function as a named list. 
-
-```{r groups}
-
-# add a group variable to the CES_sigma_2 dataset
-# products 1 and 2 will be in group 1, products 3 and 4 in group 2
-df <- CES_sigma_2
-df$group <- c(rep(1, 24), rep(2, 24))
-
-# estimate a bilateral chained fisher index on the groups
-argsList <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID",
-             indexMethod = "fisher", output = "chained")
-
-groupIndexes("group", priceIndex, argsList)
-
-# estimate a GEKS index on the groups
-argsGEKS <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID",
-                 indexMethod = "fisher", window = 12)
-
-groupIndexes("group", GEKSIndex, argsGEKS)
-
-
-```
-
-
-## Year-over-year Indexes
-
-Year-over-year indexes are those that calculate the price change between the same periods across years and useful for seasonal goods. If the data are monthly then there are twelve indexes; one for each month of the year. Each element of the January index would measure the price movement from January in the base year to January in the comparison year. The second index does the same for February, and so on. *IndexNumR* provides the function `yearOverYearIndexes` to estimate these, given the frequency as either 'monthly' or 'quarterly'. This is effectively a form of group index, where the month or quarter gives the group to which the product belongs. *IndexNumR* will create a group variable based on the supplied frequency and call the `groupIndexes` function to estimate the indexes. The data must be structured in the frequency that you specify (if you specify 'quarterly' as the frequency in the `yearOverYearIndexes` function, the time period variable in the data set must be quarterly). 
-
-The output from the `yearOverYearIndexes` function will have a column for the month or quarter. The quarter labelled as quarter 1 will have been constructed from the time periods 1, 5, 9, 13, etc of the data set. The quarter labelled 2 would have been estimated from time periods 2, 6, 10, 14, etc of the data set.  
-
-```{r yoy}
-
-# Assume the CES_sigma_2 data are quarterly observations over three years. 
-# This results in 4 indexes of 3 periods each.
-# Estimate year-over-year chained fisher indexes.
-argsList <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", 
-                 prodID = "prodID", indexMethod = "fisher", output = "chained")
-
-yearOverYearIndexes("quarterly", priceIndex, argsList)
-
-```
-
 ## The differences approach to index numbers
 
 The above index number methods are derived based on a ratio approach, which decomposes the value change from one period to the next into the product of a price index and a quantity index. An alternative approach is to decompose value change into the sum of a price indicator and a quantity indicator. The theory dates back to the 1920s, and an excellent paper on this approach has been written by Diewert [@diewert:2005a]. There are a number of methods available for computing the indicator, and *IndexNumR* exposes the following, via the `priceIndicator` function:
@@ -782,7 +736,55 @@ valueDecomposition(CES_sigma_2,
 
 ```
 
-Note that for this decomposition, the method is specified for the price indicator and *IndexNumR* uses the appropriate quantity indicator. For Bennet and Montgomery indicators the same method is used for the quantity indicator as for the price indicator. If a Laspeyres price indicator is requested  then the corresponding volume indicator is a Paasche indicator. The reverse is true if the Paasche indicator is used for prices.  
+Note that for this decomposition, the method is specified for the price indicator and *IndexNumR* uses the appropriate quantity indicator. For Bennet and Montgomery indicators the same method is used for the quantity indicator as for the price indicator. If a Laspeyres price indicator is requested  then the corresponding volume indicator is a Paasche indicator. The reverse is true if the Paasche indicator is used for prices. 
+
+
+## Group indexes
+
+If a variable is available in the data set that identifies the group to which a product belongs, it is possible to estimate indexes on each of the groups in the sample using the function `groupIndexes`.  An example is if products come from different geographic regions, or belong to different product categories. `groupIndexes` will split the data into the different groups and estimate a price index on each group. Any of the price index functions can be used by specifying the `indexFunction` parameter and then supplying the arguments to the price index function as a named list. 
+
+```{r groups}
+
+# add a group variable to the CES_sigma_2 dataset
+# products 1 and 2 will be in group 1, products 3 and 4 in group 2
+df <- CES_sigma_2
+df$group <- c(rep(1, 24), rep(2, 24))
+
+# estimate a bilateral chained fisher index on the groups
+argsList <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID",
+             indexMethod = "fisher", output = "chained")
+
+groupIndexes("group", priceIndex, argsList)
+
+# estimate a GEKS index on the groups
+argsGEKS <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID",
+                 indexMethod = "fisher", window = 12)
+
+groupIndexes("group", GEKSIndex, argsGEKS)
+
+
+```
+
+
+## Year-over-year Indexes
+
+Year-over-year indexes are those that calculate the price change between the same periods across years. If the data are monthly then there are twelve indexes; one for each month of the year. Each element of the January index would measure the price movement from January in the base year to January in the comparison year. The second index does the same for February, and so on. *IndexNumR* provides the function `yearOverYearIndexes` to estimate these, given the frequency as either 'monthly' or 'quarterly'. This is effectively a form of group index, where the month or quarter gives the group to which the product belongs. *IndexNumR* will create a group variable based on the supplied frequency and call the `groupIndexes` function to estimate the indexes. The data must be structured in the frequency that you specify (if you specify 'quarterly' as the frequency in the `yearOverYearIndexes` function, the time period variable in the data set must be quarterly). 
+
+The output from the `yearOverYearIndexes` function will have a column for the month or quarter. The quarter labelled as quarter 1 will have been constructed from the time periods 1, 5, 9, 13, etc of the data set. The quarter labelled 2 would have been estimated from time periods 2, 6, 10, 14, etc of the data set.  
+
+```{r yoy}
+
+# Assume the CES_sigma_2 data are quarterly observations over three years. 
+# This results in 4 indexes of 3 periods each.
+# Estimate year-over-year chained fisher indexes.
+argsList <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", 
+                 prodID = "prodID", indexMethod = "fisher", output = "chained")
+
+yearOverYearIndexes("quarterly", priceIndex, argsList)
+
+```
+
+ 
 
 # Development
 
