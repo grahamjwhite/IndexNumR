@@ -57,6 +57,13 @@ test_that("error is thrown when wrong column names are given",{
                "are not column names of the input data frame")
 })
 
+test_that("error is thrown when wrong column names are given",{
+  expect_error(priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantitie",
+                          pervar = "time", prodID = "prodID", indexMethod = "laspeyres",
+                          sample = "matched", output = "chained"),
+               "are not column names of the input data frame")
+})
+
 test_that("error is thrown when wrong index method is specified",{
   expect_error(priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",
                           pervar = "time",prodID = "prodID",indexMethod = "wrong_method",
@@ -69,6 +76,14 @@ test_that("error is thrown when output method is specified",{
                           pervar = "time",prodID = "prodID",indexMethod = "laspeyres",
                           sample="matched", output = "wrong_output"),
                "Not a valid output type. Please choose from chained, fixedbase or pop.")
+})
+
+test_that("Error is thrown when wrong chain method given", {
+
+  expect_error(priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",
+                          pervar = "time",prodID = "prodID",indexMethod = "laspeyres",
+                          sample="matched", output = "chained", chainMethod = "wrong_method"),
+               "Not a valid chainMethod. Please choose frompop, plspread, asymplinear, logquadratic, mixscale, predictedshare")
 })
 
 test_that("Error is thrown for an invalid tpd weight type", {
@@ -106,13 +121,6 @@ test_that("bilateral quantity index functions return the correct values",{
     }
   }
 
-})
-
-test_that("error is thrown when wrong column names are given",{
-  expect_error(priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantitie",
-                          pervar = "time", prodID = "prodID", indexMethod = "laspeyres",
-                          sample = "matched", output = "chained"),
-               "are not column names of the input data frame")
 })
 
 rm(testData)
@@ -185,5 +193,19 @@ test_that("bilateral unweighted tpd gives a matched-model jevons index with miss
                     prodID = "prodID", indexMethod = "jevons", sample = "matched")
 
   expect_equal(tpd, jev)
+
+})
+
+
+test_that("The right result is given when prices are imputed", {
+
+  df <- CES_sigma_2[-c(2:3),]
+  result <- priceIndex(df, pvar = "prices", qvar = "quantities", pervar = "time",
+             prodID = "prodID", indexMethod = "fisher", output = "chained", imputePrices = "carry")
+
+  expect_equal(result, as.matrix(c(1, 0.881280297388098, 1.10748511558337, 1.13268619923687,
+                                   0.932248672354066, 1.18881766113942, 1.13162788219576, 0.937414782841657,
+                                   1.10719909454772, 0.955793570240181, 1.13893096121809, 1.14473220737899
+  )))
 
 })
