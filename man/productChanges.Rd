@@ -21,5 +21,6 @@ a list containing one element for each time period, each element of
 which contains two vectors (one for appearing products, and one for disappearing products)
 }
 \description{
-Product ID's for appearing/disappearing products
+This function will give the product ID's of products that appear
+or disappear in each period.
 }

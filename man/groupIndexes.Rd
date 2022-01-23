@@ -10,8 +10,9 @@ groupIndexes(group, indexFunction, indexArgs)
 \item{group}{the name of the variable containing the group ID. This
 must be a factor variable, or a variable coercible to a factor.}
 
-\item{indexFunction}{the function to use to calculate the index. Available
-options are `priceIndex`, `GEKSIndex`, `GKIndex`, `WTPDIndex`.}
+\item{indexFunction}{the name of the function to use to calculate the
+index as a string. Available options are `priceIndex`, `GEKSIndex`,
+`GKIndex`, `WTPDIndex`.}
 
 \item{indexArgs}{arguments for the price index function as a named list.
 All arguments must be named.}
@@ -29,6 +30,6 @@ df$groupID <- c(rep(1, 24), rep(2, 24))
 argsList <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time",
 prodID = "prodID", indexMethod = "fisher", output = "chained")
 
-groupIndexes("groupID", priceIndex, argsList)
+groupIndexes("groupID", "priceIndex", argsList)
 
 }

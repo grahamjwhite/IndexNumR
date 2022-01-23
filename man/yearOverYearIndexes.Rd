@@ -9,8 +9,9 @@ yearOverYearIndexes(freq, indexFunction, indexArgs)
 \arguments{
 \item{freq}{the frequency of the data. Either "monthly" or "quarterly".}
 
-\item{indexFunction}{the function to use to calculate the index. Available
-options are `priceIndex`, `GEKSIndex`, `GKIndex`, `WTPDIndex`.}
+\item{indexFunction}{the name of the function to use to calculate the
+index as a string. Available options are `priceIndex`, `GEKSIndex`,
+`GKIndex`, `WTPDIndex`.}
 
 \item{indexArgs}{arguments for the price index function as a named list.
 All arguments must be named.}
@@ -26,9 +27,9 @@ of observations at a monthly frequency will have 12 separate indexes,
 each with 5 observations.
 }
 \examples{
-args <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+argsList <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
 prodID = "prodID", indexMethod = "fisher", output = "chained")
 
-yearOverYearIndexes("quarterly", priceIndex, args)
+yearOverYearIndexes("quarterly", "priceIndex", argsList)
 
 }
