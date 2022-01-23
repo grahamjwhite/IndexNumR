@@ -754,13 +754,13 @@ df$group <- c(rep(1, 24), rep(2, 24))
 argsList <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID",
              indexMethod = "fisher", output = "chained")
 
-groupIndexes("group", priceIndex, argsList)
+groupIndexes("group", "priceIndex", argsList)
 
 # estimate a GEKS index on the groups
 argsGEKS <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID",
                  indexMethod = "fisher", window = 12)
 
-groupIndexes("group", GEKSIndex, argsGEKS)
+groupIndexes("group", "GEKSIndex", argsGEKS)
 
 
 ```
@@ -780,7 +780,7 @@ The output from the `yearOverYearIndexes` function will have a column for the mo
 argsList <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", 
                  prodID = "prodID", indexMethod = "fisher", output = "chained")
 
-yearOverYearIndexes("quarterly", priceIndex, argsList)
+yearOverYearIndexes("quarterly", "priceIndex", argsList)
 
 ```
 
