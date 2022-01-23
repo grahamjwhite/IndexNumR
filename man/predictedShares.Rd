@@ -27,6 +27,5 @@ a list of matrices
 }
 \description{
 You should not need to call this function directly unless the shares
-themselves are of interest. \code{\link{predictedShareDissimilarity}}
-will call this function internally.
+themselves are of interest. Other functions will call this function internally.
 }

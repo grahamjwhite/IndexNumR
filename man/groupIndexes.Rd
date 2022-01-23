@@ -26,9 +26,9 @@ Calculate price indexes for product groups
 df <- CES_sigma_2
 df$groupID <- c(rep(1, 24), rep(2, 24))
 
-args <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time",
+argsList <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time",
 prodID = "prodID", indexMethod = "fisher", output = "chained")
 
-groupPriceIndexes("groupID", priceIndex, args)
+groupIndexes("groupID", priceIndex, argsList)
 
 }

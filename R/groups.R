@@ -37,10 +37,8 @@
 #'
 groupIndexes <- function(group, indexFunction, indexArgs){
 
-  within(indexArgs,{
-    # sort the dataset by time period and product ID
-    x <- x[order(x[[pervar]], x[[prodID]]),]
-  })
+  # sort the dataset by time period and product ID
+  indexArgs$x <- indexArgs$x[order(indexArgs$x[[indexArgs$pervar]], indexArgs$x[[indexArgs$prodID]]),]
 
   # get the groups
   groups <- sort(unique(indexArgs$x[[group]]))
@@ -100,25 +98,20 @@ yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
                       "quarterly" = "quarter"
   )
 
-  indexArgs <- within(indexArgs,{
-    # sort the dataset by time period and product ID
-    x <- x[order(x[[pervar]], x[[prodID]]),]
+  # sort the dataset by time period and product ID
+  indexArgs$x <- indexArgs$x[order(indexArgs$x[[indexArgs$pervar]], indexArgs$x[[indexArgs$prodID]]),]
 
-    # create the subgroup column using a vector of 1:freqInt
-    lookup <- data.frame(min(x[[pervar]]):max(x[[pervar]]))
-    lookup[[freqName]] <- rep(1:freqInt, len = nrow(lookup))
-    colnames(lookup) <- c(pervar, freqName)
+  lookup <- data.frame(min(indexArgs$x[[indexArgs$pervar]]):max(indexArgs$x[[indexArgs$pervar]]))
+  lookup[[freqName]] <- rep(1:freqInt, len = nrow(lookup))
+  colnames(lookup) <- c(indexArgs$pervar, freqName)
 
-    x <- merge(x, lookup)
+  indexArgs$x <- merge(indexArgs$x, lookup)
 
-    # re-scale the time variable so that each subgroup time index starts at 1
-    x[[pervar]] <- ifelse(x[[pervar]] %% freqInt == 0,
-                          x[[pervar]]/freqInt,
-                          (x[[pervar]] + freqInt - x[[pervar]] %% freqInt)/freqInt)
+  # re-scale the time variable so that each subgroup time index starts at 1
+  indexArgs$x[[indexArgs$pervar]] <- ifelse(indexArgs$x[[indexArgs$pervar]] %% freqInt == 0,
+                                  indexArgs$x[[indexArgs$pervar]]/freqInt,
+                        (indexArgs$x[[indexArgs$pervar]] + freqInt - indexArgs$x[[indexArgs$pervar]] %% freqInt)/freqInt)
 
-    rm(lookup)
-
-  })
 
   indexes <- groupIndexes(freqName, indexFunction, indexArgs)
 
