@@ -134,3 +134,17 @@ test_that("can replicate intGEKS result in Lamboray & Krsinich", {
   expect_equal(ind[5]/ind[4], 0.99)
 
 })
+
+
+test_that("The right GEKSIndex result is given when prices are imputed", {
+
+  df <- CES_sigma_2[-c(2:3),]
+  result <- GEKSIndex(df, pvar = "prices", qvar = "quantities", pervar = "time",
+                    prodID = "prodID", indexMethod = "fisher", imputePrices = "carry", window = 12)
+
+  expect_equal(result, as.matrix(c(1, 0.876105290522952, 1.08127159852239, 1.10437571515941,
+                                   0.911053419297449, 1.16689616688954, 1.1114839943134, 0.922249166063837,
+                                   1.08436534352444, 0.930263143473634, 1.11519231402879, 1.11806626998895
+  )))
+
+})

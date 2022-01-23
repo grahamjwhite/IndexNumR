@@ -58,7 +58,7 @@ relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
     stop("Not a valid similarity method.")
   }
 
-  if(tolower(similarityMethod == "predictedShare")){
+  if(tolower(similarityMethod == "predictedshare")){
     return(predictedShareDissimilarity(x, pvar, qvar, pervar, prodID))
   }
 

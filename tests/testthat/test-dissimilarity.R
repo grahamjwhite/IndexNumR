@@ -22,8 +22,10 @@ test_that("Dissimilarity measures return the correct values",{
                                      prodID = "prodID",measure = "scale", combine = "geomean"),
                testData$scale)
   expect_equal(relativeDissimilarity(CES_sigma_2, pvar="prices",qvar="quantities",pervar="time",
-                                     prodID = "prodID",similarityMethod = "predictedshare"),
+                                     prodID = "prodID", similarityMethod = "predictedshare"),
                testData$predictedShare)
+  expect_equal(predictedShareDissimilarity(CES_sigma_2, pvar="prices", qvar="quantities", pervar="time",
+                                     prodID = "prodID"), testData$predictedShare)
 })
 
 test_that("maximum similarity links are estimated correctly",{

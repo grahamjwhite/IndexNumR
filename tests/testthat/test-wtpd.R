@@ -135,3 +135,18 @@ test_that("IndexNumR equals a WLS regression on pooled data", {
   expect_equal(b, i)
 
 })
+
+
+test_that("The right WTPDIndex result is given when prices are imputed", {
+
+  df <- CES_sigma_2[-c(2:3),]
+  result <- WTPDIndex(df, pvar = "prices", qvar = "quantities", pervar = "time",
+                      prodID = "prodID", imputePrices = "carry", window = 12)
+
+  expect_equal(result, as.matrix(c(1, 0.84302144386335, 1.09076856212972, 1.16065329874175,
+                                   0.944527046394152, 1.23691866972485, 1.17634227942966, 0.966190720355013,
+                                   1.14752185188379, 0.957115889683172, 1.17791153172507, 1.1778361047407
+  )))
+
+})
+
