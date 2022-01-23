@@ -130,11 +130,14 @@ evaluateMatched <- function(x,pvar,qvar,pervar,prodID,output="chained"){
   counts[,4] <- counts[,3]/counts[,2]
   counts[,8] <- counts[,7]/counts[,6]
 
-  return(list(expenditure=expenditure,counts=counts))
+  return(list(expenditure = expenditure, counts = counts))
 }
 
 
 #' Product ID's for appearing/disappearing products
+#'
+#' This function will give the product ID's of products that appear
+#' or disappear in each period.
 #'
 #' @inheritParams priceIndex
 #' @return a list containing one element for each time period, each element of

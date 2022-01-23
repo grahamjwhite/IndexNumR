@@ -41,9 +41,27 @@ test_that("geks functions return the correct values for different index methods"
 
 test_that("error is thrown when wrong column names are given",{
   expect_error(GEKSIndex(CES_sigma_2,pvar = "price",qvar = "quantities",
-                          pervar = "time",prodID = "prodID",indexMethod = "tornqvist",
-                          sample="matched"),
+                          pervar = "time", prodID = "prodID", indexMethod = "tornqvist",
+                          sample = "matched"),
                "are not column names of the input data frame")
+})
+
+test_that("Error is thrown for wrong splice method", {
+
+  expect_error(GEKSIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",
+                         pervar = "time", prodID = "prodID", indexMethod = "tornqvist",
+                         sample = "matched", window = 12, splice = "wrongSplice"),
+               "Not a valid splicing method.")
+
+})
+
+test_that("Error is thrown for wrong imputePrices parameter", {
+
+  expect_error(GEKSIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",
+                         pervar = "time", prodID = "prodID", indexMethod = "tornqvist",
+                         sample = "matched", window = 12, splice = "window", imputePrices = "wrongImpute"),
+               "Invalid imputePrices argument")
+
 })
 
 rm(testData)

@@ -132,3 +132,23 @@ test_that("The right GKIndex result is given when prices are imputed", {
   )))
 
 })
+
+
+test_that("Error is thrown for wrong splice method", {
+
+  expect_error(GKIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",
+                         pervar = "time", prodID = "prodID",
+                         sample = "matched", window = 12, splice = "wrongSplice"),
+               "Not a valid splicing method.")
+
+})
+
+test_that("Error is thrown for wrong imputePrices parameter", {
+
+  expect_error(GEKSIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",
+                         pervar = "time", prodID = "prodID",
+                         sample = "matched", window = 12, splice = "window", imputePrices = "wrongImpute"),
+               "Invalid imputePrices argument")
+
+})
+
