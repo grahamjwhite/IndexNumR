@@ -4,7 +4,7 @@ test_that("group indexes calculate correctly", {
   df$group <- c(rep(1, 24), rep(2, 24))
 
   # bilateral index
-  result <- groupIndexes("group", priceIndex, list(x = df, pvar = "prices",
+  result <- groupIndexes("group", "priceIndex", list(x = df, pvar = "prices",
                                                    qvar = "quantities", pervar = "time",
                                                    prodID = "prodID", indexMethod = "fisher",
                                                    output = "chained"))
@@ -24,7 +24,7 @@ test_that("group indexes calculate correctly", {
 
 
   # multilateral index
-  result <- groupIndexes("group", GEKSIndex, list(x = df, pvar = "prices",
+  result <- groupIndexes("group", "GEKSIndex", list(x = df, pvar = "prices",
                                                   qvar = "quantities", pervar = "time",
                                                   prodID = "prodID", indexMethod = "fisher",
                                                   window = 12))
@@ -47,10 +47,31 @@ test_that("group indexes calculate correctly", {
 })
 
 
+test_that("groupIndexes parameter validation", {
+
+  argsList <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                   prodID = "prodID", indexMethod = "fisher", output = "chained")
+
+  expect_error(groupIndexes("groupID", "priceIndex", argsList),
+               "groupID is not a column name of the data frame given in indexArgs")
+
+  df <- CES_sigma_2
+  df$groupID <- c(rep(1, 24), rep(2, 24))
+
+  argsList <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time",
+                   prodID = "prodID", indexMethod = "fisher", output = "chained")
+
+  expect_error(groupIndexes("groupID", "evaluateMatched", argsList),
+               "Invalid or incorrect indexFunction given. Valid functions are: priceIndex, quantityIndex, GEKSIndex, GKIndex, WTPDIndex, priceIndicator")
+
+
+})
+
+
 test_that("year-over-year indexes return the correct results", {
 
   # quarterly
-  result <- yearOverYearIndexes("quarterly", priceIndex, list(x = CES_sigma_2, pvar = "prices",
+  result <- yearOverYearIndexes("quarterly", "priceIndex", list(x = CES_sigma_2, pvar = "prices",
                                                               qvar = "quantities", pervar = "time",
                                                               prodID = "prodID", indexMethod = "fisher",
                                                               output = "chained"))
@@ -91,7 +112,7 @@ test_that("year-over-year indexes return the correct results", {
 
   df <- do.call(rbind, list(df1, df2, df3))
 
-  result <- yearOverYearIndexes("monthly", priceIndex, list(x = df, pvar = "prices",
+  result <- yearOverYearIndexes("monthly", "priceIndex", list(x = df, pvar = "prices",
                                                   qvar = "quantities", pervar = "time",
                                                   prodID = "prodID", indexMethod = "fisher",
                                                   output = "chained"))
@@ -103,5 +124,18 @@ test_that("year-over-year indexes return the correct results", {
 
 })
 
+
+test_that("yearOverYearIndexes parameter validation", {
+
+  argsList <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                   prodID = "prodID", indexMethod = "fisher", output = "chained")
+
+  expect_error(yearOverYearIndexes("wrong freq", "priceIndexs", args),
+               "Incorrect freq argument. Must be 'monthly' or 'quarterly'.")
+
+  expect_error(yearOverYearIndexes("quarterly", "evaluateMatched", args),
+               "Invalid or incorrect indexFunction given. Valid functions are: priceIndex, quantityIndex, GEKSIndex, GKIndex, WTPDIndex, priceIndicator")
+
+})
 
 

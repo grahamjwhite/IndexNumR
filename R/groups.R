@@ -20,8 +20,9 @@
 #'
 #' @param group the name of the variable containing the group ID. This
 #' must be a factor variable, or a variable coercible to a factor.
-#' @param indexFunction the function to use to calculate the index. Available
-#' options are `priceIndex`, `GEKSIndex`, `GKIndex`, `WTPDIndex`.
+#' @param indexFunction the name of the function to use to calculate the
+#' index as a string. Available options are `priceIndex`, `GEKSIndex`,
+#' `GKIndex`, `WTPDIndex`.
 #' @param indexArgs arguments for the price index function as a named list.
 #' All arguments must be named.
 #' @return a list of indexes, one for each group
@@ -33,9 +34,18 @@
 #' argsList <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time",
 #' prodID = "prodID", indexMethod = "fisher", output = "chained")
 #'
-#' groupIndexes("groupID", priceIndex, argsList)
+#' groupIndexes("groupID", "priceIndex", argsList)
 #'
 groupIndexes <- function(group, indexFunction, indexArgs){
+
+  if(!group %in% colnames(indexArgs$x)){
+    stop(group, " is not a column name of the data frame given in indexArgs")
+  }
+
+  validFuns <- c("priceIndex", "quantityIndex", "GEKSIndex", "GKIndex", "WTPDIndex", "priceIndicator")
+  if(!indexFunction %in% validFuns){
+    stop("Invalid or incorrect indexFunction given. Valid functions are: ", paste(validFuns, collapse = ", "))
+  }
 
   # sort the dataset by time period and product ID
   indexArgs$x <- indexArgs$x[order(indexArgs$x[[indexArgs$pervar]], indexArgs$x[[indexArgs$prodID]]),]
@@ -52,7 +62,7 @@ groupIndexes <- function(group, indexFunction, indexArgs){
                         inputs$x <- inputs$x[inputs$x[[group]] == y,]
 
                         # call the index number function
-                        p <- do.call(indexFunction, inputs)
+                        p <- do.call(match.fun(indexFunction), inputs)
 
                         retVal <- data.frame(prices = p,
                                              time = unique(inputs$x[[inputs$pervar]]),
@@ -81,12 +91,21 @@ groupIndexes <- function(group, indexFunction, indexArgs){
 #' @return a list of indexes with one element for each month or quarter
 #' @export
 #' @examples
-#' args <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+#' argsList <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
 #' prodID = "prodID", indexMethod = "fisher", output = "chained")
 #'
-#' yearOverYearIndexes("quarterly", priceIndex, args)
+#' yearOverYearIndexes("quarterly", "priceIndex", argsList)
 #'
 yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
+
+  if(!freq %in% c("monthly", "quarterly")){
+    stop("Incorrect freq argument. Must be 'monthly' or 'quarterly'.")
+  }
+
+  validFuns <- c("priceIndex", "quantityIndex", "GEKSIndex", "GKIndex", "WTPDIndex", "priceIndicator")
+  if(!indexFunction %in% validFuns){
+    stop("Invalid or incorrect indexFunction given. Valid functions are: ", paste(validFuns, collapse = ", "))
+  }
 
   # convert frequency to integer
   freqInt <- switch(freq,
