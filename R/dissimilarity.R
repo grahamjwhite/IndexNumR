@@ -273,16 +273,15 @@ predictedShareDissimilarity <- function(x, pvar, qvar, pervar, prodID){
   if(qvar == ""){
     x <- imputeQuantities(x, pvar, pervar, prodID)
     s <- predictedShares(x, pvar, "quantities", pervar, prodID)
-
-    # calculate the predicted share error
-    shareErrors <- lapply(s, function(prodShares){
-      stn <- diag(prodShares)
-      apply(prodShares, 2, function(strn){stn-strn})
-    })
-
   } else { # we have prices and quantities
     s <- predictedShares(x, pvar, qvar, pervar, prodID)
   }
+
+  # calculate the predicted share error
+  shareErrors <- lapply(s, function(prodShares){
+    stn <- diag(prodShares)
+    apply(prodShares, 2, function(strn){stn-strn})
+  })
 
   n <- max(x[[pervar]])
   cn <- utils::combn(n, 2) # first row = y, second row = z
@@ -296,28 +295,12 @@ predictedShareDissimilarity <- function(x, pvar, qvar, pervar, prodID){
     y <- cn[1,i]
     z <- cn[2,i]
 
-    if(!is.null(qvar)){
+    etrn <- sapply(shareErrors, `[`, y, z)
+    ertn <- sapply(shareErrors, `[`, z, y)
 
-      # the diagonals contain the shares for period y and z
-      syn <- sapply(s, `[`, y, y)
-      szn <- sapply(s, `[`, z, z)
+    res[i,3] <- sum(etrn^2) + sum(ertn^2)
 
-      # the off-diagonals contain the 'predicted' shares
-      szyn <- sapply(s, `[`, y, z)
-      syzn <- sapply(s, `[`, z, y)
-
-      res[i, 3] <- sum((syn - szyn)^2) + sum((szn - syzn)^2)
-
-    } else {
-
-      etrn <- sapply(shareErrors, `[`, y, z)
-      ertn <- sapply(shareErrors, `[`, z, y)
-
-      res[i,3] <- sum(etrn^2) + sum(ertn^2)
-
-    }
   }
-
 
   colnames(res) <- c("period_i","period_j","dissimilarity")
 
