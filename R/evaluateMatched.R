@@ -130,5 +130,59 @@ evaluateMatched <- function(x,pvar,qvar,pervar,prodID,output="chained"){
   counts[,4] <- counts[,3]/counts[,2]
   counts[,8] <- counts[,7]/counts[,6]
 
-  return(list(expenditure=expenditure,counts=counts))
+  return(list(expenditure = expenditure, counts = counts))
+}
+
+
+#' Product ID's for appearing/disappearing products
+#'
+#' This function will give the product ID's of products that appear
+#' or disappear in each period.
+#'
+#' @inheritParams priceIndex
+#' @return a list containing one element for each time period, each element of
+#' which contains two vectors (one for appearing products, and one for disappearing products)
+#' @export
+#' @examples
+#' # create a dataset with some missing products
+#' df <- CES_sigma_2[-c(3,4,15),]
+#'
+#' # show the products that changed
+#' productChanges(df, "time", "prodID")
+#'
+productChanges <- function(x, pervar, prodID){
+
+  # initialise some things
+  n <- max(x[[pervar]], na.rm=TRUE)
+  result <- list()
+
+  # sort the dataset by time period and product ID
+  x <- x[order(x[[pervar]], x[[prodID]]),]
+
+  # for each period
+  for(i in 1:n){
+
+    if(i != 1){
+
+      xt <- x[x[[pervar]] == i,]
+      xtminus1 <- x[x[[pervar]] == i-1,]
+
+      appearing <- unique(xt[[prodID]][!(xt[[prodID]] %in% xtminus1[[prodID]])])
+      disappearing <- unique(xtminus1[[prodID]][!(xtminus1[[prodID]] %in% xt[[prodID]])])
+
+      if(length(appearing) > 0 & length(disappearing) == 0){
+        result[[as.character(i)]] <- list(appearing = appearing)
+      } else if(length(appearing) == 0 & length(disappearing) > 0){
+        result[[as.character(i)]] <- list(disappearing = disappearing)
+      } else if(length(appearing) > 0 & length(disappearing) > 0){
+        result[[as.character(i)]] <- list(appearing = appearing,
+                                          disappearing = disappearing)
+      }
+
+    }
+
+  }
+
+  return(result)
+
 }

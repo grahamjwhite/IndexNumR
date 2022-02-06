@@ -308,7 +308,9 @@ young_t <- function(p0, p1, pb, qb){
 #' @param x A dataframe containing price, quantity, a time period identifier
 #' and a product identifier. It must have column names.
 #' @param pvar A character string for the name of the price variable
-#' @param qvar A character string for the name of the quantity variable
+#' @param qvar A character string for the name of the quantity variable. For
+#' elementary indexes a quantity variable is not required for the calculations
+#' and you must specify qvar = "".
 #' @param prodID A character string for the name of the product identifier
 #' @param pervar A character string for the name of the time variable. This variable
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
@@ -327,7 +329,8 @@ young_t <- function(p0, p1, pb, qb){
 #' Valid options are "pop" for period-on-period, and similarity chain linked
 #' options "plspread" for the Paasche-Laspeyres spread, "asymplinear" for
 #' weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
-#' and "mixScale" for the mix, scale or absolute dissimilarity measures.
+#' and "mixScale" for the mix, scale or absolute dissimilarity measures,
+#' or "predictedshare" for the predicted share relative price dissimilarity.
 #' The default is period-on-period. Additional parameters can be passed to the
 #' mixScaleDissimilarity function using \code{...}
 #' @param sigma The elasticity of substitution for the CES index method.
@@ -343,6 +346,9 @@ young_t <- function(p0, p1, pb, qb){
 #' young type indexes. The default is period 1. This can be a vector of values to
 #' use multiple periods. For example, if the data are monthly and start in January, specifying
 #' 1:12 will use the first twelve months as the base.
+#' @param imputePrices the type of price imputation to use for missing prices.
+#' Currently only "carry" is supported to used carry-forward/carry-backward prices.
+#' Default is NULL to not impute missing prices.
 #' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
 #' function.
 #' @examples
@@ -363,7 +369,8 @@ young_t <- function(p0, p1, pb, qb){
 priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                        sample = "matched", output = "pop", chainMethod = "pop",
                        sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE,
-                       weights = "average", loweYoungBase = 1, ...){
+                       weights = "average", loweYoungBase = 1,
+                       imputePrices = NULL, ...){
 
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
@@ -393,6 +400,13 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
     stop(colNameCheck$message)
   }
 
+  # check valid chainMethod given
+  validChainMethods <- c("pop", "plspread", "asymplinear", "logquadratic", "mixscale",
+                         "predictedshare")
+  if(!chainMethod %in% validChainMethods){
+    stop("Not a valid chainMethod. Please choose from", paste(validChainMethods, collapse = ", "))
+  }
+
   # check column types
   x <- checkTypes(x, pvar, qvar, pervar)
 
@@ -401,6 +415,13 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   if(timeCheck$result == FALSE){
     stop(paste("The time period variable is not continuous.",
                 "Missing periods:", timeCheck$missing))
+  }
+
+  # apply price imputation
+  if(!is.null(imputePrices)){
+    switch(imputePrices,
+           "carry" = {x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)},
+           stop("Invalid imputePrices argument"))
   }
 
   # sort the dataset by time period and product ID
@@ -425,12 +446,20 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                                                                     similarityMethod = "asymplinear")},
            mixscale = {similarityMatrix <- mixScaleDissimilarity(x,pvar=pvar,qvar=qvar,
                                                                  pervar=pervar,prodID=prodID,
-                                                                 ...)})
+                                                                 ...)},
+           predictedshare = {similarityMatrix <- relativeDissimilarity(x, pvar, qvar,
+                                                                       pervar, prodID,
+                                                                       similarityMethod = "predictedshare")})
     # use the similarity matrix to compute links
     links <- maximumSimilarityLinks(similarityMatrix)
   }
 
-  for(i in 2:n){
+  for(i in 1:n){
+
+    if(i == basePeriod){
+      plist[i,1] <- 1
+      next
+    }
 
     # if fixed base requested, set xt0 to the first period data
     if(tolower(output) == "fixedbase"){
@@ -551,7 +580,9 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
 #' @export
 quantityIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                           sample = "matched", output = "pop", chainMethod = "pop",
-                          sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE, weights = "average", ...){
+                          sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE,
+                          weights = "average", loweYoungBase = 1,
+                          imputePrices = NULL, ...){
   return(priceIndex(x,
                     pvar = qvar,
                     qvar = pvar,

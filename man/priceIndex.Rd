@@ -19,6 +19,7 @@ priceIndex(
   biasAdjust = TRUE,
   weights = "average",
   loweYoungBase = 1,
+  imputePrices = NULL,
   ...
 )
 }
@@ -28,7 +29,9 @@ and a product identifier. It must have column names.}
 
 \item{pvar}{A character string for the name of the price variable}
 
-\item{qvar}{A character string for the name of the quantity variable}
+\item{qvar}{A character string for the name of the quantity variable. For
+elementary indexes a quantity variable is not required for the calculations
+and you must specify qvar = "".}
 
 \item{pervar}{A character string for the name of the time variable. This variable
 must contain integers starting at period 1 and increasing in increments of 1 period.
@@ -53,7 +56,8 @@ to use if the output option is set to "chained".
 Valid options are "pop" for period-on-period, and similarity chain linked
 options "plspread" for the Paasche-Laspeyres spread, "asymplinear" for
 weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
-and "mixScale" for the mix, scale or absolute dissimilarity measures.
+and "mixScale" for the mix, scale or absolute dissimilarity measures,
+or "predictedshare" for the predicted share relative price dissimilarity.
 The default is period-on-period. Additional parameters can be passed to the
 mixScaleDissimilarity function using \code{...}}
 
@@ -74,6 +78,10 @@ with the average of the expenditure shares over the two periods.}
 young type indexes. The default is period 1. This can be a vector of values to
 use multiple periods. For example, if the data are monthly and start in January, specifying
 1:12 will use the first twelve months as the base.}
+
+\item{imputePrices}{the type of price imputation to use for missing prices.
+Currently only "carry" is supported to used carry-forward/carry-backward prices.
+Default is NULL to not impute missing prices.}
 
 \item{...}{this is used to pass additional parameters to the mixScaleDissimilarity
 function.}

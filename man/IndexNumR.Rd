@@ -37,7 +37,7 @@ can be accessed with,
 \section{Bilateral index functions}{
 
 
-These functions compute bilateral indexes
+Compute bilateral indexes
 
 \itemize{
    \item {\code{\link{priceIndex}}}
@@ -45,10 +45,22 @@ These functions compute bilateral indexes
 }
 }
 
+\section{Similarity chain linking}{
+
+
+Compute dissimilarity measures or chain links.
+
+\itemize{
+   \item {\code{\link{relativeDissimilarity}}}
+   \item {\code{\link{mixScaleDissimilarity}}}
+   \item {\code{\link{maximumSimilarityLinks}}}
+}
+}
+
 \section{Multilateral index functions}{
 
 
-These functions compute multilateral indexes
+Compute multilateral indexes
 
 \itemize{
    \item {\code{\link{GEKSIndex}}}
@@ -57,21 +69,32 @@ These functions compute multilateral indexes
 }
 }
 
+\section{Other index number functions}{
+
+
+\itemize{
+    \item{\code{\link{groupIndexes}}}
+    \item{\code{\link{yearOverYearIndexes}}}
+}
+}
+
 \section{Data preparation functions}{
 
 
-Use these functions to perform various operations on the data before
+Perform various operations on the data before
 using other functions, such as index number functions.
 
 \itemize{
     \item{\code{\link{unitValues}}}
+    \item{\code{\link{imputeCarryPrices}}}
+    \item{\code{\link{imputeQuantities}}}
 }
 }
 
 \section{Data exploration functions}{
 
 
-Use these to learn more about the characteristics of your dataset.
+Learn more about the characteristics of your dataset.
 
 \itemize{
     \item{\code{\link{evaluateMatched}}}

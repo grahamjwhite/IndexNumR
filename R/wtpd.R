@@ -153,6 +153,9 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
 #' @param splice A character string specifying the splicing method. Valid methods are
 #' window, movement, half, mean, fbew, fbmw, wisp, hasp or mean_pub. The default is mean.
 #' See details for important considerations when using fbew and fbmw.
+#' @param imputePrices the type of price imputation to use for missing prices.
+#' Currently only "carry" is supported to used carry-forward/carry-backward prices.
+#' Default is NULL to not impute missing prices.
 #' @details The splicing methods are used to update the price index when new data become
 #' available without changing prior index values. The window, movement, half and mean splices
 #' use the most recent index value as the base period, which is multiplied by a price movement
@@ -171,7 +174,8 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
 #' Time Aggregation and the Construction of Price Indexes", Journal of
 #' Econometrics 161, 24-35.
 #' @export
-WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, splice = "mean"){
+WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, splice = "mean",
+                      imputePrices = NULL){
 
   # check that only valid splice methods are chosen
   if(!(tolower(splice) %in% c("mean", "window", "movement", "half", "fbew", "fbmw", "wisp", "hasp", "mean_pub"))){
@@ -198,6 +202,13 @@ WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, s
   n <- max(x[[pervar]], na.rm = TRUE)
   if(n < window){
     stop("The window length exceeds the number of periods in the data")
+  }
+
+  # apply price imputation
+  if(!is.null(imputePrices)){
+    switch(imputePrices,
+           "carry" = {x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)},
+           stop("Invalid imputePrices argument"))
   }
 
   # sort the dataset by time period and product ID

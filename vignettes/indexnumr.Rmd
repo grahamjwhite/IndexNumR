@@ -14,6 +14,9 @@ vignette: >
 
 ```{r setup, include=FALSE}
 library(IndexNumR)
+library(tidyr)
+
+#devtools::load_all()
 
 ```
 
@@ -45,6 +48,8 @@ The index number functions such as `priceIndex`, `quantityIndex` and `GEKSIndex`
 * quantities
 * a time period variable (more on this below)
 * a product identifier that uniquely identifies each product.
+
+One exception to the above is when elementary indexes are estimated using the `priceIndex` function. A quantity variable is not required in this case because the index is unweighted, and in many cases quantities may not be available (for example, when statistical agencies collect sample prices on individual products). 
 
 The dataframe must have column names, since character strings are used in other arguments to the index number functions to specify which columns contain the data listed above. Column names can be set with the `colnames` function of base R. The sample dataset CES_sigma_2 is an example of the minimum dataframe required to compute an index.  
 
@@ -143,6 +148,39 @@ The first four columns of the output presents the base period information base_i
 where $I(t)$ is the set of products available in period $t$, $t=1$ refers to the current period as is used to compute column 8 and $t=0$ refers to the comparison period, which is used to compute column 4. 
 
 The count matrix has two additional columns, "new" and "leaving". The new column gives the number of products that exist in the current period but not the base period (products entering the sample). The leaving column gives the count of products that exist in the base period but not the current period (products leaving the sample). Matching removes both of these types of products. 
+
+
+## Data imputation
+
+### Carry forward/backward prices
+
+An alternative to using a matched sample of products is to impute the missing data. One technique for doing this is to replace missing values with the last actual price observation. If the data has both prices and quantities then the corresponding quantities are set to zero. If the missing observations occur at the beginning of the time series then the first actual observation is carried backward to the first time period. *IndexNumR* performs this carry price imputation with the `imputeCarryPrices` function; however, this is only needed if the imputed data themselves are of interest. Otherwise, the price index functions can use carry price imputation by setting the parameter `imputePrices = "carry"`. 
+
+In the example below, the first two observations on product 1 are missing, so the price from the third period is carried backwards to fill the missing observations. Observations 3 and 4 are missing on product 2, so the price in period 2 is carried forward to fill them. The corresponding quantities are set to zero.
+
+```{r carry}
+
+# create a dataset with some missing observations on product 1 and 2
+df <- CES_sigma_2[-c(1,2,15,16),]
+df <- df[df$prodID %in% 1:2 & df$time <= 6,]
+
+dfMissing <- df[, c("time", "prices", "prodID")] %>%
+  tidyr::pivot_wider(id_cols = time, names_from = prodID, values_from = prices)
+dfMissing[order(dfMissing$time),]
+
+# compute carry prices
+carryPrices <- imputeCarryPrices(df, pvar = "prices", qvar = "quantities", 
+                                 pervar = "time", prodID = "prodID")
+
+# print the data with the product prices in columns to see the filled data
+carryPrices[, c("time", "prices", "prodID")] %>%
+  tidyr::pivot_wider(id_cols = time, names_from = prodID, values_from = prices)
+
+# print the data with the product quantities in columns to see the corresponding zeros
+carryPrices[, c("time", "quantities", "prodID")] %>%
+  tidyr::pivot_wider(id_cols = time, names_from = prodID, values_from = quantities)
+
+```
 
 ## Bilateral index numbers
 
@@ -345,13 +383,16 @@ elasticity(CES_sigma_2,
 
 which recovers the value of $\sigma$ used to construct the dataset. There is one additional item of output labelled 'diff'. This is the value of the difference between the CES index and the comparison index and is returned so that the user can check that the value of this difference is indeed zero. If it is non-zero then it may indicate that `uniroot` was not able to find a solution, within the specified upper and lower bounds for $\sigma$. These bounds can be changed with the options `upper` and `lower` of the `elasticity` function. The defaults are 20 and -20 respectively.   
 
+
 ## Chain-linked indices and the linking period problem
 
 One problem with chain-linked indices is the potential for chain drift. Take an example where prices increase in one period and then return to their original level in the next period. An index suffering from chain-drift will increase when prices increase, but won't return to its original level when prices do. In the above examples, it was noted that there is substantial positive bias in the Laspeyres index and substantial negative bias in the Paasche index. Part of this is due to chain drift. 
 
 One way of reducing the amount of chain drift is to choose linking periods that are 'similar' in some sense (alternatively, use a multilateral method). This method of linking has been mentioned by Diewert and Fox [@df:2017], and Hill [@hill:2001] takes the concept further to choose the link period based on a minimum cost spanning tree. 
 
-To choose the linking period we need a measure of the similarity between two periods. For each period we have information on prices and quantities. The Hill (2001) method compares the two periods based on the Paasche-Laspeyres spread,
+### Dissimilarity measures
+
+To choose the linking period we need a measure of the similarity between two periods. For each period we have information on prices and quantities. The Hill (2001) method compares the two periods based on the **Paasche-Laspeyres spread**,
 
 \begin{equation}
 PL (p^{t},p^{T+1},q^{t},q^{T+1}) = \Bigg|{ln\Bigg(\frac{P_{T+1,t}^{L}}{P_{T+1,t}^{P}}\Bigg)}\Bigg|,
@@ -359,7 +400,7 @@ PL (p^{t},p^{T+1},q^{t},q^{T+1}) = \Bigg|{ln\Bigg(\frac{P_{T+1,t}^{L}}{P_{T+1,t}
 
 where $P^{L}$ is a Laspeyres price index and $P^{P}$ is a Paasche price index. Since the Laspeyres and Paasche indices are biased in opposite directions, this choice of similarity measure is designed to choose linking periods that minimise the influence of index number method choice. 
 
-Alternative measures exist that compute the dissimilarity of two vectors. Two such measures, recommended by Diewert [@Diewert:2002] are the weighted log-quadratic index of relative price dissimilarity and the weighted asymptotically linear index of relative price dissimilarity, given by the following,
+Alternative measures exist that compute the dissimilarity of two vectors. Two such measures, recommended by Diewert [@Diewert:2002] are the **weighted log-quadratic index of relative price dissimilarity** and the **weighted asymptotically linear index of relative price dissimilarity**, given by the following,
 \begin{align}
 LQ(p^{t},p^{T+1},q^{t},q^{T+1}) = \sum_{n=1}^{N}\frac{1}{2}&(s_{T+1,n} + s_{t,n})[ln(p_{T+1,n}/P(p^{t},p^{T+1},q^{t},q^{T+1})p_{t,n})]^{2} \label{eq:logQuadratic} \\
 AL(p^{t},p^{T+1},q^{t},q^{T+1}) = \sum_{n=1}^{N}\frac{1}{2}&(s_{T+1,n} +  s_{t,n})[(p_{T+1,n}/P(p^{t},p^{T+1},q^{t},q^{T+1})p_{t,n}) + \nonumber	\\
@@ -367,17 +408,29 @@ AL(p^{t},p^{T+1},q^{t},q^{T+1}) = \sum_{n=1}^{N}\frac{1}{2}&(s_{T+1,n} +  s_{t,n
 \end{align}
 where $P(p^{t},p^{T+1},q^{t},q^{T+1})$ is a superlative index number.
 
-A final measure proposed by Fox, Hill and Diewert [@fhd:2004] is a measure of absolute dissimilarity given by,
+Another measure proposed by Fox, Hill and Diewert [@fhd:2004] is a measure of **absolute dissimilarity** given by,
 
 \begin{equation}
 AD(x_{j},x_{k}) = \frac{1}{M+N}\sum_{l=1}^{M+N}\Bigg[ln\Bigg(\frac{x_{kl}}{x_{jl}}\Bigg) - \frac{1}{M+N}\sum_{i=1}^{M+N}ln\Bigg(\frac{x_{ki}}{x_{ji}}\Bigg)\Bigg]^{2} + \Bigg[\frac{1}{M+N}\sum_{i=1}^{M+N}ln\Bigg(\frac{x_{ki}}{x_{ji}}\Bigg)\Bigg]^{2},
 \end{equation}  
 where $M+N$ is the total number of items in the vector and $x_{j}$ and $x_{k}$ are the two vectors being compared. The authors use this in the context of detecting outliers, but it can be used to compare the price and quantity vectors of two time periods. One way to do this is to only use price information, or only use quantity information. There are two ways to use both price and quantity information: stack the price and quantity vectors for each time period into a single vector and compare the two `stacked' vectors; or calculate separate measures of absolute dissimilarity for prices and quantities before combining these into a single measure. The former method is simple to implement, but augments the price vector with a quantity vector that may be of considerably different magnitude and variance. Another option is to compute the absolute dissimilarity using prices and quantities separately, then combine them by taking the geometric average.
 
+The final measure is the **predicted share measure of relative price dissimilarity** employed by Diewert, Finkel, Sayag and White in the Seasonal Products chapter of the Update of the Consumer Price Index Manual, Consumer Price Index Theory (draft available [here](https://www.imf.org/-/media/Files/Data/CPI/companion-publication/seasonal-products.ashx)). To introduce this measure, first we define some notation.
 
-*IndexNumR* provides two functions, enabling the estimation of all six dissimilarity measures above. The first function `relativeDissimilarity` calculates the Paasche-Laspeyres spread, log-quadratic and asymptotically linear measures, and the second function `mixScaleDissimilarity` computes the mix, scale and absolute measures of dissimilarity. Both functions provide the same output - a data frame with three columns containing the indices of the pairs of periods being compared in the first two columns and the value of the dissimilarity measure in the third column. 
+The share of expenditure on product $n$ in period $t$ is given by $s_{t,n} = p_{t,n}q_{t,n}/ \sum_{i=1}^{K}p_{t,i}q_{t,i}$. The 'predicted' share of expenditure on product $n$ in period $t$, using the quantities of period $t$ and the prices of period $r$ is given by $s_{r,t,n} = p_{r,n}q_{t,n}/ \sum_{i=1}^{K}p_{r,i}q_{t,i}$. We also define the predicted share error $e_{r,t,n}$ as the actual share, minus the predicted share $s_{t,n} - s_{r,t,n}$.
 
-Once these have been computed, the function `maximiumSimilarityLinks` can take the output data frame from these two functions and compute the maximum similarity linking periods. Those linking periods are then used by `priceIndex` as follows,
+The predicted share measure of relative price dissimilarity between the periods $t$ and $r$ is given by:
+\begin{equation}
+  PS_{r,t} = \sum_{n=1}^{N} (e_{r,t,n})^2 + \sum_{n=1}^{N} (e_{t,r,n})^2
+\end{equation}
+
+When the dataset being used does not have quantities, and an elementary index is being constructed, we cannot compute the shares in the above formulas. In this case, quantities are imputed in such a way that the expenditure shares on each product available in a time period are equal. The quantities are constructed by setting quantity equal to $1/P_{n,t}\times N_{t}$ where $N_{t}$ is the number of products available in period $t$. *IndexNumR* does this with the function `imputeQuantities`; however price indexes can be estimated without calling this function directly. Calling `priceIndex` and setting `qvar = ""` will trigger IndexNumR to impute the quantities used in the estimation of the predicted share relative price dissimilarity measure.   
+
+### Estimating similarity-linked indexes
+
+*IndexNumR* provides three functions, enabling the estimation of the dissimilarity measures above. The first function `relativeDissimilarity` calculates the Paasche-Laspeyres spread, log-quadratic, asymptotically linear and predicted share relative dissimilarity measures, and the second function `mixScaleDissimilarity` computes the mix, scale and absolute measures of dissimilarity. All three functions provide the same output - a data frame with three columns containing the indices of the pairs of periods being compared in the first two columns and the value of the dissimilarity measure in the third column. 
+
+Once these have been computed, the function `maximiumSimilarityLinks` can take the output data frame from these functions and compute the maximum similarity linking periods. The function `priceIndex` effectively computes a similarity-linked index as follows,
 
 * Compute the measure of dissimilarity between all possible combinations of time periods.
 * Set the price index to 1 in the first period.
@@ -472,7 +525,7 @@ The Geary-Khamis, or GK method, was introduced by Geary [@geary:1958] and extend
   P_{t} = \frac{p^{t} \cdot q^{t}} {b \cdot q^{t}}
 \end{equation}
 
-These equations can be solved by an iterative method, where a set of $b_{n}$ are arbitrarily chosen, which can then be used to calculate an initial vector of price levels. This vector of prices is then used to generate a new $b$ vector, and so on until the changes become smaller than some threshold. *IndexNumR* instead uses an alternative method. 
+These equations can be solved by an iterative method, where a set of $b_{n}$ are arbitrarily chosen, which can then be used to calculate an initial vector of price levels. This vector of prices is then used to generate a new $b$ vector, and so on until the changes become smaller than some threshold. *IndexNumR* can use the iterative method by specifying the parameter `solveMethod = "iterative"`. However, there is an alternative method using matrix algebra that is significantly more efficient. To use the more efficient method discussed below, specify `solveMethod = "inverse"`.  
 
 As discussed in [@df:2017] and following Diewert [@diewert:1999], the problem of finding the $b$ vector can be solved using the following system of equations:
 
@@ -685,7 +738,57 @@ valueDecomposition(CES_sigma_2,
 
 ```
 
-Note that for this decomposition, the method is specified for the price indicator and *IndexNumR* uses the appropriate quantity indicator. For Bennet and Montgomery indicators the same method is used for the quantity indicator as for the price indicator. If a Laspeyres price indicator is requested  then the corresponding volume indicator is a Paasche indicator. The reverse is true if the Paasche indicator is used for prices.  
+Note that for this decomposition, the method is specified for the price indicator and *IndexNumR* uses the appropriate quantity indicator. For Bennet and Montgomery indicators the same method is used for the quantity indicator as for the price indicator. If a Laspeyres price indicator is requested  then the corresponding volume indicator is a Paasche indicator. The reverse is true if the Paasche indicator is used for prices. 
+
+
+## Group indexes
+
+If a variable is available in the data set that identifies the group to which a product belongs, it is possible to estimate indexes on each of the groups in the sample using the function `groupIndexes`.  An example is if products come from different geographic regions, or belong to different product categories. `groupIndexes` will split the data into the different groups and estimate a price index on each group. Any of the price index functions can be used by specifying the `indexFunction` parameter and then supplying the arguments to the price index function as a named list. 
+
+```{r groups}
+
+# add a group variable to the CES_sigma_2 dataset
+# products 1 and 2 will be in group 1, products 3 and 4 in group 2
+df <- CES_sigma_2
+df$group <- c(rep(1, 24), rep(2, 24))
+
+# put the arguments to the priceIndex function into a named list
+argsList <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID",
+             indexMethod = "fisher", output = "chained")
+
+# estimate a bilateral chained fisher index on the groups
+groupIndexes("group", "priceIndex", argsList)
+
+# put the arguments for the GEKSIndex function in a named list
+argsGEKS <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID",
+                 indexMethod = "fisher", window = 12)
+
+# estimate a GEKS index on the groups
+groupIndexes("group", "GEKSIndex", argsGEKS)
+
+
+```
+
+
+## Year-over-year Indexes
+
+Year-over-year indexes are those that calculate the price change between the same periods across years. If the data are monthly then there are twelve indexes; one for each month of the year. Each element of the January index would measure the price movement from January in the base year to January in the comparison year. The second index does the same for February, and so on. *IndexNumR* provides the function `yearOverYearIndexes` to estimate these, given the frequency as either 'monthly' or 'quarterly'. This is effectively a form of group index, where the month or quarter gives the group to which the product belongs. *IndexNumR* will create a group variable based on the supplied frequency and call the `groupIndexes` function to estimate the indexes. The data must be structured in the frequency that you specify (if you specify 'quarterly' as the frequency in the `yearOverYearIndexes` function, the time period variable in the data set must be quarterly). 
+
+The output from the `yearOverYearIndexes` function will have a column for the month or quarter. The quarter labelled as quarter 1 will have been constructed from the time periods 1, 5, 9, 13, etc of the data set. The quarter labelled 2 would have been estimated from time periods 2, 6, 10, 14, etc of the data set.  
+
+```{r yoy}
+
+# Assume the CES_sigma_2 data are quarterly observations over three years. 
+# This results in 4 indexes (one for each quarter) of 3 periods each.
+# Estimate year-over-year chained fisher indexes.
+argsList <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", 
+                 prodID = "prodID", indexMethod = "fisher", output = "chained")
+
+yearOverYearIndexes("quarterly", "priceIndex", argsList)
+
+```
+
+ 
 
 # Development
 

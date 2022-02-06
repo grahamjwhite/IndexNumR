@@ -132,6 +132,9 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
 #' @param intGEKS whether to estimate the intersection GEKS method. This method performs
 #' additional product matching over the sample = "matched" option. See Lamboray and Krsinich
 #' 2015 for more information.
+#' @param imputePrices the type of price imputation to use for missing prices.
+#' Currently only "carry" is supported to used carry-forward/carry-backward prices.
+#' Default is NULL to not impute missing prices.
 #' @details The splicing methods are used to update the price index when new data become
 #' available without changing prior index values. The window, movement, half and mean splices
 #' use the most recent index value as the base period, which is multiplied by a price movement
@@ -162,7 +165,7 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
 #' @export
 GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
                       sample = "matched", window = 13, splice = "mean", biasAdjust = FALSE,
-                      weights = "average", intGEKS = FALSE){
+                      weights = "average", intGEKS = FALSE, imputePrices = NULL){
 
   # check that only valid index methods are chosen
   if(!(tolower(indexMethod) %in% c("fisher","tornqvist", "tpd", "walsh", "jevons"))){
@@ -194,6 +197,13 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
   n <- max(x[[pervar]],na.rm = TRUE)
   if(n<window){
     stop("The window length exceeds the number of periods in the data")
+  }
+
+  # apply price imputation
+  if(!is.null(imputePrices)){
+    switch(imputePrices,
+           "carry" = {x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)},
+           stop("Invalid imputePrices argument"))
   }
 
   # sort the dataset by time period and product ID

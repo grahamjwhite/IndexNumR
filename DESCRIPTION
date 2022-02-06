@@ -23,5 +23,6 @@ Suggests:
     testthat,
     knitr,
     rmarkdown,
-    covr
+    covr,
+    tidyr
 VignetteBuilder: knitr

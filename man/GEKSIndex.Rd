@@ -16,7 +16,8 @@ GEKSIndex(
   splice = "mean",
   biasAdjust = FALSE,
   weights = "average",
-  intGEKS = FALSE
+  intGEKS = FALSE,
+  imputePrices = NULL
 )
 }
 \arguments{
@@ -60,6 +61,10 @@ information}
 \item{intGEKS}{whether to estimate the intersection GEKS method. This method performs
 additional product matching over the sample = "matched" option. See Lamboray and Krsinich
 2015 for more information.}
+
+\item{imputePrices}{the type of price imputation to use for missing prices.
+Currently only "carry" is supported to used carry-forward/carry-backward prices.
+Default is NULL to not impute missing prices.}
 }
 \description{
 A function to calculate a GEKS multilateral price index
