@@ -143,6 +143,13 @@ evaluateMatched <- function(x,pvar,qvar,pervar,prodID,output="chained"){
 #' @return a list containing one element for each time period, each element of
 #' which contains two vectors (one for appearing products, and one for disappearing products)
 #' @export
+#' @examples
+#' # create a dataset with some missing products
+#' df <- CES_sigma_2[-c(3,4,15),]
+#'
+#' # show the products that changed
+#' productChanges(df, "time", "prodID")
+#'
 productChanges <- function(x, pervar, prodID){
 
   # initialise some things

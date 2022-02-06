@@ -24,3 +24,11 @@ which contains two vectors (one for appearing products, and one for disappearing
 This function will give the product ID's of products that appear
 or disappear in each period.
 }
+\examples{
+# create a dataset with some missing products
+df <- CES_sigma_2[-c(3,4,15),]
+
+# show the products that changed
+productChanges(df, "time", "prodID")
+
+}
