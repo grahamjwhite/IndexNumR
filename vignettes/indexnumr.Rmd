@@ -172,9 +172,11 @@ dfMissing[order(dfMissing$time),]
 carryPrices <- imputeCarryPrices(df, pvar = "prices", qvar = "quantities", 
                                  pervar = "time", prodID = "prodID")
 
+# print the data with the product prices in columns to see the filled data
 carryPrices[, c("time", "prices", "prodID")] %>%
   tidyr::pivot_wider(id_cols = time, names_from = prodID, values_from = prices)
 
+# print the data with the product quantities in columns to see the corresponding zeros
 carryPrices[, c("time", "quantities", "prodID")] %>%
   tidyr::pivot_wider(id_cols = time, names_from = prodID, values_from = quantities)
 
@@ -413,20 +415,20 @@ AD(x_{j},x_{k}) = \frac{1}{M+N}\sum_{l=1}^{M+N}\Bigg[ln\Bigg(\frac{x_{kl}}{x_{jl
 \end{equation}  
 where $M+N$ is the total number of items in the vector and $x_{j}$ and $x_{k}$ are the two vectors being compared. The authors use this in the context of detecting outliers, but it can be used to compare the price and quantity vectors of two time periods. One way to do this is to only use price information, or only use quantity information. There are two ways to use both price and quantity information: stack the price and quantity vectors for each time period into a single vector and compare the two `stacked' vectors; or calculate separate measures of absolute dissimilarity for prices and quantities before combining these into a single measure. The former method is simple to implement, but augments the price vector with a quantity vector that may be of considerably different magnitude and variance. Another option is to compute the absolute dissimilarity using prices and quantities separately, then combine them by taking the geometric average.
 
-The final measure is the **predicted share measure of relative price dissimilarity** employed by Diewert, Finkel and Sayag in the Update to the Consumer Price Index Manual (draft available [here](https://www.imf.org/-/media/Files/Data/CPI/companion-publication/seasonal-products.ashx)). To introduce this measure, first we define some notation.
+The final measure is the **predicted share measure of relative price dissimilarity** employed by Diewert, Finkel, Sayag and White in the Seasonal Products chapter of the Update of the Consumer Price Index Manual, Consumer Price Index Theory (draft available [here](https://www.imf.org/-/media/Files/Data/CPI/companion-publication/seasonal-products.ashx)). To introduce this measure, first we define some notation.
 
-The share of expenditure on product $n$ in period $t$ is given by $s_{t,n} = p_{t,n}q_{t,n}/ \sum_{n=1}^{K}p_{t,n}q_{t,n}$. The 'predicted' share of expenditure on product $n$ in period $t$, using the quantities of period $t$ and the prices of period $r$ is given by $s_{r,t,n} = p_{r,n}q_{t,n}/ \sum_{n=1}^{K}p_{r,n}q_{t,n}$. We also define the predicted share error $e_{t,r,n}$ as the actual share, minus the predicted share $s_{t,n} - s_{r,t,n}$.
+The share of expenditure on product $n$ in period $t$ is given by $s_{t,n} = p_{t,n}q_{t,n}/ \sum_{i=1}^{K}p_{t,i}q_{t,i}$. The 'predicted' share of expenditure on product $n$ in period $t$, using the quantities of period $t$ and the prices of period $r$ is given by $s_{r,t,n} = p_{r,n}q_{t,n}/ \sum_{i=1}^{K}p_{r,i}q_{t,i}$. We also define the predicted share error $e_{r,t,n}$ as the actual share, minus the predicted share $s_{t,n} - s_{r,t,n}$.
 
 The predicted share measure of relative price dissimilarity between the periods $t$ and $r$ is given by:
 \begin{equation}
-  \sum_{n=1}^{N} (s_{t,n} - s_{r,t,n})^2 + \sum_{n=1}^{N} (s_{r,n} - s_{t,r,n})^2
+  PS_{r,t} = \sum_{n=1}^{N} (e_{r,t,n})^2 + \sum_{n=1}^{N} (e_{t,r,n})^2
 \end{equation}
 
 When the dataset being used does not have quantities, and an elementary index is being constructed, we cannot compute the shares in the above formulas. In this case, quantities are imputed in such a way that the expenditure shares on each product available in a time period are equal. The quantities are constructed by setting quantity equal to $1/P_{n,t}\times N_{t}$ where $N_{t}$ is the number of products available in period $t$. *IndexNumR* does this with the function `imputeQuantities`; however price indexes can be estimated without calling this function directly. Calling `priceIndex` and setting `qvar = ""` will trigger IndexNumR to impute the quantities used in the estimation of the predicted share relative price dissimilarity measure.   
 
 ### Estimating similarity-linked indexes
 
-*IndexNumR* provides three functions, enabling the estimation of the dissimilarity measures above. The first function `relativeDissimilarity` calculates the Paasche-Laspeyres spread, log-quadratic and asymptotically linear measures, and the second function `mixScaleDissimilarity` computes the mix, scale and absolute measures of dissimilarity. Lastly, `predictedShareDissimilarity` computes the predicted share measure of relative price dissimilarity. All three functions provide the same output - a data frame with three columns containing the indices of the pairs of periods being compared in the first two columns and the value of the dissimilarity measure in the third column. 
+*IndexNumR* provides three functions, enabling the estimation of the dissimilarity measures above. The first function `relativeDissimilarity` calculates the Paasche-Laspeyres spread, log-quadratic, asymptotically linear and predicted share relative dissimilarity measures, and the second function `mixScaleDissimilarity` computes the mix, scale and absolute measures of dissimilarity. All three functions provide the same output - a data frame with three columns containing the indices of the pairs of periods being compared in the first two columns and the value of the dissimilarity measure in the third column. 
 
 Once these have been computed, the function `maximiumSimilarityLinks` can take the output data frame from these functions and compute the maximum similarity linking periods. The function `priceIndex` effectively computes a similarity-linked index as follows,
 
@@ -523,7 +525,7 @@ The Geary-Khamis, or GK method, was introduced by Geary [@geary:1958] and extend
   P_{t} = \frac{p^{t} \cdot q^{t}} {b \cdot q^{t}}
 \end{equation}
 
-These equations can be solved by an iterative method, where a set of $b_{n}$ are arbitrarily chosen, which can then be used to calculate an initial vector of price levels. This vector of prices is then used to generate a new $b$ vector, and so on until the changes become smaller than some threshold. *IndexNumR* instead uses an alternative method. 
+These equations can be solved by an iterative method, where a set of $b_{n}$ are arbitrarily chosen, which can then be used to calculate an initial vector of price levels. This vector of prices is then used to generate a new $b$ vector, and so on until the changes become smaller than some threshold. *IndexNumR* can use the iterative method by specifying the parameter `solveMethod = "iterative"`. However, there is an alternative method using matrix algebra that is significantly more efficient. To use the more efficient method discussed below, specify `solveMethod = "inverse"`.  
 
 As discussed in [@df:2017] and following Diewert [@diewert:1999], the problem of finding the $b$ vector can be solved using the following system of equations:
 
@@ -750,16 +752,18 @@ If a variable is available in the data set that identifies the group to which a 
 df <- CES_sigma_2
 df$group <- c(rep(1, 24), rep(2, 24))
 
-# estimate a bilateral chained fisher index on the groups
+# put the arguments to the priceIndex function into a named list
 argsList <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID",
              indexMethod = "fisher", output = "chained")
 
+# estimate a bilateral chained fisher index on the groups
 groupIndexes("group", "priceIndex", argsList)
 
-# estimate a GEKS index on the groups
+# put the arguments for the GEKSIndex function in a named list
 argsGEKS <- list(x = df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID",
                  indexMethod = "fisher", window = 12)
 
+# estimate a GEKS index on the groups
 groupIndexes("group", "GEKSIndex", argsGEKS)
 
 
@@ -775,7 +779,7 @@ The output from the `yearOverYearIndexes` function will have a column for the mo
 ```{r yoy}
 
 # Assume the CES_sigma_2 data are quarterly observations over three years. 
-# This results in 4 indexes of 3 periods each.
+# This results in 4 indexes (one for each quarter) of 3 periods each.
 # Estimate year-over-year chained fisher indexes.
 argsList <- list(x = CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time", 
                  prodID = "prodID", indexMethod = "fisher", output = "chained")
