@@ -16,9 +16,9 @@ knitr::opts_chunk$set(
 # IndexNumR
 
 <!-- badges: start -->
-[![Build Status](https://travis-ci.org/grahamjwhite/IndexNumR.svg?branch=master)](https://travis-ci.org/grahamjwhite/IndexNumR)
+[![Build Status](https://github.com/grahamjwhite/IndexNumR/actions/workflows/check-standard.yaml/badge.svg?branch=master)](https://github.com/grahamjwhite/IndexNumR)
 
-[![Codecov test coverage](https://codecov.io/gh/grahamjwhite/IndexNumR/branch/master/graph/badge.svg)](https://codecov.io/gh/grahamjwhite/IndexNumR?branch=master)
+[![Codecov test coverage](https://codecov.io/gh/grahamjwhite/IndexNumR/branch/master/graph/badge.svg)](https://app.codecov.io/gh/grahamjwhite/IndexNumR?branch=master)
 
 [![CRAN](https://www.r-pkg.org/badges/version/IndexNumR)](https://www.r-pkg.org/badges/version/IndexNumR)
 <!-- badges: end -->
@@ -37,7 +37,7 @@ There is also a function `dominicksData` that can be used to download the Domini
 
 ## Installation
 
-You can install the released version of IndexNumR from [CRAN](https://CRAN.R-project.org) with:
+You can install the released version of IndexNumR from [CRAN](https://cran.r-project.org) with:
 
 ``` r
 install.packages("IndexNumR")
