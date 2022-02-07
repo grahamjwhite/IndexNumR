@@ -6,10 +6,10 @@
 <!-- badges: start -->
 
 [![Build
-Status](https://travis-ci.org/grahamjwhite/IndexNumR.svg?branch=master)](https://travis-ci.org/grahamjwhite/IndexNumR)
+Status](https://github.com/grahamjwhite/IndexNumR/actions/workflows/check-standard.yaml/badge.svg?branch=master)](https://github.com/grahamjwhite/IndexNumR)
 
 [![Codecov test
-coverage](https://codecov.io/gh/grahamjwhite/IndexNumR/branch/master/graph/badge.svg)](https://codecov.io/gh/grahamjwhite/IndexNumR?branch=master)
+coverage](https://codecov.io/gh/grahamjwhite/IndexNumR/branch/master/graph/badge.svg)](https://app.codecov.io/gh/grahamjwhite/IndexNumR?branch=master)
 
 [![CRAN](https://www.r-pkg.org/badges/version/IndexNumR)](https://www.r-pkg.org/badges/version/IndexNumR)
 <!-- badges: end -->
@@ -47,7 +47,7 @@ Business](https://www.chicagobooth.edu/research/kilts/datasets/dominicks).
 ## Installation
 
 You can install the released version of IndexNumR from
-[CRAN](https://CRAN.R-project.org) with:
+[CRAN](https://cran.r-project.org) with:
 
 ``` r
 install.packages("IndexNumR")
