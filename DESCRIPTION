@@ -1,7 +1,7 @@
 Package: IndexNumR
 Type: Package
 Title: Index Number Calculation
-Version: 0.5.0
+Version: 0.5.0.9000
 Author: Graham White
 Maintainer: Graham White <g.white@unswalumni.com>
 Description: Computes bilateral and multilateral index numbers. 
