@@ -6,12 +6,10 @@
 <!-- badges: start -->
 
 [![Build
-Status](https://travis-ci.org/grahamjwhite/IndexNumR.svg?branch=master)](https://travis-ci.org/grahamjwhite/IndexNumR)
+Status](https://github.com/grahamjwhite/IndexNumR/actions/workflows/check-standard.yaml/badge.svg?branch=master)](https://github.com/grahamjwhite/IndexNumR)
 
 [![Codecov test
-coverage](https://codecov.io/gh/grahamjwhite/IndexNumR/branch/master/graph/badge.svg)](https://codecov.io/gh/grahamjwhite/IndexNumR?branch=master)
-
-[![Rdoc](https://www.rdocumentation.org/badges/version/IndexNumR)](https://www.rdocumentation.org/packages/IndexNumR)
+coverage](https://codecov.io/gh/grahamjwhite/IndexNumR/branch/master/graph/badge.svg)](https://app.codecov.io/gh/grahamjwhite/IndexNumR?branch=master)
 
 [![CRAN](https://www.r-pkg.org/badges/version/IndexNumR)](https://www.r-pkg.org/badges/version/IndexNumR)
 <!-- badges: end -->
@@ -29,9 +27,9 @@ chained.
 
 Multilateral indices can be computed in the time series context using
 the GEKS, Weighted Time Product Dummy or Geary-Khamis indexes, and
-updating is provided via the window, movement, half or mean splice
-methods. The GEKS method is computed using either the Fisher or
-Tornqvist superlative index number methods.
+updating is provided via the window, movement, half, mean, fbew or fbmw
+splicing methods. The GEKS method is computed using either the Fisher,
+Tornqvist, Walsh, Jevons or TPD index number methods.
 
 The package also provides functions to compute measures of dissimilarity
 between time periods, which can be used to choose the linking period for
@@ -42,10 +40,14 @@ containing prices and quantities on four products over twelve periods,
 but additional datasets assuming different values of the elasticity of
 substitution can be computed using the function `CESData`.
 
+There is also a function `dominicksData` that can be used to download
+the Dominicks Finer Foods scanner data from the [Chicago Booth School of
+Business](https://www.chicagobooth.edu/research/kilts/datasets/dominicks).
+
 ## Installation
 
 You can install the released version of IndexNumR from
-[CRAN](https://CRAN.R-project.org) with:
+[CRAN](https://cran.r-project.org) with:
 
 ``` r
 install.packages("IndexNumR")

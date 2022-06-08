@@ -1,8 +1,32 @@
-## Package update 0.2.0 -> TBA
+## Package update 0.4.0 -> 0.5.0
+
+### Improvements
+- `groupIndexes` to estimate group indexes using a group variable.
+- `yearOverYearIndexes` to estimate year-over-year indexes.
+- `predictedShareDissimilarity` to estimate the predicted share relative price dissimilarity measure. This has also been incorporated into `priceIndex` to allow estimation of indexes using similarity linking and the new measure. 
+- `imputeCarryPrices` to fill in missing observations using carry forward and carry backward prices.
+- parameter `solveMethod` to `GKIndex` now allows the GK equations to be solved by the iterative method. The matrix inverse method remains the default.
+
+### Bug fixes
+- `priceIndex` now allows estimation of elementary indexes on a dataset that does not contain quantities. Previously a quantity variable was always required, but elementary indexes do not need it (in fact it may not exist).
+- fixed issue with `basePeriod` parameter of `priceIndex`.
+- changed the way quantities and prices are calculated for the Dominicks dataset so that they represent unit prices and the associated quantity, instead of 'bundle' prices and quantities. 
+
+
+## Package update 0.3.0 -> 0.4.0
+
+### Improvements
+- Added the Palgrave, Drobish, Stuvel, Marshall-Edgeworth, Lowe and Young bilateral indexes.
+- Added the intersection GEKS (int-GEKS) method
+
+### Bug fixes
+- Fixed matching with bilateral fixed base indexes when products leave from, and later return to the sample. 
+
+
+## Package update 0.2.0 -> 0.3.0
 
 ### Improvements
 
-- Added options for the weights when estimating the time-product-dummy index
 - Added the wisp, hasp and mean_pub splicing methods. These are the same methods as window, half and mean splice, but splice onto the published series instead of the previously calculated window. 
 - Added the Walsh and Jevons indexes as bilateral indexes in the GEKSIndex function.
 - Added a function for retrieving data from the Chicago Booth School of Business Dominicks Finer Foods dataset. 
@@ -10,6 +34,8 @@
 ### Bug fixes
 
 - Fixed issue with the time-product-dummy regression when there are missing products
+- Bug in the FBEW splice for the WTPD multilateral method
+- Fixed an issue with the half-splice splicing method
 
 
 ## Package update 0.1.3 -> 0.2.0

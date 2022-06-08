@@ -211,7 +211,7 @@ tpd_t <- function(p0, p1, q0, q1, prodID0, prodID1, biasAdjust, weights){
   if(weights == "unweighted"){
     reg <- stats::lm(lnP ~ D + product, data = regData)
   } else {
-    reg <- stats::lm(lnP ~ D + product, weights = s, data = regData)
+    reg <- stats::lm(lnP ~ D + product, weights = regData$s, data = regData)
   }
 
   if(biasAdjust){
@@ -237,6 +237,70 @@ gk_t <- function(p0, p1, q0, q1){
 
 }
 
+#' Drobish bilateral index
+#'
+#' @keywords internal
+#' @noRd
+drobish_t <- function(p0, p1, q0, q1){
+
+  return((fixed_t(p0,p1,q0) + fixed_t(p0,p1,q1))/2)
+
+}
+
+#' Stuvel bilateral index
+#'
+#' @keywords internal
+#' @noRd
+stuvel_t <- function(p0, p1, q0, q1){
+
+  exp0 <- sum(p0*q0)
+  exp1 <- sum(p1*q1)
+
+  PL <- fixed_t(p0, p1, q0) # laspeyres price index
+  QL <- fixed_t(q0, q1, p0) # laspeyres quantity index
+
+  A <- 0.5*(PL-QL)
+
+  return(A + (A^2 + exp1/exp0)^0.5)
+
+}
+
+#' Marshall-Edgeworth bilateral index
+#'
+#' @keywords internal
+#' @noRd
+marshallEdgeworth_t <- function(p0, p1, q0, q1){
+
+  return(sum(p1*(q0+q1))/sum(p0*(q0+q1)))
+
+}
+
+#' Palgrave bilateral index
+#'
+#' @keywords internal
+#' @noRd
+palgrave_t <- function(p0, p1, q1){
+
+  exp1 <- sum(p1*q1)
+  s1 <- (p1*q1)/exp1
+
+  return(sum(s1*(p1/p0)))
+
+}
+
+#' Young bilateral index
+#'
+#' @keywords internal
+#' @noRd
+young_t <- function(p0, p1, pb, qb){
+
+  expb <- sum(pb*qb)
+  sb <- (pb*qb)/expb
+
+  return(sum(sb*p1/p0))
+
+}
+
 #' Computes a bilateral price index
 #'
 #' A function to compute a price index given data on products over time
@@ -244,15 +308,17 @@ gk_t <- function(p0, p1, q0, q1){
 #' @param x A dataframe containing price, quantity, a time period identifier
 #' and a product identifier. It must have column names.
 #' @param pvar A character string for the name of the price variable
-#' @param qvar A character string for the name of the quantity variable
+#' @param qvar A character string for the name of the quantity variable. For
+#' elementary indexes a quantity variable is not required for the calculations
+#' and you must specify qvar = "".
 #' @param prodID A character string for the name of the product identifier
 #' @param pervar A character string for the name of the time variable. This variable
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
 #' There may be observations on multiple products for each time period.
 #' @param indexMethod A character string to select the index number method. Valid index
 #' number methods are dutot, carli, jevons, laspeyres, paasche, fisher, cswd,
-#' harmonic, tornqvist, satovartia, walsh, CES, geomLaspeyres, geomPaasche, tpd and
-#' Geary-Khamis.
+#' harmonic, tornqvist, satovartia, walsh, CES, geomLaspeyres, geomPaasche, tpd,
+#' Geary-Khamis (gk), drobish, palgrave, stuvel, marshalledgeworth.
 #' @param sample A character string specifying whether a matched sample
 #' should be used.
 #' @param output A character string specifying whether a chained (output="chained")
@@ -263,7 +329,8 @@ gk_t <- function(p0, p1, q0, q1){
 #' Valid options are "pop" for period-on-period, and similarity chain linked
 #' options "plspread" for the Paasche-Laspeyres spread, "asymplinear" for
 #' weighted asymptotically linear, "logquadratic" for the weighted log-quadratic,
-#' and "mixScale" for the mix, scale or absolute dissimilarity measures.
+#' and "mixScale" for the mix, scale or absolute dissimilarity measures,
+#' or "predictedshare" for the predicted share relative price dissimilarity.
 #' The default is period-on-period. Additional parameters can be passed to the
 #' mixScaleDissimilarity function using \code{...}
 #' @param sigma The elasticity of substitution for the CES index method.
@@ -275,6 +342,13 @@ gk_t <- function(p0, p1, q0, q1){
 #' "unweighted" to use ordinary least squares, "shares" to use weighted least squares
 #' with expenditure share weights, and "average" to use weighted least squares
 #' with the average of the expenditure shares over the two periods.
+#' @param loweYoungBase the period used as the base for the lowe or
+#' young type indexes. The default is period 1. This can be a vector of values to
+#' use multiple periods. For example, if the data are monthly and start in January, specifying
+#' 1:12 will use the first twelve months as the base.
+#' @param imputePrices the type of price imputation to use for missing prices.
+#' Currently only "carry" is supported to used carry-forward/carry-backward prices.
+#' Default is NULL to not impute missing prices.
 #' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
 #' function.
 #' @examples
@@ -294,12 +368,15 @@ gk_t <- function(p0, p1, q0, q1){
 #' @export
 priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                        sample = "matched", output = "pop", chainMethod = "pop",
-                       sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE, weights = "average", ...){
+                       sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE,
+                       weights = "average", loweYoungBase = 1,
+                       imputePrices = NULL, ...){
 
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
                     "paasche","fisher","tornqvist","satovartia","walsh","ces",
-                    "geomlaspeyres", "geompaasche", "tpd", "gk")
+                    "geomlaspeyres", "geompaasche", "tpd", "gk", "drobish",
+                    "stuvel", "marshalledgeworth", "palgrave", "lowe", "young")
 
   if(!(tolower(indexMethod) %in% validMethods)){
     stop("Not a valid index number method.")
@@ -323,6 +400,13 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
     stop(colNameCheck$message)
   }
 
+  # check valid chainMethod given
+  validChainMethods <- c("pop", "plspread", "asymplinear", "logquadratic", "mixscale",
+                         "predictedshare")
+  if(!chainMethod %in% validChainMethods){
+    stop("Not a valid chainMethod. Please choose from", paste(validChainMethods, collapse = ", "))
+  }
+
   # check column types
   x <- checkTypes(x, pvar, qvar, pervar)
 
@@ -331,6 +415,13 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   if(timeCheck$result == FALSE){
     stop(paste("The time period variable is not continuous.",
                 "Missing periods:", timeCheck$missing))
+  }
+
+  # apply price imputation
+  if(!is.null(imputePrices)){
+    switch(imputePrices,
+           "carry" = {x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)},
+           stop("Invalid imputePrices argument"))
   }
 
   # sort the dataset by time period and product ID
@@ -355,17 +446,31 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                                                                     similarityMethod = "asymplinear")},
            mixscale = {similarityMatrix <- mixScaleDissimilarity(x,pvar=pvar,qvar=qvar,
                                                                  pervar=pervar,prodID=prodID,
-                                                                 ...)})
+                                                                 ...)},
+           predictedshare = {similarityMatrix <- relativeDissimilarity(x, pvar, qvar,
+                                                                       pervar, prodID,
+                                                                       similarityMethod = "predictedshare")})
     # use the similarity matrix to compute links
     links <- maximumSimilarityLinks(similarityMatrix)
   }
 
-  # if fixed base requested, set xt0 to the first period data
-  if(tolower(output) == "fixedbase"){
-    xt0 <- x[x[[pervar]] == basePeriod,]
-  }
+  for(i in 1:n){
 
-  for(i in 2:n){
+    if(i == basePeriod){
+      plist[i,1] <- 1
+      next
+    }
+
+    # if fixed base requested, set xt0 to the first period data
+    if(tolower(output) == "fixedbase"){
+      xt0 <- x[x[[pervar]] == basePeriod,]
+    }
+
+    # if lowe index method chosen then set xtb to the loweYoungBase period
+    if(tolower(indexMethod) %in% c("lowe", "young")){
+      xtb <- x[x[[pervar]] %in% loweYoungBase,]
+    }
+
     # if chained or period-on-period requested then set xt0
     # to the previous period
     if(tolower(output) == "chained" & tolower(chainMethod)=="pop" |
@@ -386,10 +491,18 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
       xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
       xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
 
+      # because the base period can differ from period 1 and 0 for lowe index
+      if(tolower(indexMethod) %in% c("lowe", "young")){
+        xt1 <- xt1[xt1[[prodID]] %in% unique(xtb[[prodID]]),]
+        xt0 <- xt0[xt0[[prodID]] %in% unique(xtb[[prodID]]),]
+
+        # for xtb we only need to intersect with one of xt0 or xt1 because they are the same set
+        xtb <- xtb[xtb[[prodID]] %in% unique(xt1[[prodID]]),]
+      }
+
     }
 
-    # set the price index element to NA if there are no
-    # matches
+    # set the price index element to NA if there are no matches
     if(nrow(xt1)==0){
       plist[i,1] <- NA
       naElements <- paste0(naElements, i, sep = ",")
@@ -401,6 +514,13 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
       q0 <- xt0[[qvar]]
       q1 <- xt1[[qvar]]
 
+      if(tolower(indexMethod %in% c("lowe", "young"))){
+        qb <- xtb[[qvar]]
+        if(tolower(indexMethod == "young")){
+          pb <- xtb[[pvar]]
+        }
+      }
+
       # compute the index
       switch(tolower(indexMethod),
              dutot = {plist[i,1] <- dutot_t(p0,p1)},
@@ -410,6 +530,8 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
              cswd = {plist[i,1] <- cswd_t(p0,p1)},
              laspeyres = {plist[i,1] <- fixed_t(p0,p1,q0)},
              paasche = {plist[i,1] <- fixed_t(p0,p1,q1)},
+             lowe = {plist[i,1] <- fixed_t(p0,p1,qb)},
+             young = {plist[i,1] <- young_t(p0,p1,pb,qb)},
              fisher = {plist[i,1] <- fisher_t(p0,p1,q0,q1)},
              tornqvist = {plist[i,1] <- tornqvist_t(p0,p1,q0,q1)},
              satovartia = {plist[i,1] <- satoVartia_t(p0,p1,q0,q1)},
@@ -418,7 +540,11 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
              geomlaspeyres = {plist[i,1] <- geomLaspeyres_t(p0, p1, q0, q1)},
              geompaasche = {plist[i,1] <- geomPaasche_t(p0, p1, q0, q1)},
              tpd = {plist[i,1] <- tpd_t(p0, p1, q0, q1, xt0[[prodID]], xt1[[prodID]], biasAdjust, weights)},
-             gk = {plist[i,1] <- gk_t(p0, p1, q0, q1)}
+             gk = {plist[i,1] <- gk_t(p0, p1, q0, q1)},
+             drobish = {plist[i,1] <- drobish_t(p0, p1, q0, q1)},
+             stuvel = {plist[i,1] <- stuvel_t(p0, p1, q0, q1)},
+             marshalledgeworth = {plist[i,1] <- marshallEdgeworth_t(p0, p1, q0, q1)},
+             palgrave = {plist[i,1] <- palgrave_t(p0, p1, q1)}
       )
 
       # if similarity chain linking then multiply the index by the link period index
@@ -454,7 +580,9 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
 #' @export
 quantityIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                           sample = "matched", output = "pop", chainMethod = "pop",
-                          sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE, weights = "average", ...){
+                          sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE,
+                          weights = "average", loweYoungBase = 1,
+                          imputePrices = NULL, ...){
   return(priceIndex(x,
                     pvar = qvar,
                     qvar = pvar,

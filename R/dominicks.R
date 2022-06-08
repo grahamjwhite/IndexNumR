@@ -14,10 +14,13 @@
 #' result with data detailing the dates of each of the weeks in the movement file.
 #'
 #' @details
-#' Only two transformations are performed on the data:
+#' The following transformations are performed on the data:
 #' \itemize{
-#'     \item The quantity of interest is calculated as MOVE/QTY (then MOVE and QTY are dropped)
-#'     \item All observations where the variable OK equals 0, or price is less than or equal to 0, are dropped
+#'     \item The quantity variable is set to MOVE, which is the number of individual units sold
+#'     \item The price variable is set to PRICE/QTY, which is the unit price. This accounts
+#'     for the fact that sometimes products are sold in bundles (e.g., two-for-one promotions).
+#'     \item expenditure is given by PRICE*MOVE/QTY.
+#'     \item All observations where the variable OK equals 0, or price is less than or equal to 0, are dropped.
 #' }
 #'
 #' If you have already downloaded the movement and UPC csv files for a category from
@@ -74,6 +77,9 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
   dlMove <- ifelse(is.null(movementcsv), TRUE, FALSE)
   dlUPC <- ifelse(is.null(UPCcsv), TRUE, FALSE)
 
+  movementBaseURL <- "https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/movement_csv-files/"
+  UPCBaseURL <- "https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/upc_csv-files/"
+
   if(!dlMove && !file.exists(movementcsv)){
     stop(paste("movement file", movementcsv, "does not exist."))
   }
@@ -82,8 +88,42 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
     stop(paste("UPC file", UPCcsv, "does not exist."))
   }
 
-  movementBaseURL <- "https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/movement_csv-files/"
-  UPCBaseURL <- "https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/upc_csv-files/"
+  # get files if needed
+  if(dlUPC){
+    UPCfilename <- getDominicksFileName(x, "upc")
+    UPCcsv <- tempfile(fileext = ".csv")
+    utils::download.file(url = paste0(UPCBaseURL, UPCfilename), destfile = UPCcsv)
+  }
+
+  UPCFile <- utils::read.csv(UPCcsv)
+  if(dlUPC) unlink(UPCcsv)
+
+  if(dlMove){
+    movementFilename <- getDominicksFileName(x, "movement")
+    movementZip <- tempfile(fileext = ".zip")
+    utils::download.file(url = paste0(movementBaseURL,
+                               ifelse(movementFilename == "wana.csv",
+                                      sub(pattern = "\\.csv", replacement = "_csv.zip", movementFilename),
+                                      sub(pattern = "\\.csv", replacement = ".zip", movementFilename))),
+                  destfile = movementZip)
+    movementcsv <- unz(movementZip, filename = movementFilename)
+  }
+
+  movementFile <- utils::read.csv(movementcsv)
+  if(dlMove) unlink(movementZip)
+
+  # clean files and calculate required columns
+  merged <- cleanAndMergeDominicks(movementFile, UPCFile)
+
+  return(merged)
+
+}
+
+#' get the file name for given category and file type
+#'
+#' @keywords internal
+#' @noRd
+getDominicksFileName <- function(category, upcORMovement){
 
   categories <- c("Analgesics", "Bath Soap", "Beer", "Bottled Juices", "Cereals",
                   "Cheeses", "Cigarettes", "Cookies", "Crackers", "Canned Soup",
@@ -93,10 +133,10 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
                   "Snack Crackers", "Soaps", "Toothbrushes", "Canned Tuna", "Toothpastes",
                   "Bathroom Tissues")
 
-  xPos <- grep(paste0("^", x, "$"), categories, ignore.case = TRUE)
+  xPos <- grep(paste0("^", category, "$"), categories, ignore.case = TRUE)
 
   if(length(xPos) == 0){
-    stop(paste("Category", x, "does not exist in the Dominicks data"))
+    stop(paste("Category", category, "does not exist in the Dominicks data"))
   }
 
   UPCfiles <- c("upcana.csv", "upcbat.csv", "upcber.csv", "upcbjc.csv", "upccer.csv",
@@ -113,45 +153,50 @@ dominicksData <- function(x, movementcsv = NULL, UPCcsv = NULL){
                      "wsna.csv", "wsoa.csv", "wtbr.csv", "wtna.csv", "wtpa.csv", "wtti.csv")
 
   if(UPCfiles[xPos] == "Not Available"){
-    stop(paste("Category", x, "is a category, but the csv files are not available."))
+    stop(paste("Category", category, "is a category, but the csv files are not available."))
   }
 
-  # get files if needed
-  if(dlUPC){
-    UPCfilename <- UPCfiles[xPos]
-    UPCcsv <- tempfile(fileext = ".csv")
-    download.file(url = paste0(UPCBaseURL, UPCfilename), destfile = UPCcsv)
-  }
+  switch(upcORMovement,
+         "upc" = UPCfiles[xPos],
+         "movement" = movementFiles[xPos])
 
-  UPCFile <- read.csv(UPCcsv)
-  if(dlUPC) unlink(UPCcsv)
+}
 
-  if(dlMove){
-    movementFilename <- movementFiles[xPos]
-    movementZip <- tempfile(fileext = ".zip")
-    download.file(url = paste0(movementBaseURL,
-                               ifelse(movementFilename == "wana.csv",
-                                      sub(pattern = "\\.csv", replacement = "_csv.zip", movementFilename),
-                                      sub(pattern = "\\.csv", replacement = ".zip", movementFilename))),
-                  destfile = movementZip)
-    movementcsv <- unz(movementZip, filename = movementFilename)
-  }
 
-  movementFile <- read.csv(movementcsv)
-  if(dlMove) unlink(movementZip)
+#' clean and merge movement and upc files
+#'
+#' @keywords internal
+#' @noRd
+cleanAndMergeDominicks <- function(movementFile, UPCFile){
 
   # clean files and calculate required columns
   movementFile <- movementFile[movementFile$OK == 1 & movementFile$PRICE > 0,]
-  movementFile$QUANTITY <- movementFile$MOVE / movementFile$QTY
-  movementFile <- subset(movementFile, select = -c(MOVE, QTY, PRICE_HEX, PROFIT_HEX, OK))
-  movementFile$EXPENDITURE <- movementFile$PRICE * movementFile$QUANTITY
+
+  # MOVE is the number of units sold, QTY is the number of units in a bundle
+  # and PRICE is the price of a bundle, so expenditure is given by PRICE * MOVE / QTY
+  movementFile$EXPENDITURE <- movementFile$PRICE * movementFile$MOVE / movementFile$QTY
+
+  # we want to use the quantity of individual units sold, which is MOVE, not the number
+  # of units in a bundle
+  movementFile$QUANTITY <- movementFile$MOVE
+
+  # we need to make the price for a single unit, so that it correctly corresponds to QUANTITY
+  # since PRICE is the bundle price, we calculate the unit price as PRICE / QTY
+  movementFile$PRICE <- movementFile$PRICE / movementFile$QTY
+
+  # remove the columns we don't need
+  keepCols <- !colnames(movementFile) %in% c("MOVE", "QTY", "PRICE_HEX", "PROFIT_HEX", "OK")
+  movementFile <- movementFile[,keepCols]
+
+  # lower case names are nicer to work with
   names(movementFile) <- tolower(names(movementFile))
   names(UPCFile) <- tolower(names(UPCFile))
 
   # merge with weeks and UPC file
   merged <- merge(movementFile, UPCFile, by = "upc")
-  merged <- merge(merged, DominicksWeeks, by = "week")
+  merged <- merge(merged, IndexNumR::DominicksWeeks, by = "week")
 
   return(merged)
 
 }
+

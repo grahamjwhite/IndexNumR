@@ -4,7 +4,20 @@
 \alias{GKIndex}
 \title{Compute the Geary-Khamis index}
 \usage{
-GKIndex(x, pvar, qvar, pervar, prodID, sample = "", window, splice = "mean")
+GKIndex(
+  x,
+  pvar,
+  qvar,
+  pervar,
+  prodID,
+  sample = "",
+  window,
+  splice = "mean",
+  imputePrices = NULL,
+  solveMethod = "inverse",
+  tolerance = 1/1e+12,
+  maxIter = 100
+)
 }
 \arguments{
 \item{x}{A dataframe containing price, quantity, a time period identifier
@@ -28,6 +41,22 @@ across all periods in a given window. Default is not to match.}
 \item{splice}{the splicing method to use to extend the index. Valid methods are
 window, movement, half, mean, fbew, fbmw, wisp, hasp or mean_pub. The default is mean.
 See details for important considerations when using fbew and fbmw.}
+
+\item{imputePrices}{the type of price imputation to use for missing prices.
+Currently only "carry" is supported to used carry-forward/carry-backward prices.
+Default is NULL to not impute missing prices.}
+
+\item{solveMethod}{the method to use to solve for the quality adjustment factors
+and the price levels. "inverse" uses a matrix inverse operation, is much more efficient, but
+may not work if there are many missing observations.
+"iterative" iterates between the equations for the quality adjustment factors and price levels
+and is much slower, but can be used even when there are a large number of missing observations.}
+
+\item{tolerance}{the tolerance for the iterative solving method. Smaller numbers will produce more
+accurate results, but take more iterations. Default is 1/1e12, which may be a little larger
+than machine precision, given by .Machine$double.eps.}
+
+\item{maxIter}{the maximum number of iterations for the iterative solving method.}
 }
 \description{
 Compute the Geary-Khamis index
@@ -43,6 +72,11 @@ period is updated periodically. IndexNumR calculates which periods are the base 
 right window length chosen. For example, if you have monthly data and want December
 of each year to be the base period, then the first period in the data must be December
 and the window must be set to 13.
+
+It is recommended to use the matrix inverse method of solving the GK equations (the default)
+because the performance difference can be significant. If the matrix inverse method does
+not work then switch to the iterative method. The tolerance and maximum number of iterations
+in the iterative method can be adjusted to balance performance and precision.
 }
 \examples{
 # compute a Geary-Khamis index with mean splicing

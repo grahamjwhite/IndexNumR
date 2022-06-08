@@ -12,7 +12,8 @@ WTPDIndex(
   prodID,
   sample = "",
   window = 13,
-  splice = "mean"
+  splice = "mean",
+  imputePrices = NULL
 )
 }
 \arguments{
@@ -37,6 +38,10 @@ across all periods in a given window. Default is not to match.}
 \item{splice}{A character string specifying the splicing method. Valid methods are
 window, movement, half, mean, fbew, fbmw, wisp, hasp or mean_pub. The default is mean.
 See details for important considerations when using fbew and fbmw.}
+
+\item{imputePrices}{the type of price imputation to use for missing prices.
+Currently only "carry" is supported to used carry-forward/carry-backward prices.
+Default is NULL to not impute missing prices.}
 }
 \description{
 A function to calculate a weighted-time-product-dummy multilateral index.

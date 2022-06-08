@@ -41,9 +41,27 @@ test_that("geks functions return the correct values for different index methods"
 
 test_that("error is thrown when wrong column names are given",{
   expect_error(GEKSIndex(CES_sigma_2,pvar = "price",qvar = "quantities",
-                          pervar = "time",prodID = "prodID",indexMethod = "tornqvist",
-                          sample="matched"),
+                          pervar = "time", prodID = "prodID", indexMethod = "tornqvist",
+                          sample = "matched"),
                "are not column names of the input data frame")
+})
+
+test_that("Error is thrown for wrong splice method", {
+
+  expect_error(GEKSIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",
+                         pervar = "time", prodID = "prodID", indexMethod = "tornqvist",
+                         sample = "matched", window = 12, splice = "wrongSplice"),
+               "Not a valid splicing method.")
+
+})
+
+test_that("Error is thrown for wrong imputePrices parameter", {
+
+  expect_error(GEKSIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",
+                         pervar = "time", prodID = "prodID", indexMethod = "tornqvist",
+                         sample = "matched", window = 12, splice = "window", imputePrices = "wrongImpute"),
+               "Invalid imputePrices argument")
+
 })
 
 rm(testData)
@@ -94,5 +112,57 @@ test_that("GEKS index returns the same answer regardless of product ordering",{
   for(i in seq_along(indexMethods)){
     indexEqual(CESOrdered, indexMethods[i], CESUnordered)
   }
+
+})
+
+test_that("intGEKS gives the same result as GEKS with no product change", {
+
+  indexMethods <- c("fisher", "tornqvist", "tpd", "walsh", "jevons")
+
+  testMethod <- function(method){
+    intFalse <- GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", indexMethod = method, window = 12, intGEKS = FALSE)
+
+    intTrue <- GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                         prodID = "prodID", indexMethod = method, window = 12, intGEKS = TRUE)
+
+    expect_equal(intFalse, intTrue)
+  }
+
+  for(i in 1:length(indexMethods)){
+    testMethod(indexMethods[i])
+  }
+
+})
+
+
+test_that("can replicate intGEKS result in Lamboray & Krsinich", {
+
+  x1 <- c(1, 1*cumprod(rep(0.99, 7)))
+  x2 <- c(1, 1*(0.9), 1*(0.9^2), 1*(0.9^3), rep(NA, 4))
+  x3 <- c(rep(NA, 4), 1, 1*(0.9), 1*(0.9^2), 1*(0.9^3))
+
+  df <- data.frame(p = c(x1, x2, x3), q = rep(1, 24), prod = c(rep(1, 8), rep(2, 8), rep(3, 8)), t = rep(1:8, 3))
+  df <- df[!is.na(df$p),]
+
+  ind <- IndexNumR::GEKSIndex(df, pvar = "p", qvar = "q", pervar = "t", prodID = "prod",
+                              window = 8, sample = "matched", indexMethod = "tornqvist", intGEKS = TRUE)
+
+  # test for the result in table 2 in Lamboray and Krsinich (2016)
+  expect_equal(ind[5]/ind[4], 0.99)
+
+})
+
+
+test_that("The right GEKSIndex result is given when prices are imputed", {
+
+  df <- CES_sigma_2[-c(2:3),]
+  result <- GEKSIndex(df, pvar = "prices", qvar = "quantities", pervar = "time",
+                    prodID = "prodID", indexMethod = "fisher", imputePrices = "carry", window = 12)
+
+  expect_equal(result, as.matrix(c(1, 0.876105290522952, 1.08127159852239, 1.10437571515941,
+                                   0.911053419297449, 1.16689616688954, 1.1114839943134, 0.922249166063837,
+                                   1.08436534352444, 0.930263143473634, 1.11519231402879, 1.11806626998895
+  )))
 
 })

@@ -129,6 +129,12 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
 #' with expenditure share weights, and "average" to use weighted least squares
 #' with the average of the expenditure shares over the two periods. See details for more
 #' information
+#' @param intGEKS whether to estimate the intersection GEKS method. This method performs
+#' additional product matching over the sample = "matched" option. See Lamboray and Krsinich
+#' 2015 for more information.
+#' @param imputePrices the type of price imputation to use for missing prices.
+#' Currently only "carry" is supported to used carry-forward/carry-backward prices.
+#' Default is NULL to not impute missing prices.
 #' @details The splicing methods are used to update the price index when new data become
 #' available without changing prior index values. The window, movement, half and mean splices
 #' use the most recent index value as the base period, which is multiplied by a price movement
@@ -151,10 +157,15 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
 #' @references Ivancic, L., W.E. Diewert and K.J. Fox (2011), "Scanner Data,
 #' Time Aggregation and the Construction of Price Indexes", Journal of
 #' Econometrics 161, 24-35.
+#'
+#' Lamboray, C. and F. Krsinich (2015), "A Modification of the GEKS Index When
+#' Product Turnover is High", Paper presented at the fourteenth Ottawa Group
+#' meeting, 20-22 May 2015, Tokyo, Japan.
+#'
 #' @export
 GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
                       sample = "matched", window = 13, splice = "mean", biasAdjust = FALSE,
-                      weights = "average"){
+                      weights = "average", intGEKS = FALSE, imputePrices = NULL){
 
   # check that only valid index methods are chosen
   if(!(tolower(indexMethod) %in% c("fisher","tornqvist", "tpd", "walsh", "jevons"))){
@@ -188,6 +199,13 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
     stop("The window length exceeds the number of periods in the data")
   }
 
+  # apply price imputation
+  if(!is.null(imputePrices)){
+    switch(imputePrices,
+           "carry" = {x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)},
+           stop("Invalid imputePrices argument"))
+  }
+
   # sort the dataset by time period and product ID
   x <- x[order(x[[pervar]], x[[prodID]]),]
 
@@ -203,8 +221,14 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
   xWindow <- x[x[[pervar]] >= 1 & x[[pervar]] <= window,]
 
   # call GEKS_w on first window
-  tempGEK <- GEKS_w(xWindow, pvar, qvar, pervar, indexMethod, prodID,
-                    sample, biasAdjust, weights)
+  if(intGEKS){
+    tempGEK <- intGEKS_w(xWindow, pvar, qvar, pervar, indexMethod, prodID,
+                      sample, biasAdjust, weights)
+  } else {
+    tempGEK <- GEKS_w(xWindow, pvar, qvar, pervar, indexMethod, prodID,
+                      sample, biasAdjust, weights)
+  }
+
   pGEKS[1:window,1] <- tempGEK$pgeo
 
   # initiate a vector of warnings for NAs
@@ -241,8 +265,14 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
         xWindow <- x[x[[pervar]] >= i & x[[pervar]] < i + window,]
       }
 
-      # call GEKS_w on this window
-      tempGEK <- GEKS_w(xWindow, pvar, qvar, pervar, indexMethod, prodID, sample, biasAdjust, weights)
+      # call GEKS_w on first window
+      if(intGEKS){
+        tempGEK <- intGEKS_w(xWindow, pvar, qvar, pervar, indexMethod, prodID,
+                             sample, biasAdjust, weights)
+      } else {
+        tempGEK <- GEKS_w(xWindow, pvar, qvar, pervar, indexMethod, prodID,
+                          sample, biasAdjust, weights)
+      }
       new <- tempGEK$pgeo
 
       if(length(tempGEK$naPairs) > 0){
@@ -273,4 +303,98 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
 }
 
 
+
+#' intGEKS_w
+#'
+#' Function to compute the intersection GEKS index over a window.
+#' The window size is assumed to be the number of periods available in pervar.
+#' This is not exposed to the user because GEKSIndex calls this
+#' @keywords internal
+#' @noRd
+intGEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
+                      sample="matched", biasAdjust, weights){
+
+  # get the window length
+  window <- max(x[[pervar]]) - min(x[[pervar]]) + 1
+
+  # initialise some matrices
+  # matrix of all price indices using each month as the base period
+  pindices <- matrix(1, nrow = window, ncol = 1)
+  pgeks <- matrix(1, nrow = window, ncol = 1)
+
+  # get the vector of period indices that are inside the window
+  pi <- unique(x[[pervar]])
+
+  # initialise a vector for storing NA pair information
+  naPairs <- character()
+
+  # for every period in the window...
+  for(j in 2:window){
+
+    # for every period in the window...
+    for(k in 1:window){
+
+      # set the period pi(j-1) = base period
+      xt0 <- x[x[[pervar]] == pi[j-1],]
+      # set the period pi(j) = comparison period
+      xt1 <- x[x[[pervar]] == pi[j],]
+      # set the k period sample
+      xtk <- x[x[[pervar]] == pi[k],]
+      intProds <- unique(xtk[[prodID]])
+
+      # get matched sample across periods j, j-1, k
+      xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
+      xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
+      xt1 <- xt1[xt1[[prodID]] %in% intProds,]
+      xt0 <- xt0[xt0[[prodID]] %in% intProds,]
+      xtk <- xtk[xtk[[prodID]] %in% unique(xt0[[prodID]]),] # only need to do this against one of xt0 or xt1
+
+      # set the price index element to NA if there are no
+      # matches
+      if(nrow(xt1) == 0){
+        pindices[j,k] <- NA
+        naPairs <- paste0(naPairs, paste0("(",j,",",k,")"), collapse = ",")
+      }
+      else{
+        # set the price and quantity vectors
+        p0 <- xt0[[pvar]]
+        p1 <- xt1[[pvar]]
+        q0 <- xt0[[qvar]]
+        q1 <- xt1[[qvar]]
+        pk <- xtk[[pvar]]
+        qk <- xtk[[qvar]]
+
+        # calculate the price index for 'base' period j-1 and period k
+        pbIndex <- switch(tolower(indexMethod),
+                          fisher = {fisher_t(p0, pk, q0, qk)},
+                          tornqvist = {tornqvist_t(p0, pk, q0, qk)},
+                          tpd = {tpd_t(p0, pk, q0, qk, xt0[[prodID]], xtk[[prodID]], biasAdjust, weights)},
+                          walsh = {walsh_t(p0, pk, q0, qk)},
+                          jevons = {jevons_t(p0, pk)})
+
+        # calculate the price index for period k and comparison period j
+        pcIndex <- switch(tolower(indexMethod),
+                          fisher = {fisher_t(pk, p1, qk, q1)},
+                          tornqvist = {tornqvist_t(pk, p1, qk, q1)},
+                          tpd = {tpd_t(pk, p1, qk, q1, xtk[[prodID]], xt1[[prodID]], biasAdjust, weights)},
+                          walsh = {walsh_t(pk, p1, qk, q1)},
+                          jevons = {jevons_t(pk, p1)})
+
+        pindices[k, 1] <- (pbIndex*pcIndex)
+      }
+
+    }
+
+    pgeks[j, 1] <- prod(pindices)^(1/window)
+
+  }
+
+  # normalise to the first period
+  pgeks <- pgeks/pgeks[1,1]
+
+  # chain the period-on-period indexes
+  pgeks <- cumprod(pgeks)
+
+  return(list(pgeo = pgeks, naPairs = naPairs))
+}
 

@@ -31,8 +31,8 @@
 #' use in the calculation. Not relevant for similarityMethod = PLSpread.
 #' Supported methods are fisher and tornqvist. Default is Fisher.
 #' @param similarityMethod A string specifying the formula for calculating
-#' the relative dissimilarity. Valid options are logquadratic, asymplinear
-#' and PLSpread. Default is logquadratic.
+#' the relative dissimilarity. Valid options are logquadratic, asymplinear,
+#' PLSpread and predictedshare. Default is logquadratic.
 #' @return A matrix of dissimilarity measures.
 #' The first two columns are the possible combinations of bilateral
 #' comparisons and the third column is the dissimilarity measure.
@@ -54,21 +54,25 @@ relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
   }
 
   if(!(tolower(similarityMethod) %in% c("plspread","logquadratic",
-                                        "asymplinear"))){
+                                        "asymplinear", "predictedshare"))){
     stop("Not a valid similarity method.")
+  }
+
+  if(tolower(similarityMethod == "predictedshare")){
+    return(predictedShareDissimilarity(x, pvar, qvar, pervar, prodID))
   }
 
   # get a list of possible combinations of time periods
   n <- max(x[[pervar]])
-  c <- utils::combn(n,2)
+  comb <- utils::combn(n,2)
 
   # initialise a results matrix
-  res <- matrix(0, nrow=ncol(c), ncol=3)
-  res[,1:2] <- t(c)
+  res <- matrix(0, nrow=ncol(comb), ncol=3)
+  res[,1:2] <- t(comb)
 
-  for(i in 1:ncol(c)){
-    xt0 <- x[x[[pervar]]==c[1,i],]
-    xt1 <- x[x[[pervar]]==c[2,i],]
+  for(i in 1:ncol(comb)){
+    xt0 <- x[x[[pervar]]==comb[1,i],]
+    xt1 <- x[x[[pervar]]==comb[2,i],]
 
     # get a matched sample
     xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
@@ -256,3 +260,51 @@ maximumSimilarityLinks <- function(x){
   colnames(result) <- c("xt","x0","dissimilarity")
   return(as.data.frame(result))
 }
+
+
+#' Predicted share measure of relative price dissimilarity
+#'
+#' @inheritParams priceIndex
+#' @keywords internal
+#' @noRd
+predictedShareDissimilarity <- function(x, pvar, qvar, pervar, prodID){
+
+  # if we only have prices
+  if(qvar == ""){
+    x <- imputeQuantities(x, pvar, pervar, prodID)
+    s <- predictedShares(x, pvar, "quantities", pervar, prodID)
+  } else { # we have prices and quantities
+    s <- predictedShares(x, pvar, qvar, pervar, prodID)
+  }
+
+  # calculate the predicted share error
+  shareErrors <- lapply(s, function(prodShares){
+    stn <- diag(prodShares)
+    apply(prodShares, 2, function(strn){stn-strn})
+  })
+
+  n <- max(x[[pervar]])
+  cn <- utils::combn(n, 2) # first row = y, second row = z
+
+  # initialise a results matrix
+  res <- matrix(0, nrow = ncol(cn), ncol = 3)
+  res[,1:2] <- t(cn)
+
+  for(i in 1:ncol(cn)){
+
+    y <- cn[1,i]
+    z <- cn[2,i]
+
+    etrn <- sapply(shareErrors, `[`, y, z)
+    ertn <- sapply(shareErrors, `[`, z, y)
+
+    res[i,3] <- sum(etrn^2) + sum(ertn^2)
+
+  }
+
+  colnames(res) <- c("period_i","period_j","dissimilarity")
+
+  return(as.data.frame(res))
+
+}
+
