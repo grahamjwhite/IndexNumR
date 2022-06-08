@@ -31,17 +31,17 @@ methods <- c("fisher", "laspeyres", "paasche", "tornqvist", "ces", "walsh", "sat
 
 monthOnMonth <- list()
 for(method in methods){
-    monthOnMonth[[method]] <- IndexNumR::priceIndex(IsraeliCPI$vegetables, 
-                                                                         pvar = "price",
-                                                                         qvar = "quantity",
-                                                                         prodID = "prodID",
-                                                                         pervar = "month",
-                                                                         indexMethod = method,
-                                                                         output = "chained")
+  monthOnMonth[[method]] <- IndexNumR::priceIndex(IsraeliCPI$vegetables, 
+                                                  pvar = "price",
+                                                  qvar = "quantity",
+                                                  prodID = "prodID",
+                                                  pervar = "month",
+                                                  indexMethod = method,
+                                                  output = "chained")
 }
 
 monthOnMonth <- data.frame(date = unique(IsraeliCPI$vegetables$date), as.data.frame(monthOnMonth)) 
-  
+
 monthOnMonth %>% 
   knitr::kable() %>%
   kableExtra::kable_styling(bootstrap_options = c("striped"))
@@ -61,17 +61,17 @@ methods <- c("fisher", "laspeyres", "paasche", "tornqvist", "ces", "walsh", "sat
 
 monthOnMonth <- list()
 for(method in methods){
-    monthOnMonth[[method]] <- IndexNumR::priceIndex(IsraeliCPI$vegetables, 
-                                                                         pvar = "price",
-                                                                         qvar = "quantity",
-                                                                         prodID = "prodID",
-                                                                         pervar = "month",
-                                                                         indexMethod = method,
-                                                                         output = "fixedbase")
+  monthOnMonth[[method]] <- IndexNumR::priceIndex(IsraeliCPI$vegetables, 
+                                                  pvar = "price",
+                                                  qvar = "quantity",
+                                                  prodID = "prodID",
+                                                  pervar = "month",
+                                                  indexMethod = method,
+                                                  output = "fixedbase")
 }
 
 monthOnMonth <- data.frame(date = unique(IsraeliCPI$vegetables$date), as.data.frame(monthOnMonth)) 
-  
+
 monthOnMonth %>% 
   knitr::kable() %>%
   kableExtra::kable_styling(bootstrap_options = c("striped"))
@@ -94,14 +94,14 @@ geksSplices <- list()
 for(splice in splices){
   
   geksSplices[[splice]] <- IndexNumR::GEKSIndex(IsraeliCPI$vegetables, 
-                                            pvar = "price",
-                                            qvar = "quantity",
-                                            prodID = "prodID",
-                                            pervar = "month",
-                                            indexMethod = "fisher",
-                                            window = 13,
-                                            splice = splice)
-                                            
+                                                pvar = "price",
+                                                qvar = "quantity",
+                                                prodID = "prodID",
+                                                pervar = "month",
+                                                indexMethod = "fisher",
+                                                window = 13,
+                                                splice = splice)
+  
 }
 
 geksSplices <- data.frame(date = unique(IsraeliCPI$vegetables$date), 
@@ -130,14 +130,14 @@ geksBilaterals <- list()
 for(bilateral in bilaterals){
   
   geksBilaterals[[bilateral]] <- IndexNumR::GEKSIndex(IsraeliCPI$vegetables, 
-                                            pvar = "price",
-                                            qvar = "quantity",
-                                            prodID = "prodID",
-                                            pervar = "month",
-                                            indexMethod = bilateral,
-                                            window = 13,
-                                            splice = "mean")
-                                            
+                                                      pvar = "price",
+                                                      qvar = "quantity",
+                                                      prodID = "prodID",
+                                                      pervar = "month",
+                                                      indexMethod = bilateral,
+                                                      window = 13,
+                                                      splice = "mean")
+  
 }
 
 geksBilaterals <- data.frame(date = unique(IsraeliCPI$vegetables$date), 
@@ -172,11 +172,11 @@ for(splice in splices){
                                             pervar = "month",
                                             window = 13,
                                             splice = splice)
-                                            
+  
 }
 
 gkSplices <- data.frame(date = unique(IsraeliCPI$vegetables$date), 
-                          as.data.frame(gkSplices))
+                        as.data.frame(gkSplices))
 
 gkSplices %>%
   knitr::kable() %>%
@@ -201,13 +201,13 @@ wtpdSplices <- list()
 for(splice in splices){
   
   wtpdSplices[[splice]] <- IndexNumR::WTPDIndex(IsraeliCPI$vegetables, 
-                                            pvar = "price",
-                                            qvar = "quantity",
-                                            prodID = "prodID",
-                                            pervar = "month",
-                                            window = 13,
-                                            splice = splice)
-                                            
+                                                pvar = "price",
+                                                qvar = "quantity",
+                                                prodID = "prodID",
+                                                pervar = "month",
+                                                window = 13,
+                                                splice = splice)
+  
 }
 
 wtpdSplices <- data.frame(date = unique(IsraeliCPI$vegetables$date), 
@@ -249,12 +249,12 @@ ccdi <- IndexNumR::GEKSIndex(IsraeliCPI$vegetables,
                              splice = "mean")
 
 gk <- IndexNumR::GKIndex(IsraeliCPI$vegetables, 
-                             pvar = "price",
-                             qvar = "quantity",
-                             prodID = "prodID",
-                             pervar = "month",
-                             window = 13,
-                             splice = "mean")
+                         pvar = "price",
+                         qvar = "quantity",
+                         prodID = "prodID",
+                         pervar = "month",
+                         window = 13,
+                         splice = "mean")
 
 wtpd <- IndexNumR::WTPDIndex(IsraeliCPI$vegetables, 
                              pvar = "price",
@@ -281,3 +281,85 @@ multis %>%
   ggplot2::labs(y = "", x = "", title = "Multilateral index numbers for Seven Kinds of Vegetables")
 
 ```
+
+## Similarity-linked indexes
+
+```{r simi, fig.width=7, fig.height=5}
+
+similarityMethods <- c("plspread", "asymplinear", "logquadratic", "predictedshare")
+
+# assume a Fisher index 
+monthOnMonth <- list()
+for(method in similarityMethods){
+  monthOnMonth[[method]] <- IndexNumR::priceIndex(IsraeliCPI$vegetables, 
+                                                             pvar = "price",
+                                                             qvar = "quantity",
+                                                             prodID = "prodID",
+                                                             pervar = "month",
+                                                             indexMethod = "laspeyres",
+                                                             output = "chained",
+                                                             chainMethod = method)
+}
+
+# chained Fisher index for comparison
+fisher <- IndexNumR::priceIndex(IsraeliCPI$vegetables, 
+                                pvar = "price",
+                                qvar = "quantity",
+                                prodID = "prodID",
+                                pervar = "month",
+                                indexMethod = "fisher",
+                                output = "chained")
+
+# full window transitive GEKS for comparison
+geksFull <- IndexNumR::GEKSIndex(IsraeliCPI$vegetables, 
+                             pvar = "price",
+                             qvar = "quantity",
+                             prodID = "prodID",
+                             pervar = "month",
+                             indexMethod = "fisher",
+                             window = max(IsraeliCPI$vegetables$month))
+
+monthOnMonth <- data.frame(date = unique(IsraeliCPI$vegetables$date), 
+                           as.data.frame(monthOnMonth),
+                           fisher,
+                           GEKS = geksFull) 
+
+monthOnMonth %>% 
+  knitr::kable() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped"))
+
+monthOnMonth %>%
+  tidyr::pivot_longer(-date, names_to = "method", values_to = "indexValues") %>%
+  ggplot2::ggplot(ggplot2::aes(x = date, y = indexValues, colour = method)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(y = "", x = "", title = "Similarity Linked Price Indexes for Seven Kinds of Vegetables")
+
+```
+
+### Similarity link periods for different similarity measures
+
+```{r linkPeriods}
+
+linkPeriods <- list()
+
+for(method in similarityMethods){
+  
+  linkPeriods[[method]] <- IndexNumR::maximumSimilarityLinks(
+    IndexNumR::relativeDissimilarity(IsraeliCPI$vegetables, 
+                                     pvar = "price",
+                                     qvar = "quantity",
+                                     prodID = "prodID",
+                                     pervar = "month",
+                                     similarityMethod = method)
+  )$x0
+}
+
+linkFrame <- data.frame(period = unique(IsraeliCPI$vegetables$month),
+                        as.data.frame(linkPeriods))
+
+linkFrame %>%
+  knitr::kable() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped"))
+
+```
+
