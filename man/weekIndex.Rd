@@ -9,6 +9,9 @@ weekIndex(x)
 \arguments{
 \item{x}{A vector of dates}
 }
+\value{
+An index of weeks starting at 1.
+}
 \description{
 Function to create a week index variable with weeks
 determined as defined in ISO 8601.
