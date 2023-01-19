@@ -84,7 +84,9 @@ monthOnMonth %>%
 
 ```
 
-## GEKS Indexes Using Different Splicing Methods
+## GEKS Indexes 
+
+### Using Different Splicing Methods
 
 ```{r geksSplices, fig.width=7, fig.height=5}
 
@@ -120,7 +122,7 @@ geksSplices %>%
 
 ```
 
-## GEKS Indexes Using Different Bilateral Indexes
+### Using Different Bilateral Indexes
 
 ```{r geksBilaterals, fig.width=7, fig.height=5}
 
@@ -156,7 +158,49 @@ geksBilaterals %>%
 
 ```
 
-## Geary-Khamis Indexes Using Different Splicing Methods
+### Using the intersection-GEKS (intGEKS) method
+
+```{r intgeks, fig.width=7, fig.height=5}
+
+# assuming the mean splice
+geks <- IndexNumR::GEKSIndex(IsraeliCPI$vegetables, 
+                             pvar = "price",
+                             qvar = "quantity",
+                             prodID = "prodID",
+                             pervar = "month",
+                             indexMethod = "fisher",
+                             window = 13,
+                             splice = "mean")
+
+intgeks <- IndexNumR::GEKSIndex(IsraeliCPI$vegetables, 
+                                pvar = "price",
+                                qvar = "quantity",
+                                prodID = "prodID",
+                                pervar = "month",
+                                indexMethod = bilateral,
+                                window = 13,
+                                splice = "mean",
+                                intGEKS = TRUE)
+
+geksFrame <- data.frame(date = unique(IsraeliCPI$vegetables$date),
+                        geks,
+                        intgeks)
+
+geksFrame %>%
+  knitr::kable() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped"))
+
+geksFrame %>%
+  tidyr::pivot_longer(-date, names_to = "method", values_to = "indexValues") %>%
+  ggplot2::ggplot(ggplot2::aes(x = date, y = indexValues, colour = method)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(y = "", x = "", title = "GEKS and intGEKS Indexes for Seven Kinds of Vegetables")
+
+```
+
+## Geary-Khamis Indexes 
+
+### Using Different Splicing Methods
 
 ```{r gkSplices, fig.width=7, fig.height=5}
 
@@ -191,7 +235,9 @@ gkSplices %>%
 
 ```
 
-## Weighted Time-Product-Dummy Indexes Using Different Splicing Methods
+## Weighted Time-Product-Dummy Indexes 
+
+### Using Different Splicing Methods
 
 ```{r wtpdSplices, fig.width=7, fig.height=5}
 
@@ -363,3 +409,28 @@ linkFrame %>%
 
 ```
 
+# Year-over-year indexes
+
+```{r yoy, fig.width=7, fig.height=5}
+
+yoyIndexes <- IndexNumR::yearOverYearIndexes(freq = "monthly", 
+                                             indexFunction = "priceIndex",
+                                             indexArgs = list(x = IndexNumR::IsraeliCPI$vegetables,
+                                                              pvar = "price",
+                                                              qvar = "quantity",
+                                                              prodID = "prodID",
+                                                              pervar = "month",
+                                                              indexMethod = "fisher",
+                                                              output = "chained"))
+
+monthLabels <- c("January", "February", "March", "April", "May", "June", "July",
+                       "August", "September", "October", "November", "December")
+names(yoyIndexes) <- monthLabels
+
+yoyFrame <- dplyr::bind_rows(yoyIndexes, .id = "Month")
+
+yoyFrame %>% ggplot2::ggplot(ggplot2::aes(x=time, y=prices)) +
+  ggplot2::geom_line() +
+  ggplot2::facet_wrap(vars(factor(yoyFrame$Month, levels = monthLabels)))
+
+```

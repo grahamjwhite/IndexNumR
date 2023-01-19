@@ -117,12 +117,17 @@ yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
                       "quarterly" = "quarter"
   )
 
+  # appending .group makes it less likely we'll have a name clash between
+  # the group name and pervar.
+  groupName <- paste0(freqName, ".group")
+
   # sort the dataset by time period and product ID
   indexArgs$x <- indexArgs$x[order(indexArgs$x[[indexArgs$pervar]], indexArgs$x[[indexArgs$prodID]]),]
 
+  # this part creates a group variable
   lookup <- data.frame(min(indexArgs$x[[indexArgs$pervar]]):max(indexArgs$x[[indexArgs$pervar]]))
   lookup[[freqName]] <- rep(1:freqInt, len = nrow(lookup))
-  colnames(lookup) <- c(indexArgs$pervar, freqName)
+  colnames(lookup) <- c(indexArgs$pervar, groupName)
 
   indexArgs$x <- merge(indexArgs$x, lookup)
 
@@ -132,7 +137,7 @@ yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
                         (indexArgs$x[[indexArgs$pervar]] + freqInt - indexArgs$x[[indexArgs$pervar]] %% freqInt)/freqInt)
 
 
-  indexes <- groupIndexes(freqName, indexFunction, indexArgs)
+  indexes <- groupIndexes(groupName, indexFunction, indexArgs)
 
   return(indexes)
 
