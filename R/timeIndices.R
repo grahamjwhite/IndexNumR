@@ -47,8 +47,9 @@ yearIndex <- function(x){
 #' or more days in the new year, then it is considered week 1.
 #' Otherwise, it is the 53rd week of the previous year, and the
 #' next week is week 1.
-#'
+#' @return An index of weeks starting at 1.
 #' @param x A vector of dates
+#' @import lubridate
 #' @examples
 #' # given a vector of dates
 #' df <- data.frame(date = as.Date(c("2016-12-20","2016-12-27","2017-01-01","2017-01-07"),
@@ -58,38 +59,18 @@ yearIndex <- function(x){
 #' df
 #' @export
 weekIndex <- function(x){
-
-  # we first need a measure of how many weeks are in each year in our sample
-  years <- sort(as.numeric(unique(format(x,"%Y"))))
-  # this gets the week number of December 31 for each of the years in
-  # the year vector
-  weeksInYears <- sapply(years,
-                         function(y){as.numeric(format(as.Date(paste0(y,"-12-31")),"%V"))})
-  # If the week number is 1, then there must be 52 weeks in the year because
-  # it's saying that the end of the calendar year falls into week 1 of the
-  # following year.
-  weeksInYears[weeksInYears==1] <- 52
-  cumWeeks <- cumsum(weeksInYears)
-
-  # get the week number within the year of each date
-  weeks <- as.numeric(format(x,"%V"))
-  # get the year of each date in 'week-year' format. see ?strptime
-  weekYears <- as.numeric(format(x,"%G"))
-
-  # initialise a matrix for our final week index
-  week <- matrix(0, nrow=length(x), ncol=1)
-
-  # get the week of the first date in our sample, we'll use this to
-  # normalise our weekindex to start at 1
-  firstWeek <- as.numeric(format(min(x),"%V"))
-
-  # compute the week index as the week's number in the current year, plus the
-  # number of elapsed weeks in prior years, normalised to start at week 1.
-  for(i in seq_along(x)){
-    week[i,1] <- weeks[i] + cumWeeks[years==weekYears[i]] - cumWeeks[1] - (firstWeek-1)
-  }
-
-  return(as.vector(week))
+# use lubridate's isoweek() function to get the week number of each date
+  weeks <- lubridate::isoweek(x)
+  # use lubridate's isoyear() function to get the ISO year of each date, i.e.,
+  # the year for starting/ending weeks of the year that are splitted between both
+  # years depends on which year are the majority of days of the week.
+  years <- lubridate::isoyear(x)
+  # get the week of the first date in our sample, we'll use this to normalize our weekindex to start at 1
+  firstWeek <- lubridate::isoweek(min(x))
+  # compute the week index as the week's number in the current year, 
+  # plus the number of elapsed weeks in prior years, normalized to start at week 1.
+  week <- weeks + (years - years[1]) * 52 - (firstWeek - 1)
+  return(week)
 }
 
 #' Generate an index of months
