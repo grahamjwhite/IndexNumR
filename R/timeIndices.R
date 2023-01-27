@@ -86,7 +86,7 @@ weekIndex <- function(x){
   # compute the week index as the week's number in the current year, plus the
   # number of elapsed weeks in prior years, normalised to start at week 1.
   for(i in seq_along(x)){
-    week[i,1] <- weeks[i] + cumWeeks[years==weekYears[i]] - cumWeeks[1] - (firstWeek-1)
+    week[i,1] <- weeks[i] + cumWeeks[years==weekYears[i]] - weeksInYears[years==weekYears[i]] - (firstWeek-1)
   }
 
   return(as.vector(week))
