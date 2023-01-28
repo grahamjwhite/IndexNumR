@@ -93,6 +93,14 @@ test_that("Error is thrown for an invalid tpd weight type", {
                "Not a valid weight type. Please choose from unweighted, shares or average.")
 })
 
+test_that("Error is thrown when time/product combinations are not unique", {
+  duped <- CES_sigma_2
+  # set the time for the second observation on product 1 to period 1
+  # which creates a duplicate time/product combination
+  duped$time[2] <- 1
+  expect_error(priceIndex(duped, pvar="prices", qvar="quantities", pervar="time", prodID = "prodID"))
+})
+
 rm(testData)
 
 #load CES_sigma_2 and make period 3 missing

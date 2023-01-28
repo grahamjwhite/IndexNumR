@@ -113,6 +113,12 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
                "Missing periods:", timeCheck$missing))
   }
 
+  # check that data are unique by time and product ID
+  tpCheck <- checkTimeProdUnique(x, pervar, prodID)
+  if(tpCheck$result == FALSE){
+    stop("Products must only have one observation for each time period. If you have multiple observations on products for one or more time periods, combine this information using unitValues() or another method before calculating the price index.")
+  }
+
   # sort the dataset by time period and product ID
   x <- x[order(x[[pervar]], x[[prodID]]),]
 

@@ -417,6 +417,12 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                 "Missing periods:", timeCheck$missing))
   }
 
+  # check that data are unique by time and product ID
+  tpCheck <- checkTimeProdUnique(x, pervar, prodID)
+  if(tpCheck$result == FALSE){
+    stop("Products must only have one observation for each time period. If you have multiple observations on products for one or more time periods, combine this information using unitValues() or another method before calculating the price index.")
+  }
+
   # apply price imputation
   if(!is.null(imputePrices)){
     switch(imputePrices,

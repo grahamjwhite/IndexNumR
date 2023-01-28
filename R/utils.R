@@ -263,3 +263,25 @@ windowMatch <- function(x, pervar, prodID){
   return(x[x[[prodID]] %in% keep,])
 
 }
+
+
+#' Check for unique time/product combinations
+#'
+#' This function checks for uniqueness of time/product combinations
+#' so that the priceIndex function works as expected.
+#'
+#' @param x a dataframe
+#' @param pervar the time period variable
+#' @param prodID the product identifier
+#' @keywords internal
+#' @noRd
+#'
+checkTimeProdUnique <- function(x, pervar, prodID){
+
+  combos <- table(x[[pervar]], x[[prodID]])
+
+  check <- !any(combos > 1)
+
+  return(list(result = check))
+
+}
