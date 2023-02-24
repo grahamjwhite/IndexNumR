@@ -59,8 +59,13 @@ yearIndex <- function(x){
 #' @export
 weekIndex <- function(x){
 
+  # get the week number within the year of each date
+  weeks <- as.numeric(format(x,"%V"))
+  # get the year of each date in 'week-year' format. see ?strptime
+  weekYears <- as.numeric(format(x,"%G"))
   # we first need a measure of how many weeks are in each year in our sample
-  years <- sort(as.numeric(unique(format(x,"%Y"))))
+  years <- sort(unique(weekYears))
+
   # this gets the week number of December 31 for each of the years in
   # the year vector
   weeksInYears <- sapply(years,
@@ -70,11 +75,6 @@ weekIndex <- function(x){
   # following year.
   weeksInYears[weeksInYears==1] <- 52
   cumWeeks <- cumsum(weeksInYears)
-
-  # get the week number within the year of each date
-  weeks <- as.numeric(format(x,"%V"))
-  # get the year of each date in 'week-year' format. see ?strptime
-  weekYears <- as.numeric(format(x,"%G"))
 
   # initialise a matrix for our final week index
   week <- matrix(0, nrow=length(x), ncol=1)
@@ -86,7 +86,7 @@ weekIndex <- function(x){
   # compute the week index as the week's number in the current year, plus the
   # number of elapsed weeks in prior years, normalised to start at week 1.
   for(i in seq_along(x)){
-    week[i,1] <- weeks[i] + cumWeeks[years==weekYears[i]] - cumWeeks[1] - (firstWeek-1)
+    week[i,1] <- weeks[i] + cumWeeks[years==weekYears[i]] - weeksInYears[years==weekYears[i]] - (firstWeek-1)
   }
 
   return(as.vector(week))
