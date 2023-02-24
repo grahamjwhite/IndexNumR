@@ -80,3 +80,15 @@ test_that("windowMatch removes products correctly", {
   expect_equal(wmdf, CES_sigma_2[CES_sigma_2$prodID %in% c(2, 4),])
 
 })
+
+
+test_that("checkTimeProductUnique finds duplicated products", {
+
+  duped <- CES_sigma_2
+  # set the time for the second observation on product 1 to period 1
+  # which creates a duplicate time/product combination
+  duped$time[2] <- 1
+
+  expect_false(checkTimeProdUnique(duped, "time", "prodID")$result)
+
+})

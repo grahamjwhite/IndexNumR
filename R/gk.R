@@ -272,6 +272,12 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice =
   # check that columns are the right class
   x <- checkTypes(x, pvar, qvar, pervar)
 
+  # check that data are unique by time and product ID
+  tpCheck <- checkTimeProdUnique(x, pervar, prodID)
+  if(tpCheck$result == FALSE){
+    stop("Products must only have one observation for each time period. If you have multiple observations on products for one or more time periods, combine this information using unitValues() or another method before calculating the price index.")
+  }
+
   # get the number of periods
   n <- max(x[[pervar]], na.rm = TRUE)
   if(n < window){

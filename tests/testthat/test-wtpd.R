@@ -169,3 +169,12 @@ test_that("Error is thrown for wrong imputePrices parameter", {
 
 })
 
+test_that("Error is thrown when time/product combinations are not unique", {
+  duped <- CES_sigma_2
+  # set the time for the second observation on product 1 to period 1
+  # which creates a duplicate time/product combination
+  duped$time[2] <- 1
+  expect_error(WTPDIndex(duped, pvar="prices", qvar="quantities", pervar="time", prodID = "prodID",
+                         window = 9))
+})
+

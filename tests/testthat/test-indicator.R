@@ -29,14 +29,22 @@ test_that("error is thrown when a time period is missing",{
   dat <- CES_sigma_2
   dat$time[dat$time==3] <- 2
 
-  expect_error(priceIndex(dat,
+  expect_error(priceIndicator(dat,
                           pvar="prices",
                           qvar="quantities",
                           pervar = "time",
                           prodID = "prodID",
-                          indexMethod = "laspeyres",
-                          output = "chained"),
+                          method = "laspeyres"),
                "The time period variable is not continuous. Missing periods: 3")
+})
+
+test_that("Error is thrown when time/product combinations are not unique", {
+  duped <- CES_sigma_2
+  # set the time for the second observation on product 1 to period 1
+  # which creates a duplicate time/product combination
+  duped$time[2] <- 1
+  expect_error(priceIndicator(duped, pvar="prices", qvar="quantities", pervar="time", prodID = "prodID",
+                              method = "laspeyres"))
 })
 
 test_that("price indicator returns correct values for laspeyres method", {
