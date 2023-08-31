@@ -15,7 +15,7 @@ GKIndex(
   splice = "mean",
   imputePrices = NULL,
   solveMethod = "inverse",
-  tolerance = 1/1e+12,
+  tolerance = 1/1000000000000,
   maxIter = 100
 )
 }
