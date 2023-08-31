@@ -124,7 +124,5 @@
 #'     \item{\code{\link{yearIndex}}}
 #' }
 #'
-#' @docType package
-#' @name IndexNumR
-NULL
-#> NULL
+#' @keywords internal
+"_PACKAGE"
