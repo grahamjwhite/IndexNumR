@@ -1,8 +1,10 @@
 ## Package update 0.5.0 -> 0.6.0
 
+### Improvements
+- Package documentation updated to document the special sentinel "_PACKAGE"
+
 ### Bug fixes
-- Fixed an issue with `weekIndex` calculating incorrect time index values around end of year
-- Corrected package documentation to document the special sentinel "_PACKAGE"
+- Fix minor issues with 'weekIndex' function around end of year (thanks to Alberto-Agudo, Issue #72) 
 
 ## Package update 0.4.0 -> 0.5.0
 
