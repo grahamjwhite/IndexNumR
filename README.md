@@ -35,14 +35,14 @@ The package also provides functions to compute measures of dissimilarity
 between time periods, which can be used to choose the linking period for
 chained indices.
 
-A sample dataset is included called CES\_sigma\_2, which is a dataset
+A sample dataset is included called CES_sigma_2, which is a dataset
 containing prices and quantities on four products over twelve periods,
 but additional datasets assuming different values of the elasticity of
 substitution can be computed using the function `CESData`.
 
 There is also a function `dominicksData` that can be used to download
 the Dominicks Finer Foods scanner data from the [Chicago Booth School of
-Business](https://www.chicagobooth.edu/research/kilts/datasets/dominicks).
+Business](https://www.chicagobooth.edu/research/kilts/research-data/dominicks).
 
 ## Installation
 
