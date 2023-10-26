@@ -1,3 +1,7 @@
+## Resubmission
+
+- Fixed three broken URLs identified in automatic checks
+
 
 ## Package update 0.5.0 -> 0.6.0
 
