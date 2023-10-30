@@ -11,3 +11,4 @@
 ^README\.Rmd$
 ^LICENSE.md
 ^\.github$
+^CRAN-SUBMISSION$
