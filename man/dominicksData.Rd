@@ -22,9 +22,9 @@ data from over 100 stores, collected from 1989-1994. The data consist
 of a UPC file that contains information on the products, and a
 movement file that contains the information on prices and sales. For
 a complete description of the data, see
-\href{https://www.chicagobooth.edu/research/kilts/datasets/dominicks}{Dominicks data website}
+\href{https://www.chicagobooth.edu/research/kilts/research-data/dominicks}{Dominicks data website}
 and the
-\href{https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/dominicks-manual-and-codebook_kiltscenter.aspx}{Dominicks data user manual}.
+\href{https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/dominicks-manual-and-codebook_kiltscenter}{Dominicks data user manual}.
 This function downloads and merges the movement and UPC files, then merges the
 result with data detailing the dates of each of the weeks in the movement file.
 }

@@ -37,7 +37,7 @@
 
 #' Date information for the Dominicks data
 #'
-#' Table from the \href{https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/dominicks-manual-and-codebook_kiltscenter.aspx}{Dominicks Data Manual},
+#' Table from the \href{https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/dominicks-manual-and-codebook_kiltscenter}{Dominicks Data Manual},
 #' that gives the start and end date of each of the weeks in the movement
 #' files.
 #'
