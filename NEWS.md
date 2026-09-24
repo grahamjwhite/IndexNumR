@@ -17,6 +17,13 @@
 - `elasticity` now returns NA with a warning for periods where no solution is found, instead of stopping.
 - The index functions now check that the time period variable starts at 1, and that a quantity variable is given for methods that need one.
 - `GKIndex` now has a default window of 13, the same as `GEKSIndex` and `WTPDIndex`.
+- Lowe and Young indexes with a base covering several periods (e.g. `loweYoungBase = 1:12`) gave wrong results if any product was missing from one of the base periods. The base quantities and expenditures are now summed for each product.
+- `WTPDIndex` failed when matching left only one product in a window.
+
+### Improvements
+- `GEKSIndex` calculates each bilateral comparison once and reuses it across overlapping windows, which is several times faster (e.g. about 5 times faster for a 60 period, 200 product dataset with a window of 13).
+- `WTPDIndex` and `GKIndex` use matrix calculations instead of loops over products and time periods. `WTPDIndex` in particular is much faster.
+- The data for each time period is found without scanning the whole dataset, which speeds up `priceIndex` and the other functions that loop over time periods on large datasets.
 
 ## Package update 0.5.0 -> 0.6.0
 

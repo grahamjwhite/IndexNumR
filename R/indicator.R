@@ -122,6 +122,11 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
   # sort the dataset by time period and product ID
   x <- x[order(x[[pervar]], x[[prodID]]),]
 
+  # find the rows for each time period, so that the data for a period can be
+  # extracted without scanning the whole dataset
+  rows <- periodRows(x, pervar)
+  cols <- setdiff(c(pvar, qvar, prodID), "")
+
   # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)
   plist <- matrix(NA, nrow = n, ncol = 1)
@@ -130,8 +135,8 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
   # for each time period
   for(i in 2:n){
 
-    xt0 <- x[x[[pervar]]==i-1,]
-    xt1 <- x[x[[pervar]]==i,]
+    xt0 <- getPeriod(x, rows, i-1, cols)
+    xt1 <- getPeriod(x, rows, i, cols)
 
     # if matching requested then remove unmatched items
     if(sample=="matched"){

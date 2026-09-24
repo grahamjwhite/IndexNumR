@@ -373,3 +373,30 @@ test_that("the time period variable must start at 1", {
                           prodID = "prodID"),
                "The time period variable must start at 1")
 })
+
+
+test_that("Lowe and Young indexes aggregate a multi-period base correctly", {
+
+  # product 1 is missing from base period 2
+  dx <- CES_sigma_2[!(CES_sigma_2$time == 2 & CES_sigma_2$prodID == 1),]
+
+  base <- dx[dx$time %in% 1:3,]
+  qb <- tapply(base$quantities, base$prodID, sum)
+  eb <- tapply(base$prices*base$quantities, base$prodID, sum)
+  p1 <- dx$prices[dx$time == 1]
+  p4 <- dx$prices[dx$time == 4]
+
+  lowe <- priceIndex(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                     prodID = "prodID", indexMethod = "lowe", output = "fixedbase",
+                     loweYoungBase = 1:3)
+  expect_equal(lowe[4, 1], sum(p4*qb)/sum(p1*qb))
+
+  young <- priceIndex(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                      prodID = "prodID", indexMethod = "young", output = "fixedbase",
+                      loweYoungBase = 1:3)
+  expect_equal(young[4, 1], sum(eb/sum(eb)*p4/p1))
+
+  expect_error(priceIndex(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", indexMethod = "lowe", loweYoungBase = 0:2),
+               "loweYoungBase must only contain time periods in the data")
+})

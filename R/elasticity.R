@@ -53,6 +53,11 @@ elasticity <- function(x, pvar, qvar, pervar, prodID,
   # price and quantity vectors of the two periods are aligned
   x <- prepareData(x, pvar, qvar, pervar, prodID)
 
+  # find the rows for each time period, so that the data for a period can be
+  # extracted without scanning the whole dataset
+  rows <- periodRows(x, pervar)
+  cols <- setdiff(c(pvar, qvar, prodID), "")
+
   # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)
   result <- list()
@@ -62,10 +67,10 @@ elasticity <- function(x, pvar, qvar, pervar, prodID,
 
   for(i in 2:n){
     # if pop requested then set xt0 to the previous period
-    xt0 <- x[x[[pervar]]==i-1,]
+    xt0 <- getPeriod(x, rows, i-1, cols)
 
     # set xt1 to current period data
-    xt1 <- x[x[[pervar]]==i,]
+    xt1 <- getPeriod(x, rows, i, cols)
 
     # remove unmatched items
     xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]

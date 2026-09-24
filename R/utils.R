@@ -397,6 +397,14 @@ logMean <- function(a, b){
 #' @noRd
 periodRows <- function(x, pervar){
 
+  if(any(x[[pervar]] != floor(x[[pervar]]))){
+    stop("The time period variable must contain whole numbers.", call. = FALSE)
+  }
+
+  if(is.unsorted(x[[pervar]])){
+    stop("Internal error: the data must be sorted by time period.", call. = FALSE)
+  }
+
   counts <- tabulate(x[[pervar]], nbins = max(x[[pervar]]))
   ends <- cumsum(counts)
   starts <- ends - counts + 1

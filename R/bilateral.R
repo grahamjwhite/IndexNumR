@@ -298,10 +298,10 @@ palgrave_t <- function(p0, p1, q1){
 #'
 #' @keywords internal
 #' @noRd
-young_t <- function(p0, p1, pb, qb){
+young_t <- function(p0, p1, eb){
 
-  expb <- sum(pb*qb)
-  sb <- (pb*qb)/expb
+  # eb is the expenditure on each product in the base period(s)
+  sb <- eb/sum(eb)
 
   return(sum(sb*p1/p0))
 
@@ -480,6 +480,12 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   # sort the dataset by time period and product ID
   x <- x[order(x[[pervar]], x[[prodID]]),]
 
+  # find the rows for each time period, so that the data for a period can be
+  # extracted without scanning the whole dataset
+  rows <- periodRows(x, pervar)
+  cols <- unique(c(pvar, qvar, prodID))
+  cols <- cols[cols != ""]
+
   # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)
   plist <- matrix(1, nrow = n, ncol = 1)
@@ -487,6 +493,18 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
 
   if(output == "fixedbase" && !(basePeriod %in% 1:n)){
     stop("basePeriod must be one of the time periods in the data (1 to ", n, ").")
+  }
+
+  if(indexMethod %in% c("lowe", "young") && !all(loweYoungBase %in% 1:n)){
+    stop("loweYoungBase must only contain time periods in the data (1 to ", n, ").")
+  }
+
+  # the base period data does not change, so only extract it once
+  if(output == "fixedbase"){
+    xtBase <- getPeriod(x, rows, basePeriod, cols)
+  }
+  if(indexMethod %in% c("lowe", "young")){
+    xtLoweYoung <- x[x[[pervar]] %in% loweYoungBase, cols]
   }
 
   # if similarity chaining was requested, get the similarity measure
@@ -521,28 +539,28 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
       next
     }
 
-    # if fixed base requested, set xt0 to the first period data
+    # if fixed base requested, set xt0 to the base period data
     if(output == "fixedbase"){
-      xt0 <- x[x[[pervar]] == basePeriod,]
+      xt0 <- xtBase
     }
 
     # if lowe index method chosen then set xtb to the loweYoungBase period
     if(indexMethod %in% c("lowe", "young")){
-      xtb <- x[x[[pervar]] %in% loweYoungBase,]
+      xtb <- xtLoweYoung
     }
 
     # if chained or period-on-period requested then set xt0
     # to the previous period
     if(output == "chained" & chainMethod=="pop" |
        output == "pop"){
-      xt0 <- x[x[[pervar]]==i-1,]
+      xt0 <- getPeriod(x, rows, i-1, cols)
     }
     # if similarity linking requested set xt0 to link period
     else if(output == "chained" & !(chainMethod == "pop")){
-      xt0 <- x[x[[pervar]]==links[links$xt==i,2],]
+      xt0 <- getPeriod(x, rows, links[links$xt==i,2], cols)
     }
     # otherwise set xt1 to current period data
-    xt1 <- x[x[[pervar]]==i,]
+    xt1 <- getPeriod(x, rows, i, cols)
 
     # if matching requested then remove unmatched items
     if(sample=="matched"){
@@ -589,11 +607,15 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
       q0 <- xt0[[qvar]]
       q1 <- xt1[[qvar]]
 
+      # the base can cover several periods, so sum the base quantities
+      # and expenditures for each product, aligned with the products in xt1
       if(indexMethod %in% c("lowe", "young")){
-        qb <- xtb[[qvar]]
-        if(indexMethod == "young"){
-          pb <- xtb[[pvar]]
-        }
+        baseProds <- match(as.character(xt1[[prodID]]),
+                           as.character(unique(xtb[[prodID]])))
+        baseGroup <- factor(as.character(xtb[[prodID]]),
+                            levels = as.character(unique(xtb[[prodID]])))
+        qb <- as.vector(tapply(xtb[[qvar]], baseGroup, sum))[baseProds]
+        eb <- as.vector(tapply(xtb[[pvar]]*xtb[[qvar]], baseGroup, sum))[baseProds]
       }
 
       # compute the index
@@ -606,7 +628,7 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
              laspeyres = {plist[i,1] <- fixed_t(p0,p1,q0)},
              paasche = {plist[i,1] <- fixed_t(p0,p1,q1)},
              lowe = {plist[i,1] <- fixed_t(p0,p1,qb)},
-             young = {plist[i,1] <- young_t(p0,p1,pb,qb)},
+             young = {plist[i,1] <- young_t(p0,p1,eb)},
              fisher = {plist[i,1] <- fisher_t(p0,p1,q0,q1)},
              tornqvist = {plist[i,1] <- tornqvist_t(p0,p1,q0,q1)},
              satovartia = {plist[i,1] <- satoVartia_t(p0,p1,q0,q1)},

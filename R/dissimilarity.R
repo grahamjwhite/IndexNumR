@@ -63,6 +63,11 @@ relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
 
   x <- prepareData(x, pvar, qvar, pervar, prodID)
 
+  # find the rows for each time period, so that the data for a period can be
+  # extracted without scanning the whole dataset
+  rows <- periodRows(x, pervar)
+  cols <- setdiff(c(pvar, qvar, prodID), "")
+
   if(similarityMethod == "predictedshare"){
     return(predictedShareDissimilarity(x, pvar, qvar, pervar, prodID))
   }
@@ -80,8 +85,8 @@ relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
   res[,1:2] <- t(comb)
 
   for(i in 1:ncol(comb)){
-    xt0 <- x[x[[pervar]]==comb[1,i],]
-    xt1 <- x[x[[pervar]]==comb[2,i],]
+    xt0 <- getPeriod(x, rows, comb[1,i], cols)
+    xt1 <- getPeriod(x, rows, comb[2,i], cols)
 
     # get a matched sample
     xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
@@ -170,6 +175,11 @@ mixScaleDissimilarity <- function(x, pvar, qvar, prodID, pervar,
 
   x <- prepareData(x, pvar, qvar, pervar, prodID)
 
+  # find the rows for each time period, so that the data for a period can be
+  # extracted without scanning the whole dataset
+  rows <- periodRows(x, pervar)
+  cols <- setdiff(c(pvar, qvar, prodID), "")
+
   # find number of combinations
   n <- max(x[[pervar]])
   cn <- utils::combn(n,2)
@@ -181,8 +191,8 @@ mixScaleDissimilarity <- function(x, pvar, qvar, prodID, pervar,
   for(i in 1:ncol(cn)){
 
     # get the i and j vectors
-    xi <- x[x[[pervar]]==cn[1,i],]
-    xj <- x[x[[pervar]]==cn[2,i],]
+    xi <- getPeriod(x, rows, cn[1,i], cols)
+    xj <- getPeriod(x, rows, cn[2,i], cols)
 
     # get a matched sample
     xj <- xj[xj[[prodID]] %in% unique(xi[[prodID]]),]
