@@ -2,8 +2,10 @@ Package: IndexNumR
 Type: Package
 Title: Index Number Calculation
 Version: 0.6.0
-Author: Graham White
-Maintainer: Graham White <g.white@unswalumni.com>
+Authors@R: person(given = "Graham",
+                  family = "White",
+                  role = c("aut", "cre"),
+                  email = "g.white@unswalumni.com")
 Description: Computes bilateral and multilateral index numbers. 
     It has support for many standard bilateral indexes as well as
     multilateral index number methods such as GEKS, GEKS-Tornqvist 
