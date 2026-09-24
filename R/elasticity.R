@@ -28,8 +28,8 @@
 #' must contain integers starting at period 1 and increasing in increments of 1 period.
 #' There may be observations on multiple products for each time period.
 #' @param compIndex The index number with which the CES index will be equated
-#' to calculate the elasticity. Acceptable options are lloydmoulton, fisher
-#' or satovartia. The lloydmoulton option equates the 'base period' lloyd-moulton
+#' to calculate the elasticity. Acceptable options are ces, fisher
+#' or satovartia. The ces option equates the 'base period' lloyd-moulton
 #' index with the 'current period' lloyd-moulton index.
 #' @param lower lower limit to search for sigma.
 #' @param upper upper limit to search for sigma.
@@ -45,14 +45,20 @@
 elasticity <- function(x, pvar, qvar, pervar, prodID,
                           compIndex = "ces", lower = -20, upper = 20){
 
+  if(!(tolower(compIndex) %in% c("ces", "fisher", "satovartia"))){
+    stop("Not a valid compIndex. Please choose from ces, fisher or satovartia.")
+  }
+
+  # check the inputs and sort by time period and product, so that the
+  # price and quantity vectors of the two periods are aligned
+  x <- prepareData(x, pvar, qvar, pervar, prodID)
+
   # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)
   result <- list()
   sigmas <- matrix(0, nrow=n-1, ncol=1)
   diff <- matrix(0,nrow=n-1,ncol=1)
-
-  # if fixed base requested, set xt0 to the first period data
-  xt0 <- x[x[[pervar]]==1,]
+  failed <- integer()
 
   for(i in 2:n){
     # if pop requested then set xt0 to the previous period
@@ -72,15 +78,27 @@ elasticity <- function(x, pvar, qvar, pervar, prodID,
     q1 <- xt1[[qvar]]
 
     # find the solution to (CES index - compIndex) = 0
-    root <- stats::uniroot(function(x) indexDiff(x,p0,p1,q0,q1,compIndex=compIndex),
-                    lower = lower, upper = upper, tol = 0.00001)
+    root <- tryCatch(stats::uniroot(function(x) indexDiff(x,p0,p1,q0,q1,compIndex=compIndex),
+                                    lower = lower, upper = upper, tol = 0.00001),
+                     error = function(e) NULL)
 
     # save result
-    sigmas[i-1] <- root$root
-    diff[i-1] <- root$f.root
+    if(is.null(root)){
+      sigmas[i-1] <- NA
+      diff[i-1] <- NA
+      failed <- c(failed, i)
+    } else {
+      sigmas[i-1] <- root$root
+      diff[i-1] <- root$f.root
+    }
   }
 
-  result$sigma <- mean(sigmas)
+  if(length(failed) > 0){
+    warning("No solution for sigma was found between lower and upper for periods: ",
+            paste(failed, collapse = ", "), ". These were set to NA and excluded from the mean.")
+  }
+
+  result$sigma <- mean(sigmas, na.rm = TRUE)
   result$allsigma <- sigmas
   result$diff <- diff
 

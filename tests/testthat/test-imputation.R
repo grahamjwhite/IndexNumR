@@ -56,3 +56,17 @@ test_that("imputeQuantities calculates the right quantities", {
   )
 
 })
+
+
+test_that("imputeCarryPrices keeps factor product identifiers", {
+
+  dx <- CES_sigma_2[CES_sigma_2$time < 4,]
+  dx$prodID <- factor(paste0("p", dx$prodID))
+  dx <- dx[-(1:2),]
+
+  result <- expect_silent(imputeCarryPrices(dx, "prices", "quantities", "time", "prodID"))
+
+  expect_true(is.factor(result$prodID))
+  expect_equal(as.vector(table(result$prodID)), c(3, 3, 3, 3))
+  expect_equal(result$prices[result$prodID == "p1"], c(1.6, 1.6, 1.6))
+})

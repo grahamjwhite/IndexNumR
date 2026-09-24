@@ -83,7 +83,7 @@ test_that("Error is thrown when wrong chain method given", {
   expect_error(priceIndex(CES_sigma_2,pvar = "prices",qvar = "quantities",
                           pervar = "time",prodID = "prodID",indexMethod = "laspeyres",
                           sample="matched", output = "chained", chainMethod = "wrong_method"),
-               "Not a valid chainMethod. Please choose frompop, plspread, asymplinear, logquadratic, mixscale, predictedshare")
+               "Not a valid chainMethod. Please choose from pop, plspread, asymplinear, logquadratic, mixscale, predictedshare")
 })
 
 test_that("Error is thrown for an invalid tpd weight type", {
@@ -216,4 +216,160 @@ test_that("The right result is given when prices are imputed", {
                                    1.10719909454772, 0.955793570240181, 1.13893096121809, 1.14473220737899
   )))
 
+})
+
+
+test_that("misspelled arguments are caught instead of silently ignored (issue #83)", {
+
+  # indexMmethod was absorbed by ... and every method returned the default laspeyres index
+  expect_error(priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", indexMmethod = "paasche", output = "chained"),
+               "Unknown argument\\(s\\) to priceIndex: indexMmethod \\(did you mean indexMethod\\?\\)")
+
+  expect_error(quantityIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                             prodID = "prodID", indexMmethod = "paasche", output = "chained"),
+               "Unknown argument\\(s\\) to priceIndex: indexMmethod")
+
+  # arguments for mixScaleDissimilarity still work with mixscale chaining
+  expect_equal(priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", output = "chained", chainMethod = "mixscale",
+                          measure = "mix"),
+               priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", output = "chained", chainMethod = "mixScale",
+                          measure = "mix"))
+
+  # but are an error when they would be ignored
+  expect_error(priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", output = "chained", chainMethod = "pop",
+                          measure = "mix"),
+               "only used when output = \"chained\" and chainMethod = \"mixscale\"")
+})
+
+
+test_that("argument values are not case sensitive", {
+
+  expect_equal(priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", indexMethod = "Lowe"),
+               priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", indexMethod = "lowe"))
+
+  expect_equal(priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", indexMethod = "Young", output = "Chained"),
+               priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", indexMethod = "young", output = "chained"))
+})
+
+
+test_that("quantityIndex passes imputePrices and loweYoungBase to the calculation", {
+
+  dm <- CES_sigma_2[-c(1, 2),]
+
+  imputed <- quantityIndex(dm, pvar = "prices", qvar = "quantities", pervar = "time",
+                           prodID = "prodID", indexMethod = "fisher", output = "chained",
+                           imputePrices = "carry")
+  expected <- quantityIndex(imputeCarryPrices(dm, "prices", "quantities", "time", "prodID"),
+                            pvar = "prices", qvar = "quantities", pervar = "time",
+                            prodID = "prodID", indexMethod = "fisher", output = "chained")
+  notImputed <- quantityIndex(dm, pvar = "prices", qvar = "quantities", pervar = "time",
+                              prodID = "prodID", indexMethod = "fisher", output = "chained")
+
+  expect_equal(imputed, expected)
+  expect_false(isTRUE(all.equal(imputed, notImputed)))
+
+  base1 <- quantityIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                         prodID = "prodID", indexMethod = "lowe", loweYoungBase = 1)
+  base3 <- quantityIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                         prodID = "prodID", indexMethod = "lowe", loweYoungBase = 3)
+  expect_false(isTRUE(all.equal(base1, base3)))
+})
+
+
+test_that("basePeriod only affects fixed base indexes", {
+
+  pop1 <- priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                     prodID = "prodID", output = "pop")
+  pop3 <- expect_silent(priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities",
+                                   pervar = "time", prodID = "prodID", output = "pop",
+                                   basePeriod = 3))
+  expect_equal(pop1, pop3)
+
+  fb3 <- priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                    prodID = "prodID", output = "fixedbase", basePeriod = 3)
+  expect_equal(fb3[3, 1], 1)
+
+  expect_error(priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", output = "fixedbase", basePeriod = 13),
+               "basePeriod must be one of the time periods")
+})
+
+
+test_that("an unmatched sample with different products is an error, not a wrong answer", {
+
+  # product 1 leaves in period 2 and product 5 enters
+  dx <- CES_sigma_2[!(CES_sigma_2$time == 2 & CES_sigma_2$prodID == 1),]
+  dx <- rbind(dx, data.frame(time = 2, prices = 5, quantities = 1, prodID = 5))
+
+  expect_error(priceIndex(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", sample = "unmatched", indexMethod = "laspeyres"),
+               "The products differ between the periods compared for period 2")
+
+  # with the same products in every period, unmatched gives the same result as matched
+  expect_equal(priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", sample = "unmatched", indexMethod = "fisher"),
+               priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", sample = "matched", indexMethod = "fisher"))
+
+  expect_error(priceIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", sample = "match"),
+               "Not a valid sample type")
+})
+
+
+test_that("Sato-Vartia index is defined when shares do not change", {
+
+  dx <- CES_sigma_2[CES_sigma_2$time %in% 1:2,]
+  dx$prices[dx$time == 2] <- dx$prices[dx$time == 1]*1.1
+  dx$quantities[dx$time == 2] <- dx$quantities[dx$time == 1]
+
+  expect_equal(priceIndex(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID", indexMethod = "satovartia")[2, 1], 1.1)
+})
+
+
+test_that("bilateral TPD index works with a single matched product", {
+
+  dx <- CES_sigma_2[CES_sigma_2$prodID == 1 | CES_sigma_2$time > 2,]
+
+  result <- priceIndex(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                       prodID = "prodID", indexMethod = "tpd")
+
+  expect_equal(result[2, 1], 1.75/2)
+})
+
+
+test_that("quantity-based methods require a quantity variable", {
+
+  expect_error(priceIndex(CES_sigma_2, pvar = "prices", qvar = "", pervar = "time",
+                          prodID = "prodID", indexMethod = "laspeyres"),
+               "A quantity variable is required for the laspeyres index method")
+
+  expect_error(priceIndex(CES_sigma_2, pvar = "prices", qvar = "", pervar = "time",
+                          prodID = "prodID", indexMethod = "jevons", output = "chained",
+                          chainMethod = "logquadratic"),
+               "A quantity variable is required for chainMethod = \"logquadratic\"")
+
+  expect_silent(priceIndex(CES_sigma_2, pvar = "prices", qvar = "", pervar = "time",
+                           prodID = "prodID", indexMethod = "jevons", output = "chained",
+                           chainMethod = "predictedshare"))
+})
+
+
+test_that("the time period variable must start at 1", {
+
+  dx <- CES_sigma_2
+  dx$time <- dx$time + 1
+
+  expect_error(priceIndex(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                          prodID = "prodID"),
+               "The time period variable must start at 1")
 })

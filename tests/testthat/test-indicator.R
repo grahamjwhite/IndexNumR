@@ -297,3 +297,17 @@ test_that("value decomposition returns the right results for montgomery price me
   expect_equal(expected, result)
 
 })
+
+
+test_that("Montgomery indicator is defined when values do not change", {
+
+  dx <- CES_sigma_2[CES_sigma_2$time %in% 1:2,]
+  dx$prices[dx$time == 2] <- dx$prices[dx$time == 1]*1.1
+  dx$quantities[dx$time == 2] <- dx$quantities[dx$time == 1]/1.1
+
+  result <- priceIndicator(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                           prodID = "prodID", method = "montgomery")
+
+  e0 <- dx$prices[dx$time == 1]*dx$quantities[dx$time == 1]
+  expect_equal(result[2, 1], sum(e0*log(1.1)))
+})

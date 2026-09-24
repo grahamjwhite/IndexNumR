@@ -1,3 +1,23 @@
+## Development version
+
+### Bug fixes
+- Misspelled argument names passed to `priceIndex` or `quantityIndex` (e.g. `indexMmethod`) were silently absorbed by `...`, so the default Laspeyres index was returned. They are now an error that suggests the correct name. `groupIndexes` and `yearOverYearIndexes` also check the names in `indexArgs` (#83).
+- `elasticity`, `relativeDissimilarity` and `mixScaleDissimilarity` gave wrong results when the rows of the data were not ordered consistently in each period. The data are now sorted before calculation.
+- `priceIndex` and `GEKSIndex` with an unmatched sample could compare prices of different products when the products changed between periods. This is now an error for methods other than Dutot and TPD. Invalid `sample` values are also an error.
+- `quantityIndex` ignored the `imputePrices` and `loweYoungBase` arguments.
+- `priceIndex` with `basePeriod` other than 1 gave wrong results for period-on-period and chained output. `basePeriod` now only applies to fixed base output.
+- The Sato-Vartia index and Montgomery indicator returned NaN when an expenditure share or value was unchanged between periods.
+- `GEKSIndex` with `intGEKS = TRUE` failed when a bilateral comparison had no overlapping products.
+- `GKIndex` with `solveMethod = "iterative"` failed with a matched sample when products were removed, and never warned when the iterations did not converge.
+- Mixed-case argument values (e.g. `indexMethod = "Lowe"`, `splice = "Mean"`, `solveMethod = "Inverse"`, `chainMethod = "mixScale"`) passed validation but then failed.
+- `imputeCarryPrices` corrupted factor product identifiers.
+- `maximumSimilarityLinks` failed with two periods, and relied on the row order of its input.
+- The bilateral TPD index failed when only one product was matched.
+- `monthIndex` with `overlapWeeks = "majority"` could return an index starting at 0.
+- `elasticity` now returns NA with a warning for periods where no solution is found, instead of stopping.
+- The index functions now check that the time period variable starts at 1, and that a quantity variable is given for methods that need one.
+- `GKIndex` now has a default window of 13, the same as `GEKSIndex` and `WTPDIndex`.
+
 ## Package update 0.5.0 -> 0.6.0
 
 ### Improvements

@@ -45,7 +45,9 @@ Geary-Khamis (gk), drobish, palgrave, stuvel, marshalledgeworth.}
 \item{prodID}{A character string for the name of the product identifier}
 
 \item{sample}{A character string specifying whether a matched sample
-should be used.}
+should be used ("matched", the default) or not ("unmatched"). Without matching,
+only the dutot and tpd index methods can be used if the products differ between
+the periods being compared.}
 
 \item{output}{A character string specifying whether a chained (output="chained")
 , fixed base (output="fixedbase") or period-on-period (output="pop")
@@ -83,8 +85,9 @@ use multiple periods. For example, if the data are monthly and start in January,
 Currently only "carry" is supported to used carry-forward/carry-backward prices.
 Default is NULL to not impute missing prices.}
 
-\item{...}{this is used to pass additional parameters to the mixScaleDissimilarity
-function.}
+\item{...}{this is used to pass additional parameters (measure and combine) to the
+mixScaleDissimilarity function when chainMethod = "mixscale". Any other argument
+passed here, such as a misspelled argument name, is an error.}
 }
 \description{
 A function to compute a price index given data on products over time

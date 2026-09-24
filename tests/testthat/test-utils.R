@@ -92,3 +92,27 @@ test_that("checkTimeProductUnique finds duplicated products", {
   expect_false(checkTimeProdUnique(duped, "time", "prodID")$result)
 
 })
+
+
+test_that("fillMissing leaves complete data unchanged", {
+
+  expect_equal(fillMissing(CES_sigma_2, "prices", "quantities", "time", "prodID", 0, 0),
+               CES_sigma_2)
+})
+
+
+test_that("checkArguments suggests the right argument name", {
+
+  expect_silent(checkArguments(list(), c("measure"), "priceIndex"))
+  expect_silent(checkArguments(list(measure = "mix"), c("measure"), "priceIndex"))
+  expect_error(checkArguments(list(prodId = "x"), c("measure"), "priceIndex"),
+               "did you mean prodID")
+  expect_error(checkArguments(list("x"), c("measure"), "priceIndex"),
+               "must be named")
+})
+
+
+test_that("logMean handles equal values", {
+
+  expect_equal(logMean(c(1, 2, 0.5), c(1, 2, 0.25)), c(1, 2, 0.25/log(2)))
+})

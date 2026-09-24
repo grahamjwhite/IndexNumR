@@ -166,6 +166,9 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
 #' right window length chosen. For example, if you have monthly data and want December
 #' of each year to be the base period, then the first period in the data must be December
 #' and the window must be set to 13.
+#'
+#' The half and hasp splices use period (window-1)/2+1 of the window as the overlapping period.
+#' If the window length is even, this is rounded down.
 #' @examples
 #' # compute a wtpd index with mean splicing
 #' WTPDIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
@@ -177,9 +180,17 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
 WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, splice = "mean",
                       imputePrices = NULL){
 
+  # normalise the case of character arguments
+  splice <- tolower(splice)
+
   # check that only valid splice methods are chosen
-  if(!(tolower(splice) %in% c("mean", "window", "movement", "half", "fbew", "fbmw", "wisp", "hasp", "mean_pub"))){
+  if(!(splice %in% c("mean", "window", "movement", "half", "fbew", "fbmw", "wisp", "hasp", "mean_pub"))){
     stop("Not a valid splicing method.")
+  }
+
+  # check that a valid sample type is given
+  if(!(sample %in% c("matched", "unmatched", ""))){
+    stop("Not a valid sample type. Please choose from matched or unmatched.")
   }
 
   # check valid column names are given
@@ -188,6 +199,9 @@ WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, s
     stop(colNameCheck$message)
   }
 
+  # check that columns are the right class
+  x <- checkTypes(x, pvar, qvar, pervar)
+
   # check that the time period variable is continuous
   timeCheck <- isContinuous(x[[pervar]])
   if(timeCheck$result == FALSE){
@@ -195,8 +209,8 @@ WTPDIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, s
                "Missing periods:", timeCheck$missing))
   }
 
-  # check that columns are the right class
-  x <- checkTypes(x, pvar, qvar, pervar)
+  # check that the time period variable starts at 1
+  checkStartsAtOne(x[[pervar]])
 
   # check that data are unique by time and product ID
   tpCheck <- checkTimeProdUnique(x, pervar, prodID)

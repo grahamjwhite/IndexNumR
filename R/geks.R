@@ -64,12 +64,19 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
           xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
           xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
         }
+        # without matching, only the tpd method can handle different product sets
+        else if(indexMethod != "tpd" && !setequal(xt0[[prodID]], xt1[[prodID]])){
+          stop("The products differ between periods ", pi[j], " and ", pi[k],
+               ", which the ", indexMethod, " index method cannot handle without matching. ",
+               "Use sample = \"matched\", impute the missing prices with imputePrices = \"carry\", ",
+               "or use the tpd index method.")
+        }
 
         # set the price index element to NA if there are no
         # matches
         if(nrow(xt1)==0){
           pindices[j,k] <- NA
-          naPairs <- paste0(naPairs, paste0("(",j,",",k,")"), collapse = ",")
+          naPairs <- c(naPairs, paste0("(",j,",",k,")"))
         }
         else{
           # set the price and quantity vectors
@@ -145,6 +152,9 @@ GEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
 #' right window length chosen. For example, if you have monthly data and want December
 #' of each year to be the base period, then the first period in the data must be December
 #' and the window must be set to 13.
+#'
+#' The half and hasp splices use period (window-1)/2+1 of the window as the overlapping period.
+#' If the window length is even, this is rounded down.
 #' @examples
 #' # compute a GEKS mutlilateral index with mean splicing
 #' GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
@@ -167,14 +177,24 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
                       sample = "matched", window = 13, splice = "mean", biasAdjust = FALSE,
                       weights = "average", intGEKS = FALSE, imputePrices = NULL){
 
+  # normalise the case of character arguments
+  indexMethod <- tolower(indexMethod)
+  splice <- tolower(splice)
+  weights <- tolower(weights)
+
   # check that only valid index methods are chosen
-  if(!(tolower(indexMethod) %in% c("fisher","tornqvist", "tpd", "walsh", "jevons"))){
+  if(!(indexMethod %in% c("fisher","tornqvist", "tpd", "walsh", "jevons"))){
     stop("Not a valid index number method.")
   }
 
   # check that only valid splice methods are chosen
-  if(!(tolower(splice) %in% c("mean", "window", "movement", "half", "fbew", "fbmw", "wisp", "hasp", "mean_pub"))){
+  if(!(splice %in% c("mean", "window", "movement", "half", "fbew", "fbmw", "wisp", "hasp", "mean_pub"))){
     stop("Not a valid splicing method.")
+  }
+
+  # check that a valid sample type is given
+  if(!(sample %in% c("matched", "unmatched", ""))){
+    stop("Not a valid sample type. Please choose from matched or unmatched.")
   }
 
   # check valid column names are given
@@ -183,6 +203,9 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
     stop(colNameCheck$message)
   }
 
+  # check that columns are the right class
+  x <- checkTypes(x, pvar, qvar, pervar)
+
   # check that the time period variable is continuous
   timeCheck <- isContinuous(x[[pervar]])
   if(timeCheck$result == FALSE){
@@ -190,8 +213,8 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
                "Missing periods:", timeCheck$missing))
   }
 
-  # check that columns are the right class
-  x <- checkTypes(x, pvar, qvar, pervar)
+  # check that the time period variable starts at 1
+  checkStartsAtOne(x[[pervar]])
 
   # check that data are unique by time and product ID
   tpCheck <- checkTimeProdUnique(x, pervar, prodID)
@@ -239,7 +262,7 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
 
   # initiate a vector of warnings for NAs
   if(length(tempGEK$naPairs) > 0){
-    naWarn <- paste0("1 to ",window,": ",tempGEK$naPairs,"\n")
+    naWarn <- paste0("1 to ",window,": ",paste(tempGEK$naPairs, collapse = ", "),"\n")
   }
   else{
     naWarn <- character()
@@ -283,7 +306,7 @@ GEKSIndex <- function(x, pvar, qvar, pervar,indexMethod = "tornqvist", prodID,
 
       if(length(tempGEK$naPairs) > 0){
         naWarn <- paste0(naWarn, i, " to ",i+window-1,": ",
-                         tempGEK$naPairs, "\n")
+                         paste(tempGEK$naPairs, collapse = ", "), "\n")
       }
 
       # splice the new datapoint on
@@ -358,8 +381,8 @@ intGEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
       # set the price index element to NA if there are no
       # matches
       if(nrow(xt1) == 0){
-        pindices[j,k] <- NA
-        naPairs <- paste0(naPairs, paste0("(",j,",",k,")"), collapse = ",")
+        pindices[k, 1] <- NA
+        naPairs <- c(naPairs, paste0("(",j,",",k,")"))
       }
       else{
         # set the price and quantity vectors
@@ -391,7 +414,7 @@ intGEKS_w <- function(x, pvar, qvar, pervar, indexMethod="tornqvist", prodID,
 
     }
 
-    pgeks[j, 1] <- prod(pindices)^(1/window)
+    pgeks[j, 1] <- geomean(pindices, na.rm = TRUE)
 
   }
 

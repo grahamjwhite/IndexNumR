@@ -49,17 +49,26 @@
 relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
                                   indexMethod="fisher",
                                   similarityMethod="logquadratic"){
-  if(!(tolower(indexMethod) %in% c("fisher","tornqvist"))){
+  indexMethod <- tolower(indexMethod)
+  similarityMethod <- tolower(similarityMethod)
+
+  if(!(indexMethod %in% c("fisher","tornqvist"))){
     stop("Not a valid index number method.")
   }
 
-  if(!(tolower(similarityMethod) %in% c("plspread","logquadratic",
-                                        "asymplinear", "predictedshare"))){
+  if(!(similarityMethod %in% c("plspread","logquadratic",
+                               "asymplinear", "predictedshare"))){
     stop("Not a valid similarity method.")
   }
 
-  if(tolower(similarityMethod == "predictedshare")){
+  x <- prepareData(x, pvar, qvar, pervar, prodID)
+
+  if(similarityMethod == "predictedshare"){
     return(predictedShareDissimilarity(x, pvar, qvar, pervar, prodID))
+  }
+
+  if(qvar == ""){
+    stop("A quantity variable is required for similarityMethod = \"", similarityMethod, "\".")
   }
 
   # get a list of possible combinations of time periods
@@ -143,6 +152,23 @@ relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
 #' @export
 mixScaleDissimilarity <- function(x, pvar, qvar, prodID, pervar,
                                   measure="absolute", combine="geomean"){
+
+  measure <- tolower(measure)
+  combine <- tolower(combine)
+
+  if(!(measure %in% c("mix", "scale", "absolute"))){
+    stop("Not a valid measure. Please choose from mix, scale or absolute.")
+  }
+
+  if(!(combine %in% c("stack", "geomean"))){
+    stop("Not a valid combine method. Please choose from stack or geomean.")
+  }
+
+  if(qvar == ""){
+    stop("A quantity variable is required for mixScaleDissimilarity.")
+  }
+
+  x <- prepareData(x, pvar, qvar, pervar, prodID)
 
   # find number of combinations
   n <- max(x[[pervar]])
@@ -246,16 +272,21 @@ maximumSimilarityLinks <- function(x){
   result[2,3] = x[x$period_j==2 & x$period_i==1,3]
 
   # from period 3 onwards, find the minimum dissimilarity linking period
-  for(i in 3:periods){
+  for(i in seq_len(max(periods - 2, 0)) + 2){
     # get the similarity measures between period i and previous periods
     temp <- x[x$period_j==i & x$period_i<i,]
+    minPos <- which.min(temp$dissimilarity)
+    if(length(minPos) == 0){
+      stop("No valid dissimilarity measure was found between period ", i,
+           " and any earlier period.")
+    }
     # store minimum dissimilarity
     # current period
     result[i,1] = i
     # linking period
-    result[i,2] = which.min(temp$dissimilarity)
+    result[i,2] = temp$period_i[minPos]
     # the dissimilarity measure
-    result[i,3] = min(temp$dissimilarity)
+    result[i,3] = temp$dissimilarity[minPos]
   }
   colnames(result) <- c("xt","x0","dissimilarity")
   return(as.data.frame(result))

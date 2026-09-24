@@ -39,3 +39,12 @@ test_that("correct indices are returned if dates are reversed",{
   expect_equal(monthIndex(rev(dat_month)),rev(c(1,2,2,3)))
   expect_equal(weekIndex(rev(dat_week)),rev(c(1,2,3,4,1)))
 })
+
+
+test_that("monthIndex with majority weeks starts at 1", {
+
+  # 1 September 2017 is a Friday, so its week belongs mostly to August
+  dates <- as.Date(c("2017-09-01", "2017-09-15", "2017-10-15"))
+
+  expect_equal(monthIndex(dates, overlapWeeks = "majority"), c(1, 2, 3))
+})

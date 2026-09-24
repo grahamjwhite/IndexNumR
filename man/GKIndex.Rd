@@ -11,11 +11,11 @@ GKIndex(
   pervar,
   prodID,
   sample = "",
-  window,
+  window = 13,
   splice = "mean",
   imputePrices = NULL,
   solveMethod = "inverse",
-  tolerance = 1/1000000000000,
+  tolerance = 1/1e+12,
   maxIter = 100
 )
 }
@@ -72,6 +72,9 @@ period is updated periodically. IndexNumR calculates which periods are the base 
 right window length chosen. For example, if you have monthly data and want December
 of each year to be the base period, then the first period in the data must be December
 and the window must be set to 13.
+
+The half and hasp splices use period (window-1)/2+1 of the window as the overlapping period.
+If the window length is even, this is rounded down.
 
 It is recommended to use the matrix inverse method of solving the GK equations (the default)
 because the performance difference can be significant. If the matrix inverse method does

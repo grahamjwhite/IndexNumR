@@ -51,7 +51,7 @@ checkNames <- function(x, namesVector){
 
   badNames <- namesVector[!(namesVector %in% goodNames)]
 
-  if(length(badNames >= 1)){
+  if(length(badNames) >= 1){
     err <- paste("The specified name(s) -", paste(badNames, collapse = ", "),
                   "- are not column names of the input data frame. Check the
                  names given to the pvar, qvar, pervar and prodID arguments.")
@@ -217,7 +217,7 @@ fillMissing <- function(x, pvar, qvar, pervar, prodID, priceReplace, quantityRep
 
   # fill out the gaps from missing/new products with replacement values.
   available <- table(x[,c(prodID, pervar)])
-  if(sum(!(available == 0)) > 0){
+  if(any(available == 0)){
 
     # which products are not available
     toAdd <- as.data.frame(which(available == 0, arr.ind = TRUE))
@@ -278,10 +278,190 @@ windowMatch <- function(x, pervar, prodID){
 #'
 checkTimeProdUnique <- function(x, pervar, prodID){
 
-  combos <- table(x[[pervar]], x[[prodID]])
-
-  check <- !any(combos > 1)
+  # anyDuplicated avoids building a dense time x product table,
+  # which can be very large for scanner data
+  check <- anyDuplicated(x[, c(pervar, prodID)]) == 0
 
   return(list(result = check))
+
+}
+
+
+#' checkArguments
+#'
+#' Checks that the arguments passed through \code{...} are valid. This catches
+#' misspelled argument names (e.g. indexMmethod instead of indexMethod) that would
+#' otherwise be silently absorbed by \code{...}.
+#'
+#' @param dots a named list of the arguments passed through \code{...}
+#' @param allowed character vector of argument names that may be passed through \code{...}
+#' @param funcName the name of the function whose formal arguments are used to
+#' suggest corrections for misspelled argument names
+#' @param allowedLabel the text used to introduce the list of allowed arguments
+#' in the error message
+#' @keywords internal
+#' @noRd
+checkArguments <- function(dots, allowed, funcName,
+                           allowedLabel = "Valid additional arguments are"){
+
+  if(length(dots) == 0){
+    return(invisible(TRUE))
+  }
+
+  dotNames <- names(dots)
+  if(is.null(dotNames)){
+    dotNames <- rep("", length(dots))
+  }
+
+  if(any(dotNames == "")){
+    stop("All additional arguments passed to ", funcName, " must be named.", call. = FALSE)
+  }
+
+  unknown <- dotNames[!dotNames %in% allowed]
+
+  if(length(unknown) > 0){
+    candidates <- c(names(formals(funcName)), allowed)
+    candidates <- candidates[candidates != "..."]
+
+    suggestions <- vapply(unknown, function(u){
+      m <- agrep(u, candidates, max.distance = 2, value = TRUE, ignore.case = TRUE)
+      if(length(m) > 0) paste0(" (did you mean ", m[1], "?)") else ""
+    }, character(1))
+
+    stop(paste0("Unknown argument(s) to ", funcName, ": ",
+                paste0(unknown, suggestions, collapse = ", "),
+                ". ", allowedLabel, ": ", paste(allowed, collapse = ", "), "."),
+         call. = FALSE)
+  }
+
+  return(invisible(TRUE))
+
+}
+
+
+#' checkStartsAtOne
+#'
+#' checks that the time period variable starts at 1, as required
+#' by the index number functions.
+#' @param x vector of time periods
+#' @keywords internal
+#' @noRd
+checkStartsAtOne <- function(x){
+
+  if(min(x, na.rm = TRUE) != 1){
+    stop("The time period variable must start at 1. The first period in the data is ",
+         min(x, na.rm = TRUE), ".", call. = FALSE)
+  }
+
+  return(invisible(TRUE))
+
+}
+
+
+#' logMean
+#'
+#' The logarithmic mean of two vectors, with the limiting
+#' value L(a, a) = a handled explicitly.
+#' @param a numeric vector
+#' @param b numeric vector
+#' @keywords internal
+#' @noRd
+logMean <- function(a, b){
+
+  # written as b*d/log(1 + d) with d = a/b - 1, which stays accurate when
+  # a and b are equal or nearly equal (where (a-b)/(log(a)-log(b)) is 0/0)
+  d <- a/b - 1
+  result <- b*d/log1p(d)
+
+  equal <- !is.na(d) & d == 0
+  result[equal] <- b[equal]
+
+  # the logarithmic mean is zero if either value is zero
+  zero <- !is.na(a) & !is.na(b) & (a == 0 | b == 0)
+  result[zero] <- 0
+
+  return(result)
+
+}
+
+
+#' periodRows
+#'
+#' Finds the first and last row of each time period in a data frame
+#' that is sorted by time period. Used to extract the data for a period
+#' without scanning the whole data frame or copying it.
+#' @param x a data frame sorted by pervar
+#' @param pervar the time period variable
+#' @return a list with elements start and end, indexed by period
+#' @keywords internal
+#' @noRd
+periodRows <- function(x, pervar){
+
+  counts <- tabulate(x[[pervar]], nbins = max(x[[pervar]]))
+  ends <- cumsum(counts)
+  starts <- ends - counts + 1
+
+  return(list(start = starts, end = ends))
+
+}
+
+
+#' getPeriod
+#'
+#' Extracts the rows for one time period from a sorted data frame.
+#' @param x a data frame sorted by time period
+#' @param rows the output of periodRows
+#' @param i the period to extract
+#' @param cols the columns to keep
+#' @keywords internal
+#' @noRd
+getPeriod <- function(x, rows, i, cols = names(x)){
+
+  if(i < 1 || i > length(rows$start) || rows$end[i] < rows$start[i]){
+    return(x[0, cols, drop = FALSE])
+  }
+
+  return(x[rows$start[i]:rows$end[i], cols, drop = FALSE])
+
+}
+
+
+#' prepareData
+#'
+#' Runs the standard input checks (column names, column types, a continuous time
+#' period variable starting at 1, unique time/product combinations) and sorts the
+#' data by time period and product. Sorting is required so that the price and quantity
+#' vectors of two periods refer to the same products in the same order.
+#' @param x a data frame
+#' @param pvar the price variable
+#' @param qvar the quantity variable
+#' @param pervar the time period variable
+#' @param prodID the product identifier
+#' @return the checked and sorted data frame
+#' @keywords internal
+#' @noRd
+prepareData <- function(x, pvar, qvar, pervar, prodID){
+
+  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
+  if(colNameCheck$result == FALSE){
+    stop(colNameCheck$message)
+  }
+
+  x <- checkTypes(x, pvar, qvar, pervar)
+
+  timeCheck <- isContinuous(x[[pervar]])
+  if(timeCheck$result == FALSE){
+    stop(paste("The time period variable is not continuous.",
+               "Missing periods:", timeCheck$missing))
+  }
+
+  checkStartsAtOne(x[[pervar]])
+
+  tpCheck <- checkTimeProdUnique(x, pervar, prodID)
+  if(tpCheck$result == FALSE){
+    stop("Products must only have one observation for each time period. If you have multiple observations on products for one or more time periods, combine this information using unitValues() or another method before calculating the price index.")
+  }
+
+  return(x[order(x[[pervar]], x[[prodID]]),])
 
 }

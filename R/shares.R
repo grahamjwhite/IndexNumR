@@ -71,6 +71,9 @@ predictedShares <- function(x, pvar, qvar, pervar, prodID){
   # fill any missing observations with zero
   x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
 
+  # sort by time period and product ID so each product's rows are in time order
+  x <- x[order(x[[pervar]], x[[prodID]]),]
+
   # list of products
   prods <- sort(unique(x[[prodID]]))
   # list of time periods

@@ -157,6 +157,10 @@ monthIndex <- function(x, overlapWeeks = "naive"){
                 }
               }
             }
+
+            # moving the earliest dates into the previous or next month can
+            # shift the start of the index, so re-normalise it to start at 1
+            month <- month - min(month) + 1
           },
           fourWeek = {
             week <- weekIndex(x)

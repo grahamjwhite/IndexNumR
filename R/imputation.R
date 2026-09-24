@@ -73,12 +73,12 @@ imputeCarryPrices <- function(x, pvar, qvar, pervar, prodID){
           fillPrice <- xprod[[pvar]][xprod[[pervar]] == carryBackwardPeriod]
         }
 
-        if(qvar == ""){
-          retVal <- c(period, prod, fillPrice)
-          names(retVal) <- c(pervar, prodID, pvar)
-        } else {
-          retVal <- c(period, prod, fillPrice, 0)
-          names(retVal) <- c(pervar, prodID, pvar, qvar)
+        # use a data frame (not c()) so each column keeps its type;
+        # c() would convert factor product IDs to their integer codes
+        retVal <- data.frame(period, prod, fillPrice, stringsAsFactors = FALSE)
+        names(retVal) <- c(pervar, prodID, pvar)
+        if(qvar != ""){
+          retVal[[qvar]] <- 0
         }
 
         return(retVal)

@@ -58,7 +58,7 @@ indBennet_t <- function(p0, p1, q0, q1){
 #' @keywords internal
 #' @noRd
 indMontgomery_t <- function(p0, p1, q0, q1){
-  sum(((p1*q1 - p0*q0)/(log(p1*q1)-log(p0*q0)))*log(p1/p0))
+  sum(logMean(p1*q1, p0*q0)*log(p1/p0))
 }
 
 #' Calculate a price indicator

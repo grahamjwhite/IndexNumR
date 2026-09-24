@@ -160,3 +160,33 @@ test_that("Error is thrown when time/product combinations are not unique", {
   expect_error(GKIndex(duped, pvar="prices", qvar="quantities", pervar="time", prodID = "prodID",
                          window = 9))
 })
+
+
+test_that("iterative GK works with a matched sample when products are dropped", {
+
+  dx <- CES_sigma_2[!(CES_sigma_2$time == 2 & CES_sigma_2$prodID == 1),]
+
+  expect_equal(GKIndex(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                       prodID = "prodID", sample = "matched", window = 5,
+                       solveMethod = "iterative"),
+               GKIndex(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                       prodID = "prodID", sample = "matched", window = 5,
+                       solveMethod = "inverse"))
+})
+
+
+test_that("iterative GK warns when it does not converge", {
+
+  expect_warning(GKIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                         prodID = "prodID", window = 12, solveMethod = "iterative", maxIter = 2),
+                 "Convergence not reached")
+})
+
+
+test_that("GK splice and solveMethod are not case sensitive", {
+
+  expect_equal(GKIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                       prodID = "prodID", window = 11, splice = "Mean", solveMethod = "Inverse"),
+               GKIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                       prodID = "prodID", window = 11, splice = "mean", solveMethod = "inverse"))
+})
