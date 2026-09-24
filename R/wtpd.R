@@ -35,93 +35,52 @@ wtpd_w <- function(x, pvar, qvar, pervar, prodID, sample){
     x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
   }
 
-  # list of time periods
-  pers <- sort(unique(x[[pervar]]))
-  # list of products
-  prods <- sort(unique(x[[prodID]]))
   # total number of products
-  n <- length(prods)
+  n <- length(unique(x[[prodID]]))
 
-  # share of expenditure on each product in each time period
-  stn <- matrix(0, nrow = obs, ncol = n)
-  # expenditures matrix
-  etn <- matrix(0, nrow = obs, ncol = n)
-  # wnj
-  wnj <- matrix(0, nrow = n, ncol = n)
-
+  # price and quantity matrices (time periods in rows, products in columns).
+  # x is sorted by time period and product, and complete after matching/filling.
   pmat <- matrix(x[[pvar]], nrow = obs, byrow = TRUE)
   qmat <- matrix(x[[qvar]], nrow = obs, byrow = TRUE)
-  etn <- Reduce(`*`, list(pmat, qmat))
+  etn <- pmat*qmat
 
   # replace NAs with zeros
   etn <- replace(etn, is.na(etn), 0)
 
   # calculate expenditure shares
-  et <- rowSums(etn)
-  for(i in 1:obs){
-    stn[i,] <- etn[i,]/et[i]
-  }
+  stn <- etn/rowSums(etn)
 
-  # calculate wtnj
-  wtnj <- lapply(1:obs, function(xx){
-    result <- stn[xx,]%*%t(stn[xx,])
-    diag(result) <- 0
-    return(result)
-  })
+  # log prices. Missing products have zero price and zero share, so they
+  # do not contribute; set their log price to zero to avoid -Inf*0.
+  ytn <- log(pmat)
+  ytn[stn == 0 | !is.finite(ytn)] <- 0
 
-  # calculate wnj (summing wtnj over time)
-  wnj <- Reduce(`+`, wtnj)
-
-  # calculate ftnj
+  # wnj = sum over time of s_tn*s_tj for n != j
+  wnj <- crossprod(stn) - diag(colSums(stn^2), nrow = n, ncol = n)
   sums <- rowSums(wnj)
-  ftnj <- lapply(wtnj, function(xx){
-    result <- matrix(NA, nrow = n, ncol = n)
-    for(i in 1:n){
-      result[,i] <- xx[,i]/sums[i]
-    }
-    return(t(result))
-  })
 
-  # calculate fnj
-  fnj <- t(apply(wnj, 1, function(xx){xx/sum(xx)}))
+  # fnj
+  fnj <- wnj/sums
 
-  # calculate fn
-  ydiff <- lapply(1:obs, function(xx){
-    temp <- x[x[[pervar]] == pers[xx],]
-    result <- matrix(NA, nrow = n, ncol = n)
-    for(m in 1:n){
-      ym <- temp[temp[[prodID]] == prods[m],]
-      for(j in 1:n){
-        yj <- temp[temp[[prodID]] == prods[j],]
-        if(!(nrow(ym) == 0 | nrow(yj) == 0)){
-          result[m,j] <- (log(ym[[pvar]]) - log(yj[[pvar]]))*ftnj[[xx]][m,j]
-        }
-      }
-    }
-    return(result)
-  })
-
-  fn <- Reduce(`+`, lapply(ydiff, function(x){replace(x, is.na(x), 0)}))
-  fn <- rowSums(fn)
+  # fn = sum_t sum_j f_tnj*(y_tn - y_tj), with f_tnj = s_tn*s_tj/sums_n for j != n.
+  # This simplifies to (1/sums_n) * sum_t s_tn*(y_tn*sum_j(s_tj) - sum_j(s_tj*y_tj)),
+  # which avoids looping over every pair of products.
+  fn <- colSums(stn*(ytn*rowSums(stn) - rowSums(stn*ytn)))/sums
 
   # Compute I - F
   I <- diag(1, nrow = n, ncol = n)
   I_F <- I - fnj
 
-  # Now solve for b and append bN = 0
-  b <- c(solve(I_F[-n, -n], fn[-n]), 0)
-  b <- exp(b)
-
-  # With b we can calculate P
-  pindex <- matrix(0, nrow = obs, ncol = 1)
-  for(i in 1:obs){
-
-    p <- x[[pvar]][x[[pervar]] == pers[i]]
-    s <- stn[i,]
-
-    pindex[i,1] <- prod((p/b)^s, na.rm = TRUE)
-
+  # Now solve for b (in logs) and append bN = 0. With only one product there
+  # is nothing to solve and the index is that product's price relative.
+  if(n > 1){
+    beta <- c(solve(I_F[-n, -n], fn[-n]), 0)
+  } else {
+    beta <- 0
   }
+
+  # With b we can calculate P = prod((p/b)^s)
+  pindex <- matrix(exp(rowSums(stn*sweep(ytn, 2, beta))), ncol = 1)
 
   # normalise to first period
   pindex <- pindex/pindex[1,1]

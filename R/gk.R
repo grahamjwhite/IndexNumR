@@ -39,24 +39,14 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
     x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
   }
 
-  # set up some variables
-  # list of time periods
-  pers <- sort(unique(x[[pervar]]))
-  # list of products
-  prods <- sort(unique(x[[prodID]]))
   # total number of products
-  n <- length(prods)
+  n <- length(unique(x[[prodID]]))
 
-  # share of expenditure on each product in each time period
-  stn <- matrix(0, nrow = obs, ncol = n)
-  # quantities matrix
-  qtn <- matrix(0, nrow = obs, ncol = n)
-  # expenditures matrix
-  etn <- matrix(0, nrow = obs, ncol = n)
-
+  # price and quantity matrices (time periods in rows, products in columns).
+  # x is sorted by time period and product, and complete after matching/filling.
   pmat <- matrix(x[[pvar]], nrow = obs, byrow = TRUE)
   qtn <- matrix(x[[qvar]], nrow = obs, byrow = TRUE)
-  etn <- Reduce(`*`, list(pmat, qtn))
+  etn <- pmat*qtn
 
   # replace NAs with zeros
   etn <- replace(etn, is.na(etn), 0)
@@ -64,22 +54,15 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
 
   # calculate expenditure shares
   et <- rowSums(etn)
-  for(i in 1:obs){
-    stn[i,] <- etn[i,]/et[i]
-  }
+  stn <- etn/et
 
   # sum quantities for each product across all time
   q <- colSums(qtn)
 
-  # formulate the inverse diagonal matrix with q down the main diagonal
-  D <- solve(diag(q, nrow = n, ncol = n))
-
-  # calculate C
-  sq <- matrix(0, nrow = n, ncol = n)
-  for(i in 1:obs){
-    sq <- sq + stn[i,]%*%t(qtn[i,])
-  }
-  C <- D%*%sq
+  # C = qhat^-1 * sum_t s_t q_t', where qhat is the diagonal matrix of q.
+  # Multiplying by the inverse of a diagonal matrix is the same as dividing
+  # each row by q.
+  C <- crossprod(stn, qtn)/q
 
   # Compute I
   I <- diag(1, nrow = n, ncol = n)
@@ -92,17 +75,10 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
   R[1,] <- rep(1, n)
 
   # Now solve for b
-  b <- solve(I - C + R)%*%z
+  b <- solve(I - C + R, z)
 
   # With b we can calculate P
-  pindex <- matrix(0, nrow = obs, ncol = 1)
-  for(i in 1:obs){
-
-    temp <- x[x[[pervar]] == pers[i],]
-
-    pindex[i,1] <- (temp[[pvar]]%*%temp[[qvar]])/(t(b)%*%temp[[qvar]])
-
-  }
+  pindex <- matrix(et/(qtn%*%b), ncol = 1)
 
   # normalise to first period
   pindex <- pindex/pindex[1,1]
@@ -130,37 +106,28 @@ gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/
     x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
   }
 
-  # list of time periods
-  pers <- sort(unique(x[[pervar]]))
-  # list of products (after matching, which may remove some products)
-  prods <- sort(unique(x[[prodID]]))
-  # number of products
-  n <- length(prods)
+  # number of products (after matching, which may remove some products)
+  n <- length(unique(x[[prodID]]))
 
+  # price and quantity matrices (time periods in rows, products in columns).
+  # x is sorted by time period and product, and complete after matching/filling.
+  pmat <- matrix(x[[pvar]], nrow = obs, byrow = TRUE)
   qtn <- matrix(x[[qvar]], nrow = obs, byrow = TRUE)
   # sum quantity for each product for all time periods
   qt <- colSums(qtn)
   # quantity shares
-  stn <- matrix(NA, nrow = obs, ncol = n)
-  for(i in 1:n){
-    stn[,i] <- qtn[,i]/qt[i]
-  }
+  stn <- sweep(qtn, 2, qt, "/")
+  # expenditure in each period
+  et <- rowSums(pmat*qtn)
 
+  # quality adjustment factors, given the price levels
   calcPi <- function(P){
-    pi <- numeric(n)
-    for(i in 1:n){
-      pi[i] <- sum(stn[,i]*(x[x[[prodID]] == prods[i],][[pvar]]/P))
-    }
-    return(pi)
+    colSums(stn*(pmat/P))
   }
 
+  # price levels, given the quality adjustment factors
   calcP <- function(Pi){
-    pindex <- numeric(obs)
-    for(i in 1:obs){
-      temp <- x[x[[pervar]] == pers[i],]
-      pindex[i] <- (temp[[pvar]]%*%temp[[qvar]])/(t(Pi)%*%temp[[qvar]])
-    }
-    return(pindex)
+    as.vector(et/(qtn%*%Pi))
   }
 
   # initial calculation of P
