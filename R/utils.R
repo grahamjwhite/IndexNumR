@@ -148,37 +148,6 @@ isContinuous <- function(x){
 
 }
 
-#' daysInMonth
-#'
-#' calculate the number of days in the month that the given date falls
-#' @param x A date
-#' @return The number of days in the month in which x falls
-#' @keywords internal
-#' @noRd
-daysInMonth <- function(x){
-  month <- format(x,"%m")
-  switch (month,
-    "01" = return(31),
-    "02" = {
-      year <- format(x,"%Y")
-      return(as.numeric(as.Date(paste0("01-03-",year),format="%d-%m-%Y") -
-                     as.Date(paste0("01-02-",year),format="%d-%m-%Y")))
-    },
-    "03" = return(31),
-    "04" = return(30),
-    "05" = return(31),
-    "06" = return(30),
-    "07" = return(31),
-    "08" = return(31),
-    "09" = return(30),
-    "10" = return(31),
-    "11" = return(30),
-    "12" = return(31)
-  )
-
-}
-
-
 #' kennedyBeta
 #'
 #' calculate the adjusted regression coefficients for a semi-log model
@@ -220,23 +189,24 @@ fillMissing <- function(x, pvar, qvar, pervar, prodID, priceReplace, quantityRep
   if(any(available == 0)){
 
     # which products are not available
-    toAdd <- as.data.frame(which(available == 0, arr.ind = TRUE))
+    toAdd <- which(available == 0, arr.ind = TRUE)
 
-    # generate the new observation row for price, quantity, time and product id
-    newObs <- data.frame(rep(priceReplace, nrow(toAdd)),
-                         rep(quantityReplace,nrow(toAdd)),
-                         prods[toAdd[[prodID]]],
-                         pers[toAdd[[pervar]]],
-                         stringsAsFactors = FALSE)
-
-    # set column names to the ones used in the input dataset
-    colnames(newObs) <- c(pvar, qvar, prodID, pervar)
+    # generate the new observation rows. Indexing x with NA gives rows with the
+    # same columns and column types as x, with all values missing.
+    newObs <- x[rep(NA_integer_, nrow(toAdd)), , drop = FALSE]
+    newObs[[pvar]] <- priceReplace
+    newObs[[qvar]] <- quantityReplace
+    # map the table positions back to product and period values (via the
+    # table names, since a factor may have levels that are not in the data)
+    newObs[[prodID]] <- prods[match(dimnames(available)[[1]][toAdd[, 1]], as.character(prods))]
+    newObs[[pervar]] <- pers[match(dimnames(available)[[2]][toAdd[, 2]], as.character(pers))]
 
     # add the new observations onto the dataset
-    x <- merge(x, newObs, all.x = TRUE, all.y = TRUE)
+    x <- rbind(x, newObs)
 
     # ensure dataset still sorted by time period and product ID
     x <- x[order(x[[pervar]], x[[prodID]]),]
+    rownames(x) <- NULL
   }
 
   return(x)
@@ -257,8 +227,11 @@ windowMatch <- function(x, pervar, prodID){
 
   obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
 
-  tab <- table(x[[pervar]], x[[prodID]])
-  keep <- colnames(tab)[colSums(tab) == obs]
+  # products have at most one observation per period, so a product is in
+  # every period of the window if it has obs observations. Counting the
+  # observations for each product avoids a dense time x product table.
+  counts <- table(x[[prodID]])
+  keep <- names(counts)[counts == obs]
 
   return(x[x[[prodID]] %in% keep,])
 

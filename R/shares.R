@@ -36,18 +36,12 @@ shares <- function(x, pvar, qvar, pervar, prodID){
   n <- length(prods)
   # total time periods
   obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
-  # share of expenditure on each product in each time period
-  stn <- matrix(0, nrow = obs, ncol = n)
-
   pmat <- matrix(x[[pvar]], nrow = obs, byrow = TRUE)
   qtn <- matrix(x[[qvar]], nrow = obs, byrow = TRUE)
-  etn <- Reduce(`*`, list(pmat, qtn))
+  etn <- pmat*qtn
 
-  # calculate expenditure shares
-  et <- rowSums(etn)
-  for(i in 1:obs){
-    stn[i,] <- etn[i,]/et[i]
-  }
+  # share of expenditure on each product in each time period
+  stn <- etn/rowSums(etn)
 
   retVal <- data.frame(stn,
                        row.names = unique(x[[pervar]]))

@@ -24,6 +24,8 @@
 - `GEKSIndex` calculates each bilateral comparison once and reuses it across overlapping windows, which is several times faster (e.g. about 5 times faster for a 60 period, 200 product dataset with a window of 13).
 - `WTPDIndex` and `GKIndex` use matrix calculations instead of loops over products and time periods. `WTPDIndex` in particular is much faster.
 - The data for each time period is found without scanning the whole dataset, which speeds up `priceIndex` and the other functions that loop over time periods on large datasets.
+- `imputeCarryPrices`, `unitValues` and `monthIndex` are vectorised and are much faster on large datasets. `imputeCarryPrices` keeps the column order and column types of the input data, and returns rows numbered from 1 in time period and product order. `unitValues` no longer converts numeric columns to character when the product identifier is character.
+- Checking for duplicated time period and product combinations no longer builds a full time period by product table, which used a lot of memory for large scanner datasets.
 
 ## Package update 0.5.0 -> 0.6.0
 

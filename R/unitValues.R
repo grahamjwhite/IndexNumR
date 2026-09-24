@@ -50,30 +50,27 @@ unitValues <- function(x,pvar,qvar,pervar,prodID){
   # number of periods
   n <- max(x[[pervar]],na.rm = TRUE)
 
-  # loop over all periods ...
-  means_it <- lapply(1:n,function(i){
-    # subset period i
-    xt <- x[x[[pervar]]==i,]
-    # loop over all products
-    means_i <- lapply(unique(xt[[prodID]]),function(id){
-      # subset the period 'i', product 'id' data
-      xti <- xt[xt[[prodID]]==id,]
-      # calculate expenditure for this item
-      exp <- sum(xti[[pvar]]*xti[[qvar]])
-      # calculate total quantity
-      qit <- sum(xti[[qvar]])
-      # calculate unit value
-      unitValue <- exp/qit
-      # create a vector containing the id, time, total quantity and unit value
-      result <- cbind(id,i,qit,unitValue)
-      colnames(result) <- c(prodID,"period",qvar,"unitValue")
-      return(result)
-    })
-    # bind results for products in period 'i' into a matrix
-    result_i <- do.call(rbind,means_i)
-  })
-  # bind results for all 'i' into a matrix
-  result_it <- do.call(rbind,means_it)
-  return(as.data.frame(result_it, stringsAsFactors = FALSE))
+  # keep periods 1 to n, ordered by period. order() is stable, so within each
+  # period the products stay in the order they first appear in the data.
+  x <- x[x[[pervar]] %in% 1:n,]
+  x <- x[order(x[[pervar]]),]
+
+  # one group for each time period and product combination, in order of appearance
+  key <- paste(x[[pervar]], x[[prodID]], sep = "\r")
+  group <- factor(key, levels = unique(key))
+  first <- !duplicated(group)
+
+  # total expenditure and quantity for each product in each period
+  expenditure <- as.vector(rowsum(x[[pvar]]*x[[qvar]], group, reorder = FALSE))
+  quantity <- as.vector(rowsum(x[[qvar]], group, reorder = FALSE))
+
+  result <- data.frame(x[[prodID]][first],
+                       x[[pervar]][first],
+                       quantity,
+                       expenditure/quantity,
+                       stringsAsFactors = FALSE)
+  colnames(result) <- c(prodID, "period", qvar, "unitValue")
+
+  return(result)
 }
 

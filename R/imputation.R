@@ -40,69 +40,51 @@ imputeCarryPrices <- function(x, pvar, qvar, pervar, prodID){
   prods <- sort(unique(x[[prodID]]))
   # list of time periods
   pers <- sort(unique(x[[pervar]]))
-  # number of periods
-  n <- length(pers)
 
-  # cross-tabulate products and time periods
-  available <- table(x[,c(prodID, pervar)])
+  # position of each observation in a product x period grid
+  prodPos <- match(x[[prodID]], prods)
+  perPos <- match(x[[pervar]], pers)
 
-  if(any(available == 0)){
+  # grid of row numbers in x, with 0 where the product is missing in a period
+  obsRow <- matrix(0L, nrow = length(prods), ncol = length(pers))
+  obsRow[cbind(prodPos, perPos)] <- seq_len(nrow(x))
 
-    # which products need filling
-    prods <- prods[rowSums(available) < n]
+  missing <- obsRow == 0
 
-    # get the fill data for each product
-    fillData <- lapply(prods, function(prod){
+  if(any(missing)){
 
-      # time indices we need to fill
-      toFill <- as.numeric(colnames(available)[available[rownames(available) == prod,] == 0])
+    # for each cell, the latest available period at or before it (carry forward)
+    # and the earliest available period at or after it (carry backward).
+    # Cells with no available period in that direction get 0 (forward) or
+    # length(pers) + 1 (backward).
+    periodIndex <- col(obsRow)
+    forward <- periodIndex*!missing
+    backward <- ifelse(missing, length(pers) + 1L, periodIndex)
+    forward <- t(apply(forward, 1, cummax))
+    backward <- t(apply(backward[, ncol(backward):1, drop = FALSE], 1, cummin))[, ncol(backward):1, drop = FALSE]
 
-      xprod <- x[x[[prodID]] == prod,]
+    # use the previous price if there is one, otherwise the next price
+    fillPeriod <- ifelse(forward > 0, forward, backward)
 
-      fillPrices <- lapply(toFill, function(period){
+    toFill <- which(missing, arr.ind = TRUE)
+    sourceRow <- obsRow[cbind(toFill[, 1], fillPeriod[toFill])]
 
-        # find previous periods that not missing for the given product
-        previousPeriods <- xprod[[pervar]][xprod[[pervar]] < period & !(xprod[[pervar]] %in% toFill)]
-
-        # if we found prior non-missing periods, use the latest, otherwise look for a carry backward price
-        if(length(previousPeriods) > 0){
-          carryForwardPeriod <- max(previousPeriods, na.rm = TRUE)
-          fillPrice <- xprod[[pvar]][xprod[[pervar]] == carryForwardPeriod]
-        } else if(length(previousPeriods) == 0){
-          carryBackwardPeriod <- min(xprod[[pervar]][xprod[[pervar]] > period & !(xprod[[pervar]] %in% toFill)], na.rm = TRUE)
-          fillPrice <- xprod[[pvar]][xprod[[pervar]] == carryBackwardPeriod]
-        }
-
-        # use a data frame (not c()) so each column keeps its type;
-        # c() would convert factor product IDs to their integer codes
-        retVal <- data.frame(period, prod, fillPrice, stringsAsFactors = FALSE)
-        names(retVal) <- c(pervar, prodID, pvar)
-        if(qvar != ""){
-          retVal[[qvar]] <- 0
-        }
-
-        return(retVal)
-
-      })
-
-      fillPrices <- do.call(rbind, fillPrices)
-      return(fillPrices)
-
-    })
-
-    # generate the new observation rows for price, quantity, time and product id
-    newObs <- do.call(rbind, fillData)
+    # generate the new observation rows. Indexing x with NA gives rows with the
+    # same columns and column types as x, with all values missing.
+    newObs <- x[rep(NA_integer_, nrow(toFill)), , drop = FALSE]
+    newObs[[pervar]] <- pers[toFill[, 2]]
+    newObs[[prodID]] <- prods[toFill[, 1]]
+    newObs[[pvar]] <- x[[pvar]][sourceRow]
+    if(qvar != ""){
+      newObs[[qvar]] <- 0
+    }
 
     # add the new observations onto the dataset
-    x <- merge(x, newObs, all.x = TRUE, all.y = TRUE)
-
-    # convert columns back to numeric
-    x[[pvar]] <- as.numeric(x[[pvar]])
-    if(!qvar == "") x[[qvar]] <- as.numeric(x[[qvar]])
-    x[[pervar]] <- as.numeric(x[[pervar]])
+    x <- rbind(x, newObs)
 
     # ensure dataset still sorted by time period and product ID
     x <- x[order(x[[pervar]], x[[prodID]]),]
+    rownames(x) <- NULL
 
   }
 

@@ -26,3 +26,19 @@ test_that("unitValues function returns the correct values", {
 
 })
 
+
+
+test_that("unitValues keeps numeric columns numeric with character product IDs", {
+
+  df <- CES_sigma_2
+  df$time <- ceiling(df$time/3)
+  df$prodID <- paste0("item", df$prodID)
+
+  result <- unitValues(df, pvar = "prices", qvar = "quantities", pervar = "time", prodID = "prodID")
+
+  expect_type(result$prodID, "character")
+  expect_type(result$period, "double")
+  expect_type(result$quantities, "double")
+  expect_type(result$unitValue, "double")
+  expect_equal(result$prodID[1:4], paste0("item", 1:4))
+})
