@@ -424,11 +424,8 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
     stop("Not a valid sample type. Please choose from matched or unmatched.")
   }
 
-  # check valid column names are given
-  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
-  if(colNameCheck$result == FALSE){
-    stop(colNameCheck$message)
-  }
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
 
   # check valid chainMethod given
   validChainMethods <- c("pop", "plspread", "asymplinear", "logquadratic", "mixscale",
@@ -450,9 +447,6 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
            "Without quantities (qvar = \"\") use chainMethod = \"pop\" or \"predictedshare\".")
     }
   }
-
-  # check column types
-  x <- checkTypes(x, pvar, qvar, pervar)
 
   # check that the time period variable is continuous
   timeCheck <- isContinuous(x[[pervar]])
@@ -684,10 +678,6 @@ quantityIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prod
   # impute prices before swapping prices and quantities, so that
   # prices are carried and the imputed quantities are zero
   if(!is.null(imputePrices)){
-    colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
-    if(colNameCheck$result == FALSE){
-      stop(colNameCheck$message)
-    }
     switch(imputePrices,
            "carry" = {x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)},
            stop("Invalid imputePrices argument"))

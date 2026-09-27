@@ -26,5 +26,6 @@ Suggests:
     knitr,
     rmarkdown,
     covr,
-    tidyr
+    tidyr,
+    data.table
 VignetteBuilder: knitr

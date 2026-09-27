@@ -47,7 +47,7 @@ groupIndexes <- function(group, indexFunction, indexArgs){
     stop("Invalid or incorrect indexFunction given. Valid functions are: ", paste(validFuns, collapse = ", "))
   }
 
-  checkIndexArgs(indexFunction, indexArgs)
+  indexArgs <- checkIndexArgs(indexFunction, indexArgs)
 
   # sort the dataset by time period and product ID
   indexArgs$x <- indexArgs$x[order(indexArgs$x[[indexArgs$pervar]], indexArgs$x[[indexArgs$prodID]]),]
@@ -109,7 +109,7 @@ yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
     stop("Invalid or incorrect indexFunction given. Valid functions are: ", paste(validFuns, collapse = ", "))
   }
 
-  checkIndexArgs(indexFunction, indexArgs)
+  indexArgs <- checkIndexArgs(indexFunction, indexArgs)
 
   # convert frequency to integer
   freqInt <- switch(freq,
@@ -146,10 +146,12 @@ yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
 #' Check the arguments passed to an index function
 #'
 #' Checks that all elements of indexArgs are named arguments of indexFunction,
-#' so that misspelled argument names are not silently ignored.
+#' so that misspelled argument names are not silently ignored. Also checks
+#' the column names and types of the data in indexArgs$x.
 #'
 #' @param indexFunction the name of the index function
 #' @param indexArgs the named list of arguments
+#' @return indexArgs, with the data checked and converted to the correct types
 #' @keywords internal
 #' @noRd
 checkIndexArgs <- function(indexFunction, indexArgs){
@@ -171,6 +173,11 @@ checkIndexArgs <- function(indexFunction, indexArgs){
   checkArguments(indexArgs, allowed = allowed, funcName = indexFunction,
                  allowedLabel = "Valid arguments are")
 
-  return(invisible(TRUE))
+  # check the column names and types of the data
+  argOrEmpty <- function(name) if(is.null(indexArgs[[name]])) "" else indexArgs[[name]]
+  indexArgs$x <- validateInput(indexArgs$x, argOrEmpty("pvar"), argOrEmpty("qvar"),
+                               argOrEmpty("pervar"), argOrEmpty("prodID"))
+
+  return(indexArgs)
 
 }

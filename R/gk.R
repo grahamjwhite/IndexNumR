@@ -232,19 +232,13 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, spl
     stop("Not a valid sample type. Please choose from matched or unmatched.")
   }
 
-  # check valid column names are given
-  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
-  if(colNameCheck$result == FALSE){
-    stop(colNameCheck$message)
-  }
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
 
   # check valid solveMethods are given
   if(!solveMethod %in% c("inverse", "iterative")){
     stop("Not a valid solveMethod.")
   }
-
-  # check that columns are the right class
-  x <- checkTypes(x, pvar, qvar, pervar)
 
   # check that the time period variable is continuous
   timeCheck <- isContinuous(x[[pervar]])

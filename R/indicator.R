@@ -97,14 +97,8 @@ priceIndicator <- function(x, pvar, qvar, pervar, prodID, method,
     stop("Invalid method chosen")
   }
 
-  # check valid column names are given
-  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
-  if(colNameCheck$result == FALSE){
-    stop(colNameCheck$message)
-  }
-
-  # check column types
-  x <- checkTypes(x, pvar, qvar, pervar)
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
 
   # check that the time period variable is continuous
   timeCheck <- isContinuous(x[[pervar]])
@@ -240,6 +234,9 @@ quantityIndicator <- function(x, pvar, qvar, pervar, prodID, method,
 #' prodID = "prodID", pervar = "time", priceMethod = "bennet")
 valueDecomposition <- function(x, pvar, qvar, pervar, prodID, priceMethod,
                                   sample = "matched"){
+
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
 
   # initialise some things
   n <- max(x[[pervar]])

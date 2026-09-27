@@ -36,6 +36,9 @@
 #' imputeCarryPrices(df, "prices", "quantities", "time", "prodID")
 imputeCarryPrices <- function(x, pvar, qvar, pervar, prodID){
 
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
+
   # list of products
   prods <- sort(unique(x[[prodID]]))
   # list of time periods
@@ -104,6 +107,9 @@ imputeCarryPrices <- function(x, pvar, qvar, pervar, prodID){
 #' @inheritParams priceIndex
 #' @export
 imputeQuantities <- function(x, pvar, pervar, prodID){
+
+  # check the column names and types
+  x <- validateInput(x, pvar, "", pervar, prodID)
 
   # make sure data are sorted by time period and product ID
   x <- x[order(x[[pervar]], x[[prodID]]),]

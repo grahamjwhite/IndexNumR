@@ -23,6 +23,9 @@
 #' @export
 shares <- function(x, pvar, qvar, pervar, prodID){
 
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
+
   # fill missing observations with zero, so we can use matrix algebra
   x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
 
@@ -61,6 +64,9 @@ shares <- function(x, pvar, qvar, pervar, prodID){
 #' @return a list of matrices
 #' @export
 predictedShares <- function(x, pvar, qvar, pervar, prodID){
+
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
 
   # fill any missing observations with zero
   x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)

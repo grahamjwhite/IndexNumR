@@ -1,6 +1,12 @@
 ## Development version
 
 ### Bug fixes
+- Input columns are now checked and converted in the same way by every function that takes a dataset (#84). Previously:
+  - prices, quantities and time periods stored as factors were converted to their level codes rather than their values, which gave wrong results without an error. A factor time period also stopped the checks that the periods start at 1 and have no gaps from working;
+  - `unitValues`, `imputeCarryPrices`, `imputeQuantities`, `shares`, `predictedShares`, `evaluateMatched`, `productChanges`, `valueDecomposition`, `groupIndexes` and `yearOverYearIndexes` did not check column types at all. For example, `unitValues` dropped periods 10 onwards when the time period was stored as character.
+  
+  Values that can't be converted to numbers are now an error that shows some of those values. Dates and fractional time periods are also an error. Unused levels of a factor product identifier are dropped, because they caused errors in `GKIndex` and `WTPDIndex` and created products that don't exist in `shares` and `imputeQuantities`.
+- data.table and tibble inputs are now accepted. They are converted to a data frame internally; the input object is not modified (#84).
 - Misspelled argument names passed to `priceIndex` or `quantityIndex` (e.g. `indexMmethod`) were silently absorbed by `...`, so the default Laspeyres index was returned. They are now an error that suggests the correct name. `groupIndexes` and `yearOverYearIndexes` also check the names in `indexArgs` (#83).
 - `elasticity`, `relativeDissimilarity` and `mixScaleDissimilarity` gave wrong results when the rows of the data were not ordered consistently in each period. The data are now sorted before calculation.
 - `priceIndex` and `GEKSIndex` with an unmatched sample could compare prices of different products when the products changed between periods. This is now an error for methods other than Dutot and TPD. Invalid `sample` values are also an error.

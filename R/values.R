@@ -44,19 +44,13 @@
 values <- function(x, pvar, qvar, pervar, prodID, sample = "matched",
                    matchPeriod = "previous"){
 
-  # check valid column names are given
-  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
-  if(colNameCheck$result == FALSE){
-    stop(colNameCheck$message)
-  }
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
 
   # check valid matchPeriod methods are given
   if(!(matchPeriod %in% c("following", "previous"))){
     stop("Not a valid matchPeriod argument, must be 'previous' or 'following'")
   }
-
-  # check column types
-  x <- checkTypes(x, pvar, qvar, pervar)
 
   # check that the time period variable is continuous
   timeCheck <- isContinuous(x[[pervar]])

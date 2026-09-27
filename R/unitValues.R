@@ -41,11 +41,8 @@
 #' @export
 unitValues <- function(x,pvar,qvar,pervar,prodID){
 
-  # check valid column names are given
-  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
-  if(colNameCheck$result == FALSE){
-    stop(colNameCheck$message)
-  }
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
 
   # number of periods
   n <- max(x[[pervar]],na.rm = TRUE)

@@ -62,64 +62,122 @@ checkNames <- function(x, namesVector){
   }
 }
 
+#' toNumeric
+#'
+#' Converts a column to numeric. Factors are converted through their labels,
+#' because as.numeric on a factor returns the level codes rather than the values.
+#' @param v the column to convert
+#' @param label a description of the column for the error message
+#' @return the converted column
+#' @keywords internal
+#' @noRd
+toNumeric <- function(v, label){
+
+  if(is.numeric(v)){
+    return(v)
+  }
+
+  if(is.factor(v)){
+    v <- as.character(v)
+  }
+
+  coerced <- tryCatch(suppressWarnings(as.numeric(v)), error = function(e) NULL)
+
+  # values that were present but could not be converted. Values that are
+  # already missing are left for the other checks to deal with.
+  failed <- if(is.null(coerced)) rep(TRUE, length(v)) else is.na(coerced) & !is.na(v)
+
+  if(any(failed)){
+    bad <- utils::head(unique(v[failed]), 3)
+    stop("Please correct input data types. ", label,
+         " is not numeric and cannot be coerced to numeric (e.g. ",
+         paste0("'", bad, "'", collapse = ", "), ")", call. = FALSE)
+  }
+
+  return(coerced)
+
+}
+
 #' checkTypes
 #'
-#' checks that the columns of the input matrix are right
+#' Checks that the columns of the input data frame have the right types, and
+#' converts them where possible. Prices, quantities and time periods must be
+#' numeric, and time periods must be whole numbers. Unused levels of a factor
+#' product identifier are dropped, so that they are not treated as products.
+#' Variables given as an empty string are not checked.
 #' @param x the dataframe to check
 #' @param pvar name of price variable
 #' @param qvar name of quantity variable
 #' @param pervar name of time period variable
-#' @return if all checks pass, the original dataframe. If some
-#' columns are the wrong type then either an error, or the
-#' input dataframe coerced to the correct types.
+#' @param prodID name of the product identifier
+#' @return if all checks pass, the input dataframe with the columns
+#' coerced to the correct types, otherwise an error.
 #' @keywords internal
 #' @noRd
-checkTypes <- function(x, pvar, qvar, pervar){
+checkTypes <- function(x, pvar, qvar, pervar, prodID = ""){
 
-  check <- TRUE
-
-  if(!inherits(x[[pervar]], "numeric")){
-    coerced <- try(as.numeric(x[[pervar]]), silent = TRUE)
-    if(inherits(coerced, "try-error") | any(is.na(coerced))){
-      check = FALSE
-      m <- "Time period variable is not numeric and cannot be coerced to numeric"
+  if(!pervar == ""){
+    if(inherits(x[[pervar]], c("Date", "POSIXt"))){
+      stop("Please correct input data types. The time period variable is a date. ",
+           "Convert it to a time period index with monthIndex(), weekIndex(), ",
+           "quarterIndex() or yearIndex() first.", call. = FALSE)
     }
-    else {
-      x[[pervar]] <- coerced
-    }
-  }
-
-  if(!inherits(x[[pvar]], "numeric")){
-    coerced <- try(as.numeric(x[[pvar]]), silent = TRUE)
-    if(inherits(coerced, "try-error") | any(is.na(coerced))){
-      check = FALSE
-      m <- "Price variable is not numeric and cannot be coerced to numeric"
-    }
-    else {
-      x[[pvar]] <- coerced
+    x[[pervar]] <- toNumeric(x[[pervar]], "Time period variable")
+    periods <- x[[pervar]][!is.na(x[[pervar]])]
+    if(any(periods != round(periods))){
+      stop("Please correct input data types. The time period variable must ",
+           "contain whole numbers.", call. = FALSE)
     }
   }
 
-  # don't check qvar for elementary indexes
+  if(!pvar == ""){
+    x[[pvar]] <- toNumeric(x[[pvar]], "Price variable")
+  }
+
+  # qvar is empty for elementary indexes
   if(!qvar == ""){
-    if(!inherits(x[[qvar]], "numeric")){
-      coerced <- try(as.numeric(x[[qvar]]), silent = TRUE)
-      if(inherits(coerced, "try-error") | any(is.na(coerced))){
-        check = FALSE
-        m <- "Quantity variable is not numeric and cannot be coerced to numeric"
-      }
-      else {
-        x[[qvar]] <- coerced
-      }
-    }
+    x[[qvar]] <- toNumeric(x[[qvar]], "Quantity variable")
   }
 
-  if(check){
-    return(x)
+  if(!prodID == "" && is.factor(x[[prodID]])){
+    x[[prodID]] <- droplevels(x[[prodID]])
   }
-  else {
-    stop(paste("Please correct input data types.", m), call. = FALSE)
+
+  return(x)
+
+}
+
+#' validateInput
+#'
+#' The standard checks run on a dataset passed to an exported function. Converts
+#' data.tables and tibbles to a plain data frame, because the package relies on
+#' base data frame indexing, checks that the named columns exist and checks and
+#' converts their types. Variables given as an empty string are not checked.
+#' @param x the input data
+#' @param pvar the price variable
+#' @param qvar the quantity variable
+#' @param pervar the time period variable
+#' @param prodID the product identifier
+#' @return the checked data frame
+#' @keywords internal
+#' @noRd
+validateInput <- function(x, pvar, qvar, pervar, prodID){
+
+  if(!is.data.frame(x)){
+    stop("The input data must be a data frame.", call. = FALSE)
   }
+
+  # as.data.frame copies a data.table, so the caller's object is not modified
+  if(!identical(class(x), "data.frame")){
+    x <- as.data.frame(x)
+  }
+
+  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
+  if(colNameCheck$result == FALSE){
+    stop(colNameCheck$message)
+  }
+
+  return(checkTypes(x, pvar, qvar, pervar, prodID))
 
 }
 
@@ -423,12 +481,7 @@ getPeriod <- function(x, rows, i, cols = names(x)){
 #' @noRd
 prepareData <- function(x, pvar, qvar, pervar, prodID){
 
-  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
-  if(colNameCheck$result == FALSE){
-    stop(colNameCheck$message)
-  }
-
-  x <- checkTypes(x, pvar, qvar, pervar)
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
 
   timeCheck <- isContinuous(x[[pervar]])
   if(timeCheck$result == FALSE){
