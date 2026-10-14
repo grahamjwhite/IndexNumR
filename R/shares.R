@@ -23,6 +23,9 @@
 #' @export
 shares <- function(x, pvar, qvar, pervar, prodID){
 
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
+
   # fill missing observations with zero, so we can use matrix algebra
   x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
 
@@ -36,18 +39,12 @@ shares <- function(x, pvar, qvar, pervar, prodID){
   n <- length(prods)
   # total time periods
   obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
-  # share of expenditure on each product in each time period
-  stn <- matrix(0, nrow = obs, ncol = n)
-
   pmat <- matrix(x[[pvar]], nrow = obs, byrow = TRUE)
   qtn <- matrix(x[[qvar]], nrow = obs, byrow = TRUE)
-  etn <- Reduce(`*`, list(pmat, qtn))
+  etn <- pmat*qtn
 
-  # calculate expenditure shares
-  et <- rowSums(etn)
-  for(i in 1:obs){
-    stn[i,] <- etn[i,]/et[i]
-  }
+  # share of expenditure on each product in each time period
+  stn <- etn/rowSums(etn)
 
   retVal <- data.frame(stn,
                        row.names = unique(x[[pervar]]))
@@ -68,8 +65,14 @@ shares <- function(x, pvar, qvar, pervar, prodID){
 #' @export
 predictedShares <- function(x, pvar, qvar, pervar, prodID){
 
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
+
   # fill any missing observations with zero
   x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
+
+  # sort by time period and product ID so each product's rows are in time order
+  x <- x[order(x[[pervar]], x[[prodID]]),]
 
   # list of products
   prods <- sort(unique(x[[prodID]]))

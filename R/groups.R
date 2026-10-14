@@ -47,6 +47,8 @@ groupIndexes <- function(group, indexFunction, indexArgs){
     stop("Invalid or incorrect indexFunction given. Valid functions are: ", paste(validFuns, collapse = ", "))
   }
 
+  indexArgs <- checkIndexArgs(indexFunction, indexArgs)
+
   # sort the dataset by time period and product ID
   indexArgs$x <- indexArgs$x[order(indexArgs$x[[indexArgs$pervar]], indexArgs$x[[indexArgs$prodID]]),]
 
@@ -107,6 +109,8 @@ yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
     stop("Invalid or incorrect indexFunction given. Valid functions are: ", paste(validFuns, collapse = ", "))
   }
 
+  indexArgs <- checkIndexArgs(indexFunction, indexArgs)
+
   # convert frequency to integer
   freqInt <- switch(freq,
                     "monthly" = 12,
@@ -135,5 +139,45 @@ yearOverYearIndexes <- function(freq, indexFunction, indexArgs){
   indexes <- groupIndexes(freqName, indexFunction, indexArgs)
 
   return(indexes)
+
+}
+
+
+#' Check the arguments passed to an index function
+#'
+#' Checks that all elements of indexArgs are named arguments of indexFunction,
+#' so that misspelled argument names are not silently ignored. Also checks
+#' the column names and types of the data in indexArgs$x.
+#'
+#' @param indexFunction the name of the index function
+#' @param indexArgs the named list of arguments
+#' @return indexArgs, with the data checked and converted to the correct types
+#' @keywords internal
+#' @noRd
+checkIndexArgs <- function(indexFunction, indexArgs){
+
+  argNames <- names(indexArgs)
+  if(is.null(argNames) || any(argNames == "")){
+    stop("All elements of indexArgs must be named.", call. = FALSE)
+  }
+
+  formalNames <- names(formals(indexFunction))
+  formalNames <- formalNames[formalNames != "..."]
+
+  # priceIndex and quantityIndex pass measure and combine through to mixScaleDissimilarity
+  allowed <- formalNames
+  if(indexFunction %in% c("priceIndex", "quantityIndex")){
+    allowed <- c(allowed, "measure", "combine")
+  }
+
+  checkArguments(indexArgs, allowed = allowed, funcName = indexFunction,
+                 allowedLabel = "Valid arguments are")
+
+  # check the column names and types of the data
+  argOrEmpty <- function(name) if(is.null(indexArgs[[name]])) "" else indexArgs[[name]]
+  indexArgs$x <- validateInput(indexArgs$x, argOrEmpty("pvar"), argOrEmpty("qvar"),
+                               argOrEmpty("pervar"), argOrEmpty("prodID"))
+
+  return(indexArgs)
 
 }

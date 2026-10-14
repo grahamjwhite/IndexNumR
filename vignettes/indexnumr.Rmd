@@ -78,9 +78,9 @@ The user can provide their own time variable, or if a date variable is available
 
 A related issue is that of aggregating data collected at some higher frequency, to a lower frequency. When computing index numbers, this is often done by computing a *unit value* as follows,
 \begin{equation}
-  UV_{t} = \frac{\sum_{i=1}^{N}p^{t}_{n}q^{t}_{n}}{\sum_{i=1}^{N}q^{t}_{n}}
+  UV_{t} = \frac{\sum_{n=1}^{N}p^{t}_{n}q^{t}_{n}}{\sum_{n=1}^{N}q^{t}_{n}}
 \end{equation}
-That is, sum up total expenditure on each item over the required period, and divide by the total quantity. Provided that a time period variable as described above is available, the unit values can be computed using the function `unitValues`. This function returns the unit values, along with the aggregate quantities for each time period and each product. The output will also include the product identifier and time period variable so the output dataframe from the `unitvalues` function contains everything needed to compute an index number.  
+That is, sum up total expenditure on each item over the required period, and divide by the total quantity. Provided that a time period variable as described above is available, the unit values can be computed using the function `unitValues`. This function returns the unit values, along with the aggregate quantities for each time period and each product. The output will also include the product identifier and time period variable so the output dataframe from the `unitValues` function contains everything needed to compute an index number.  
 
 ## Sample data
 
@@ -428,9 +428,9 @@ When the dataset being used does not have quantities, and an elementary index is
 
 ### Estimating similarity-linked indexes
 
-*IndexNumR* provides three functions, enabling the estimation of the dissimilarity measures above. The first function `relativeDissimilarity` calculates the Paasche-Laspeyres spread, log-quadratic, asymptotically linear and predicted share relative dissimilarity measures, and the second function `mixScaleDissimilarity` computes the mix, scale and absolute measures of dissimilarity. All three functions provide the same output - a data frame with three columns containing the indices of the pairs of periods being compared in the first two columns and the value of the dissimilarity measure in the third column. 
+*IndexNumR* provides two functions, enabling the estimation of the dissimilarity measures above. The first function `relativeDissimilarity` calculates the Paasche-Laspeyres spread, log-quadratic, asymptotically linear and predicted share relative dissimilarity measures, and the second function `mixScaleDissimilarity` computes the mix, scale and absolute measures of dissimilarity. Both functions provide the same output - a data frame with three columns containing the indices of the pairs of periods being compared in the first two columns and the value of the dissimilarity measure in the third column.
 
-Once these have been computed, the function `maximiumSimilarityLinks` can take the output data frame from these functions and compute the maximum similarity linking periods. The function `priceIndex` effectively computes a similarity-linked index as follows,
+Once these have been computed, the function `maximumSimilarityLinks` can take the output data frame from these functions and compute the maximum similarity linking periods. The function `priceIndex` effectively computes a similarity-linked index as follows,
 
 * Compute the measure of dissimilarity between all possible combinations of time periods.
 * Set the price index to 1 in the first period.
@@ -703,7 +703,7 @@ The above index number methods are derived based on a ratio approach, which deco
 
 * Montgomery indicator [@montgomery:1929]
 \begin{equation}
-  I(p^{t-1}, p^{t}) = \sum_{n=1}^{N} \frac{p_{n}^{t}q_{n}^{t}+p_{n}^{t-1}q_{n}^{t-1}}{log(p_{n}^{t}q_{n}^{t}) - log(p_{n}^{t-1}q_{n}^{t-1})} \times\left(\frac{p_{n}^{t}}{p_{n}^{t-1}}\right)
+  I(p^{t-1}, p^{t}) = \sum_{n=1}^{N} \frac{p_{n}^{t}q_{n}^{t}-p_{n}^{t-1}q_{n}^{t-1}}{log(p_{n}^{t}q_{n}^{t}) - log(p_{n}^{t-1}q_{n}^{t-1})} \times log\left(\frac{p_{n}^{t}}{p_{n}^{t-1}}\right)
 \end{equation}
 
 ### Examples

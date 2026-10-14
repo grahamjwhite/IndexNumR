@@ -70,6 +70,9 @@ evaluateMatched <- function(x,pvar,qvar,pervar,prodID,output="chained"){
     stop("Not a valid output type. Please choose from chained or fixedbase.")
   }
 
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
+
   # initialise some things
   n <- max(x[[pervar]], na.rm=TRUE)
   colheadsExp <- c("base_index","base","base_matched","base_share",
@@ -151,6 +154,9 @@ evaluateMatched <- function(x,pvar,qvar,pervar,prodID,output="chained"){
 #' productChanges(df, "time", "prodID")
 #'
 productChanges <- function(x, pervar, prodID){
+
+  # check the column names and types
+  x <- validateInput(x, "", "", pervar, prodID)
 
   # initialise some things
   n <- max(x[[pervar]], na.rm=TRUE)

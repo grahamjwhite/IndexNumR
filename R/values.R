@@ -44,19 +44,13 @@
 values <- function(x, pvar, qvar, pervar, prodID, sample = "matched",
                    matchPeriod = "previous"){
 
-  # check valid column names are given
-  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
-  if(colNameCheck$result == FALSE){
-    stop(colNameCheck$message)
-  }
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
 
   # check valid matchPeriod methods are given
   if(!(matchPeriod %in% c("following", "previous"))){
     stop("Not a valid matchPeriod argument, must be 'previous' or 'following'")
   }
-
-  # check column types
-  x <- checkTypes(x, pvar, qvar, pervar)
 
   # check that the time period variable is continuous
   timeCheck <- isContinuous(x[[pervar]])
@@ -68,6 +62,11 @@ values <- function(x, pvar, qvar, pervar, prodID, sample = "matched",
   # sort the dataset by time period and product ID
   x <- x[order(x[[pervar]], x[[prodID]]),]
 
+  # find the rows for each time period, so that the data for a period can be
+  # extracted without scanning the whole dataset
+  rows <- periodRows(x, pervar)
+  cols <- setdiff(c(pvar, qvar, prodID), "")
+
   # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)
   plist <- matrix(NA, nrow = n, ncol = 1)
@@ -77,7 +76,7 @@ values <- function(x, pvar, qvar, pervar, prodID, sample = "matched",
   if(sample == "matched"){
 
     for(i in 1:n){
-      xt <- x[x[[pervar]]==i,]
+      xt <- getPeriod(x, rows, i, cols)
 
       # there are two cases we can't compute
       if((i == 1 && matchPeriod == "previous") |
@@ -87,8 +86,8 @@ values <- function(x, pvar, qvar, pervar, prodID, sample = "matched",
       else {
         # set the match period
         switch(matchPeriod,
-               following = {xtmatch <- x[x[[pervar]] == i + 1,]},
-               previous = {xtmatch <- x[x[[pervar]] == i - 1,]})
+               following = {xtmatch <- getPeriod(x, rows, i + 1, cols)},
+               previous = {xtmatch <- getPeriod(x, rows, i - 1, cols)})
 
         # filter the products using the match period
         xt <- xt[xt[[prodID]] %in% unique(xtmatch[[prodID]]),]
@@ -110,7 +109,7 @@ values <- function(x, pvar, qvar, pervar, prodID, sample = "matched",
 
     for(i in 1:n){
 
-      xt <- x[x[[pervar]]==i,]
+      xt <- getPeriod(x, rows, i, cols)
 
       plist[i, 1] <- sum(xt[[pvar]]*xt[[qvar]])
 

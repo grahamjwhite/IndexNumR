@@ -178,3 +178,16 @@ test_that("Error is thrown when time/product combinations are not unique", {
                          window = 9))
 })
 
+
+
+test_that("WTPD works when matching leaves a single product in a window", {
+
+  # remove observations so that only product 4 is in every period of the first windows
+  dx <- CES_sigma_2[-c(2, 3, 15, 30),]
+
+  result <- WTPDIndex(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                      prodID = "prodID", window = 5, sample = "matched")
+
+  expect_equal(nrow(result), 12)
+  expect_false(any(is.na(result)))
+})

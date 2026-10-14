@@ -39,24 +39,14 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
     x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
   }
 
-  # set up some variables
-  # list of time periods
-  pers <- sort(unique(x[[pervar]]))
-  # list of products
-  prods <- sort(unique(x[[prodID]]))
   # total number of products
-  n <- length(prods)
+  n <- length(unique(x[[prodID]]))
 
-  # share of expenditure on each product in each time period
-  stn <- matrix(0, nrow = obs, ncol = n)
-  # quantities matrix
-  qtn <- matrix(0, nrow = obs, ncol = n)
-  # expenditures matrix
-  etn <- matrix(0, nrow = obs, ncol = n)
-
+  # price and quantity matrices (time periods in rows, products in columns).
+  # x is sorted by time period and product, and complete after matching/filling.
   pmat <- matrix(x[[pvar]], nrow = obs, byrow = TRUE)
   qtn <- matrix(x[[qvar]], nrow = obs, byrow = TRUE)
-  etn <- Reduce(`*`, list(pmat, qtn))
+  etn <- pmat*qtn
 
   # replace NAs with zeros
   etn <- replace(etn, is.na(etn), 0)
@@ -64,22 +54,15 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
 
   # calculate expenditure shares
   et <- rowSums(etn)
-  for(i in 1:obs){
-    stn[i,] <- etn[i,]/et[i]
-  }
+  stn <- etn/et
 
   # sum quantities for each product across all time
   q <- colSums(qtn)
 
-  # formulate the inverse diagonal matrix with q down the main diagonal
-  D <- solve(diag(q, nrow = n, ncol = n))
-
-  # calculate C
-  sq <- matrix(0, nrow = n, ncol = n)
-  for(i in 1:obs){
-    sq <- sq + stn[i,]%*%t(qtn[i,])
-  }
-  C <- D%*%sq
+  # C = qhat^-1 * sum_t s_t q_t', where qhat is the diagonal matrix of q.
+  # Multiplying by the inverse of a diagonal matrix is the same as dividing
+  # each row by q.
+  C <- crossprod(stn, qtn)/q
 
   # Compute I
   I <- diag(1, nrow = n, ncol = n)
@@ -92,17 +75,10 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
   R[1,] <- rep(1, n)
 
   # Now solve for b
-  b <- solve(I - C + R)%*%z
+  b <- solve(I - C + R, z)
 
   # With b we can calculate P
-  pindex <- matrix(0, nrow = obs, ncol = 1)
-  for(i in 1:obs){
-
-    temp <- x[x[[pervar]] == pers[i],]
-
-    pindex[i,1] <- (temp[[pvar]]%*%temp[[qvar]])/(t(b)%*%temp[[qvar]])
-
-  }
+  pindex <- matrix(et/(qtn%*%b), ncol = 1)
 
   # normalise to first period
   pindex <- pindex/pindex[1,1]
@@ -117,14 +93,8 @@ gk_w <- function(x,pvar,qvar,pervar,prodID, sample) {
 gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/1e12,
                            maxIter = 100){
 
-  # list of time periods
-  pers <- sort(unique(x[[pervar]]))
-  # list of products
-  prods <- sort(unique(x[[prodID]]))
   # total time periods
   obs <- max(x[[pervar]]) - min(x[[pervar]]) + 1
-  # number of products
-  n <- length(prods)
 
   # if matching requested, keep only products that occur through the whole window
   if(sample == "matched"){
@@ -136,30 +106,28 @@ gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/
     x <- fillMissing(x, pvar, qvar, pervar, prodID, priceReplace = 0, quantityReplace = 0)
   }
 
+  # number of products (after matching, which may remove some products)
+  n <- length(unique(x[[prodID]]))
+
+  # price and quantity matrices (time periods in rows, products in columns).
+  # x is sorted by time period and product, and complete after matching/filling.
+  pmat <- matrix(x[[pvar]], nrow = obs, byrow = TRUE)
   qtn <- matrix(x[[qvar]], nrow = obs, byrow = TRUE)
   # sum quantity for each product for all time periods
   qt <- colSums(qtn)
   # quantity shares
-  stn <- matrix(NA, nrow = obs, ncol = n)
-  for(i in 1:n){
-    stn[,i] <- qtn[,i]/qt[i]
-  }
+  stn <- sweep(qtn, 2, qt, "/")
+  # expenditure in each period
+  et <- rowSums(pmat*qtn)
 
+  # quality adjustment factors, given the price levels
   calcPi <- function(P){
-    pi <- numeric(n)
-    for(i in 1:n){
-      pi[i] <- sum(stn[,i]*(x[x[[prodID]] == prods[i],][[pvar]]/P))
-    }
-    return(pi)
+    colSums(stn*(pmat/P))
   }
 
+  # price levels, given the quality adjustment factors
   calcP <- function(Pi){
-    pindex <- numeric(obs)
-    for(i in 1:obs){
-      temp <- x[x[[pervar]] == pers[i],]
-      pindex[i] <- (temp[[pvar]]%*%temp[[qvar]])/(t(Pi)%*%temp[[qvar]])
-    }
-    return(pindex)
+    as.vector(et/(qtn%*%Pi))
   }
 
   # initial calculation of P
@@ -169,7 +137,7 @@ gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/
   # iterate to solve
   diff <- rep(1, obs)
   iter <- 0
-  while(any(abs(diff) > tolerance) && iter <= maxIter){
+  while(any(abs(diff) > tolerance) && iter < maxIter){
     prevP <- p
     pi <- calcPi(p)
     p <- calcP(pi)
@@ -177,8 +145,9 @@ gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/
     iter <- iter + 1
   }
 
-  if(iter == 100){
-    warning("Convergence not reached for given tolerance. GK iterations stopped at maxIter iterations. Try increasing the tolerance or maxIter to reach convergence.")
+  if(any(abs(diff) > tolerance)){
+    warning("Convergence not reached for given tolerance. GK iterations stopped after ", maxIter,
+            " iterations. Try increasing the tolerance or maxIter to reach convergence.")
   }
 
   return(as.matrix(p/p[1]))
@@ -224,6 +193,9 @@ gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/
 #' of each year to be the base period, then the first period in the data must be December
 #' and the window must be set to 13.
 #'
+#' The half and hasp splices use period (window-1)/2+1 of the window as the overlapping period.
+#' If the window length is even, this is rounded down.
+#'
 #' It is recommended to use the matrix inverse method of solving the GK equations (the default)
 #' because the performance difference can be significant. If the matrix inverse method does
 #' not work then switch to the iterative method. The tolerance and maximum number of iterations
@@ -242,23 +214,29 @@ gk_w_iterative <- function(x, pvar, qvar, pervar, prodID, sample, tolerance = 1/
 #' Khamis, S. H. 1970. “Properties and Conditions for the Existence of a New Type of Index Number.”
 #' Sankhya: The Indian Journal of Statistics, Series B (1960-2002) 32: 81–98.
 #' @export
-GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice = "mean",
+GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window = 13, splice = "mean",
                     imputePrices = NULL, solveMethod = "inverse", tolerance = 1/1e12,
                     maxIter = 100){
 
+  # normalise the case of character arguments
+  splice <- tolower(splice)
+  solveMethod <- tolower(solveMethod)
+
   # check that only valid splice methods are chosen
-  if(!(tolower(splice) %in% c("mean", "window", "movement", "half", "fbew", "fbmw", "wisp", "hasp", "mean_pub"))){
+  if(!(splice %in% c("mean", "window", "movement", "half", "fbew", "fbmw", "wisp", "hasp", "mean_pub"))){
     stop("Not a valid splicing method.")
   }
 
-  # check valid column names are given
-  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
-  if(colNameCheck$result == FALSE){
-    stop(colNameCheck$message)
+  # check that a valid sample type is given
+  if(!(sample %in% c("matched", "unmatched", ""))){
+    stop("Not a valid sample type. Please choose from matched or unmatched.")
   }
 
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
+
   # check valid solveMethods are given
-  if(!tolower(solveMethod) %in% c("inverse", "iterative")){
+  if(!solveMethod %in% c("inverse", "iterative")){
     stop("Not a valid solveMethod.")
   }
 
@@ -269,8 +247,8 @@ GKIndex <- function(x, pvar, qvar, pervar, prodID, sample = "", window, splice =
                "Missing periods:", timeCheck$missing))
   }
 
-  # check that columns are the right class
-  x <- checkTypes(x, pvar, qvar, pervar)
+  # check that the time period variable starts at 1
+  checkStartsAtOne(x[[pervar]])
 
   # check that data are unique by time and product ID
   tpCheck <- checkTimeProdUnique(x, pervar, prodID)

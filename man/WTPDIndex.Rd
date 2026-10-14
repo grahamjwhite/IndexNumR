@@ -62,6 +62,9 @@ period is updated periodically. IndexNumR calculates which periods are the base 
 right window length chosen. For example, if you have monthly data and want December
 of each year to be the base period, then the first period in the data must be December
 and the window must be set to 13.
+
+The half and hasp splices use period (window-1)/2+1 of the window as the overlapping period.
+If the window length is even, this is rounded down.
 }
 \examples{
 # compute a wtpd index with mean splicing

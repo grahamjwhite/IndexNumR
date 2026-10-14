@@ -40,10 +40,13 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v2
 
+      # Install pak explicitly so setup-r-dependencies can use it
+      - name: Install pak
+        run: Rscript -e 'options(repos = c(CRAN = "https://packagemanager.posit.co/cran/latest")); install.packages("pak")'
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
-          needs: check
 
       - uses: r-lib/actions/check-r-package@v2
         with:

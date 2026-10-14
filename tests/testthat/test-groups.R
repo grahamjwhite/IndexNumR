@@ -139,3 +139,24 @@ test_that("yearOverYearIndexes parameter validation", {
 })
 
 
+test_that("misspelled arguments in indexArgs are caught", {
+
+  df <- CES_sigma_2
+  df$group <- c(rep(1, 24), rep(2, 24))
+
+  expect_error(groupIndexes("group", "priceIndex",
+                            list(x = df, pvar = "prices", qvar = "quantities", pervar = "time",
+                                 prodID = "prodID", indexMmethod = "paasche")),
+               "Unknown argument\\(s\\) to priceIndex: indexMmethod \\(did you mean indexMethod\\?\\)")
+
+  expect_error(groupIndexes("group", "GEKSIndex",
+                            list(x = df, pvar = "prices", qvar = "quantities", pervar = "time",
+                                 prodID = "prodID", windw = 12)),
+               "Unknown argument\\(s\\) to GEKSIndex: windw")
+
+  expect_error(yearOverYearIndexes("quarterly", "priceIndex",
+                                   list(x = CES_sigma_2, pvar = "prices", qvar = "quantities",
+                                        pervar = "time", prodID = "prodID",
+                                        indexMmethod = "paasche")),
+               "Unknown argument\\(s\\) to priceIndex: indexMmethod")
+})

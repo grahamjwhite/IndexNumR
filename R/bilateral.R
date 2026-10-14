@@ -113,7 +113,7 @@ satoVartia_t <- function(p0,p1,q0,q1){
   exp1 <- sum(p1*q1)
   s0 <- (p0*q0)/exp0
   s1 <- (p1*q1)/exp1
-  wstar <- (s1-s0)/(log(s1)-log(s0))
+  wstar <- logMean(s1, s0)
   w <- wstar/sum(wstar)
   return(exp(sum(w*log(p1/p0))))
 }
@@ -173,6 +173,12 @@ geomPaasche_t <- function(p0, p1, q0, q1){
 #' @keywords internal
 #' @noRd
 tpd_t <- function(p0, p1, q0, q1, prodID0, prodID1, biasAdjust, weights){
+
+  # with only one product the product dummies cannot be estimated,
+  # and the TPD index reduces to the price relative of that product
+  if(length(unique(c(prodID0, prodID1))) < 2){
+    return(exp(mean(log(p1)) - mean(log(p0))))
+  }
 
   exp0 <- sum(p0*q0)
   exp1 <- sum(p1*q1)
@@ -292,10 +298,10 @@ palgrave_t <- function(p0, p1, q1){
 #'
 #' @keywords internal
 #' @noRd
-young_t <- function(p0, p1, pb, qb){
+young_t <- function(p0, p1, eb){
 
-  expb <- sum(pb*qb)
-  sb <- (pb*qb)/expb
+  # eb is the expenditure on each product in the base period(s)
+  sb <- eb/sum(eb)
 
   return(sum(sb*p1/p0))
 
@@ -320,7 +326,9 @@ young_t <- function(p0, p1, pb, qb){
 #' harmonic, tornqvist, satovartia, walsh, CES, geomLaspeyres, geomPaasche, tpd,
 #' Geary-Khamis (gk), drobish, palgrave, stuvel, marshalledgeworth.
 #' @param sample A character string specifying whether a matched sample
-#' should be used.
+#' should be used ("matched", the default) or not ("unmatched"). Without matching,
+#' only the dutot and tpd index methods can be used if the products differ between
+#' the periods being compared.
 #' @param output A character string specifying whether a chained (output="chained")
 #' , fixed base (output="fixedbase") or period-on-period (output="pop")
 #' price index numbers should be returned. Default is period-on-period.
@@ -349,8 +357,9 @@ young_t <- function(p0, p1, pb, qb){
 #' @param imputePrices the type of price imputation to use for missing prices.
 #' Currently only "carry" is supported to used carry-forward/carry-backward prices.
 #' Default is NULL to not impute missing prices.
-#' @param ... this is used to pass additional parameters to the mixScaleDissimilarity
-#' function.
+#' @param ... this is used to pass additional parameters (measure and combine) to the
+#' mixScaleDissimilarity function when chainMethod = "mixscale". Any other argument
+#' passed here, such as a misspelled argument name, is an error.
 #' @examples
 #' # period-on-period Laspeyres index for the CES_sigma_2 dataset
 #' priceIndex(CES_sigma_2, pvar="prices", qvar="quantities", pervar="time",
@@ -372,43 +381,72 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
                        weights = "average", loweYoungBase = 1,
                        imputePrices = NULL, ...){
 
+  # normalise the case of character arguments
+  indexMethod <- tolower(indexMethod)
+  output <- tolower(output)
+  chainMethod <- tolower(chainMethod)
+  weights <- tolower(weights)
+
+  # check that only valid arguments were passed through ...
+  # (a misspelled argument, such as indexMmethod, would otherwise be silently ignored)
+  dots <- list(...)
+  checkArguments(dots, allowed = c("measure", "combine"), funcName = "priceIndex")
+  if(length(dots) > 0 & !(output == "chained" & chainMethod == "mixscale")){
+    stop("Additional arguments (", paste(names(dots), collapse = ", "), ") are only used when ",
+         "output = \"chained\" and chainMethod = \"mixscale\".", call. = FALSE)
+  }
+
   # check that a valid method is chosen
   validMethods <- c("dutot","carli","jevons","harmonic","cswd","laspeyres",
                     "paasche","fisher","tornqvist","satovartia","walsh","ces",
                     "geomlaspeyres", "geompaasche", "tpd", "gk", "drobish",
                     "stuvel", "marshalledgeworth", "palgrave", "lowe", "young")
 
-  if(!(tolower(indexMethod) %in% validMethods)){
+  if(!(indexMethod %in% validMethods)){
     stop("Not a valid index number method.")
   }
 
   # check that a valid output type is chosen
   validOutput <- c("chained","pop","fixedbase")
-  if(!(tolower(output) %in% validOutput)){
+  if(!(output %in% validOutput)){
     stop("Not a valid output type. Please choose from chained, fixedbase or pop.")
   }
 
   # check that valid weights are given
   validWeights <- c("unweighted", "average", "shares")
-  if(!(tolower(weights) %in% validWeights)){
+  if(!(weights %in% validWeights)){
     stop("Not a valid weight type. Please choose from unweighted, shares or average.")
   }
 
-  # check valid column names are given
-  colNameCheck <- checkNames(x, c(pvar, qvar, pervar, prodID))
-  if(colNameCheck$result == FALSE){
-    stop(colNameCheck$message)
+  # check that a valid sample type is given
+  validSamples <- c("matched", "unmatched", "")
+  if(!(sample %in% validSamples)){
+    stop("Not a valid sample type. Please choose from matched or unmatched.")
   }
+
+  # check the column names and types
+  x <- validateInput(x, pvar, qvar, pervar, prodID)
 
   # check valid chainMethod given
   validChainMethods <- c("pop", "plspread", "asymplinear", "logquadratic", "mixscale",
                          "predictedshare")
   if(!chainMethod %in% validChainMethods){
-    stop("Not a valid chainMethod. Please choose from", paste(validChainMethods, collapse = ", "))
+    stop("Not a valid chainMethod. Please choose from ", paste(validChainMethods, collapse = ", "))
   }
 
-  # check column types
-  x <- checkTypes(x, pvar, qvar, pervar)
+  # without quantities, only unweighted index methods and chain linking can be used
+  if(qvar == ""){
+    elementaryMethods <- c("dutot", "carli", "jevons", "harmonic", "cswd", "tpd")
+    if(!(indexMethod %in% elementaryMethods) | (indexMethod == "tpd" & weights != "unweighted")){
+      stop("A quantity variable is required for the ", indexMethod, " index method. ",
+           "Without quantities (qvar = \"\") use one of dutot, carli, jevons, harmonic, cswd, ",
+           "or tpd with weights = \"unweighted\".")
+    }
+    if(output == "chained" & !(chainMethod %in% c("pop", "predictedshare"))){
+      stop("A quantity variable is required for chainMethod = \"", chainMethod, "\". ",
+           "Without quantities (qvar = \"\") use chainMethod = \"pop\" or \"predictedshare\".")
+    }
+  }
 
   # check that the time period variable is continuous
   timeCheck <- isContinuous(x[[pervar]])
@@ -416,6 +454,9 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
     stop(paste("The time period variable is not continuous.",
                 "Missing periods:", timeCheck$missing))
   }
+
+  # check that the time period variable starts at 1
+  checkStartsAtOne(x[[pervar]])
 
   # check that data are unique by time and product ID
   tpCheck <- checkTimeProdUnique(x, pervar, prodID)
@@ -433,14 +474,36 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
   # sort the dataset by time period and product ID
   x <- x[order(x[[pervar]], x[[prodID]]),]
 
+  # find the rows for each time period, so that the data for a period can be
+  # extracted without scanning the whole dataset
+  rows <- periodRows(x, pervar)
+  cols <- unique(c(pvar, qvar, prodID))
+  cols <- cols[cols != ""]
+
   # initialise some things
   n <- max(x[[pervar]],na.rm = TRUE)
   plist <- matrix(1, nrow = n, ncol = 1)
   naElements <- character()
 
+  if(output == "fixedbase" && !(basePeriod %in% 1:n)){
+    stop("basePeriod must be one of the time periods in the data (1 to ", n, ").")
+  }
+
+  if(indexMethod %in% c("lowe", "young") && !all(loweYoungBase %in% 1:n)){
+    stop("loweYoungBase must only contain time periods in the data (1 to ", n, ").")
+  }
+
+  # the base period data does not change, so only extract it once
+  if(output == "fixedbase"){
+    xtBase <- getPeriod(x, rows, basePeriod, cols)
+  }
+  if(indexMethod %in% c("lowe", "young")){
+    xtLoweYoung <- x[x[[pervar]] %in% loweYoungBase, cols]
+  }
+
   # if similarity chaining was requested, get the similarity measure
-  if(tolower(output)=="chained" & !(tolower(chainMethod)=="pop")){
-    switch(tolower(chainMethod),
+  if(output=="chained" & !(chainMethod=="pop")){
+    switch(chainMethod,
            plspread = {similarityMatrix <- relativeDissimilarity(x,pvar=pvar,qvar=qvar,
                                                                  pervar=pervar,prodID=prodID,
                                                                  similarityMethod = "plspread")},
@@ -462,33 +525,36 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
 
   for(i in 1:n){
 
-    if(i == basePeriod){
+    # the base period is 1 for chained and period-on-period indexes,
+    # and basePeriod for fixed base indexes
+    if((output == "fixedbase" && i == basePeriod) ||
+       (output != "fixedbase" && i == 1)){
       plist[i,1] <- 1
       next
     }
 
-    # if fixed base requested, set xt0 to the first period data
-    if(tolower(output) == "fixedbase"){
-      xt0 <- x[x[[pervar]] == basePeriod,]
+    # if fixed base requested, set xt0 to the base period data
+    if(output == "fixedbase"){
+      xt0 <- xtBase
     }
 
     # if lowe index method chosen then set xtb to the loweYoungBase period
-    if(tolower(indexMethod) %in% c("lowe", "young")){
-      xtb <- x[x[[pervar]] %in% loweYoungBase,]
+    if(indexMethod %in% c("lowe", "young")){
+      xtb <- xtLoweYoung
     }
 
     # if chained or period-on-period requested then set xt0
     # to the previous period
-    if(tolower(output) == "chained" & tolower(chainMethod)=="pop" |
-       tolower(output) == "pop"){
-      xt0 <- x[x[[pervar]]==i-1,]
+    if(output == "chained" & chainMethod=="pop" |
+       output == "pop"){
+      xt0 <- getPeriod(x, rows, i-1, cols)
     }
     # if similarity linking requested set xt0 to link period
-    else if(tolower(output) == "chained" & !(tolower(chainMethod) == "pop")){
-      xt0 <- x[x[[pervar]]==links[links$xt==i,2],]
+    else if(output == "chained" & !(chainMethod == "pop")){
+      xt0 <- getPeriod(x, rows, links[links$xt==i,2], cols)
     }
     # otherwise set xt1 to current period data
-    xt1 <- x[x[[pervar]]==i,]
+    xt1 <- getPeriod(x, rows, i, cols)
 
     # if matching requested then remove unmatched items
     if(sample=="matched"){
@@ -498,7 +564,7 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
       xt0 <- xt0[xt0[[prodID]] %in% unique(xt1[[prodID]]),]
 
       # because the base period can differ from period 1 and 0 for lowe index
-      if(tolower(indexMethod) %in% c("lowe", "young")){
+      if(indexMethod %in% c("lowe", "young")){
         xt1 <- xt1[xt1[[prodID]] %in% unique(xtb[[prodID]]),]
         xt0 <- xt0[xt0[[prodID]] %in% unique(xtb[[prodID]]),]
 
@@ -506,6 +572,21 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
         xtb <- xtb[xtb[[prodID]] %in% unique(xt1[[prodID]]),]
       }
 
+    }
+    # without matching, the price and quantity vectors of the two periods are
+    # only aligned if both periods contain the same products. Dutot and TPD
+    # handle different product sets; the other methods do not.
+    else if(!(indexMethod %in% c("dutot", "tpd"))){
+      sameProducts <- setequal(xt0[[prodID]], xt1[[prodID]])
+      if(indexMethod %in% c("lowe", "young")){
+        sameProducts <- sameProducts & setequal(xtb[[prodID]], xt1[[prodID]])
+      }
+      if(!sameProducts){
+        stop("The products differ between the periods compared for period ", i,
+             ", which the ", indexMethod, " index method cannot handle without matching. ",
+             "Use sample = \"matched\", impute the missing prices with imputePrices = \"carry\", ",
+             "or use the dutot or tpd index methods.")
+      }
     }
 
     # set the price index element to NA if there are no matches
@@ -520,15 +601,19 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
       q0 <- xt0[[qvar]]
       q1 <- xt1[[qvar]]
 
-      if(tolower(indexMethod %in% c("lowe", "young"))){
-        qb <- xtb[[qvar]]
-        if(tolower(indexMethod == "young")){
-          pb <- xtb[[pvar]]
-        }
+      # the base can cover several periods, so sum the base quantities
+      # and expenditures for each product, aligned with the products in xt1
+      if(indexMethod %in% c("lowe", "young")){
+        baseProds <- match(as.character(xt1[[prodID]]),
+                           as.character(unique(xtb[[prodID]])))
+        baseGroup <- factor(as.character(xtb[[prodID]]),
+                            levels = as.character(unique(xtb[[prodID]])))
+        qb <- as.vector(tapply(xtb[[qvar]], baseGroup, sum))[baseProds]
+        eb <- as.vector(tapply(xtb[[pvar]]*xtb[[qvar]], baseGroup, sum))[baseProds]
       }
 
       # compute the index
-      switch(tolower(indexMethod),
+      switch(indexMethod,
              dutot = {plist[i,1] <- dutot_t(p0,p1)},
              carli = {plist[i,1] <- carli_t(p0,p1)},
              jevons = {plist[i,1] <- jevons_t(p0,p1)},
@@ -537,7 +622,7 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
              laspeyres = {plist[i,1] <- fixed_t(p0,p1,q0)},
              paasche = {plist[i,1] <- fixed_t(p0,p1,q1)},
              lowe = {plist[i,1] <- fixed_t(p0,p1,qb)},
-             young = {plist[i,1] <- young_t(p0,p1,pb,qb)},
+             young = {plist[i,1] <- young_t(p0,p1,eb)},
              fisher = {plist[i,1] <- fisher_t(p0,p1,q0,q1)},
              tornqvist = {plist[i,1] <- tornqvist_t(p0,p1,q0,q1)},
              satovartia = {plist[i,1] <- satoVartia_t(p0,p1,q0,q1)},
@@ -554,13 +639,13 @@ priceIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prodID,
       )
 
       # if similarity chain linking then multiply the index by the link period index
-      if(tolower(output) == "chained" & !(tolower(chainMethod) == "pop")){
+      if(output == "chained" & !(chainMethod == "pop")){
         plist[i,1] = plist[i,1]*plist[links[links$xt==i,2],1]
       }
     }
   }
 
-  if(tolower(output) == "chained" & tolower(chainMethod)=="pop"){
+  if(output == "chained" & chainMethod=="pop"){
     result <- apply(plist,2,cumprod)
   }
   else{
@@ -589,6 +674,15 @@ quantityIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prod
                           sigma = 1.0001, basePeriod = 1, biasAdjust = TRUE,
                           weights = "average", loweYoungBase = 1,
                           imputePrices = NULL, ...){
+
+  # impute prices before swapping prices and quantities, so that
+  # prices are carried and the imputed quantities are zero
+  if(!is.null(imputePrices)){
+    switch(imputePrices,
+           "carry" = {x <- imputeCarryPrices(x, pvar, qvar, pervar, prodID)},
+           stop("Invalid imputePrices argument"))
+  }
+
   return(priceIndex(x,
                     pvar = qvar,
                     qvar = pvar,
@@ -602,5 +696,6 @@ quantityIndex <- function(x, pvar, qvar, pervar, indexMethod = "laspeyres", prod
                     basePeriod = basePeriod,
                     biasAdjust = biasAdjust,
                     weights = weights,
-                    ... = ...))
+                    loweYoungBase = loweYoungBase,
+                    ...))
 }

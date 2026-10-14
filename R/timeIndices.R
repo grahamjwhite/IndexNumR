@@ -76,20 +76,16 @@ weekIndex <- function(x){
   weeksInYears[weeksInYears==1] <- 52
   cumWeeks <- cumsum(weeksInYears)
 
-  # initialise a matrix for our final week index
-  week <- matrix(0, nrow=length(x), ncol=1)
-
   # get the week of the first date in our sample, we'll use this to
   # normalise our weekindex to start at 1
   firstWeek <- as.numeric(format(min(x),"%V"))
 
   # compute the week index as the week's number in the current year, plus the
   # number of elapsed weeks in prior years, normalised to start at week 1.
-  for(i in seq_along(x)){
-    week[i,1] <- weeks[i] + cumWeeks[years==weekYears[i]] - weeksInYears[years==weekYears[i]] - (firstWeek-1)
-  }
+  yearPos <- match(weekYears, years)
+  week <- weeks + cumWeeks[yearPos] - weeksInYears[yearPos] - (firstWeek-1)
 
-  return(as.vector(week))
+  return(week)
 }
 
 #' Generate an index of months
@@ -124,39 +120,42 @@ monthIndex <- function(x, overlapWeeks = "naive"){
 
   switch (overlapWeeks,
           naive = {
-            firstDate <- min(x)
-            firstYear <- as.numeric(format(firstDate,"%Y"))
-            adj = as.numeric(format(firstDate,"%m"))-1
+            # POSIXlt gives the date parts directly, which is much faster than format()
+            lt <- as.POSIXlt(x)
+            firstLt <- as.POSIXlt(min(x))
 
-            month <- as.numeric(format(x,"%m"))+
-              (as.numeric(format(x,"%Y"))-
-                 firstYear)*12-adj
+            month <- (lt$mon + 1) + (lt$year - firstLt$year)*12 - firstLt$mon
           },
           majority = {
             month <- monthIndex(x, overlapWeeks = "naive")
 
-            d <- as.numeric(format(x, "%d"))
-            wd <- as.numeric(format(x, "%u"))
-            m <- as.numeric(format(x, "%m"))
-            y <- as.numeric(format(x, "%Y"))
+            lt <- as.POSIXlt(x)
+            d <- lt$mday
+            wd <- ifelse(lt$wday == 0, 7, lt$wday) # day of the week, Monday = 1
+            y <- lt$year + 1900
+            m <- lt$mon + 1
 
-            for (i in 1:length(month)) {
-              # if the week overlapped slightly into next month, push it back by 1
-              if (d[i] < 4 & wd[i] > 4 &
-                  as.numeric(format(as.Date(paste0(1, "-", m[i], "-", y[i]),
-                                            format="%d-%m-%Y"),"%u")) > 4) {
-                month[i] <- month[i] - 1
-              }
-              # if the week overlapped slightly into previous month, push it forward by 1
-              else if (d[i] > 25) {
-                lastDay <- daysInMonth(x[i])
-                if (lastDay - d[i] < 3 & wd[i] < 4 &
-                    as.numeric(format(as.Date(paste0(lastDay, "-", m[i], "-", y[i]),
-                                              format="%d-%m-%Y"),"%u")) < 4) {
-                  month[i] <- month[i] + 1
-                }
-              }
-            }
+            # number of days in the month of each date
+            daysInMonth <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)[m]
+            leapYear <- (y %% 4 == 0 & y %% 100 != 0) | y %% 400 == 0
+            lastDay <- daysInMonth + (m == 2 & leapYear)
+
+            # day of the week of the first and last day of each date's month
+            firstWd <- (wd - d) %% 7 + 1
+            lastWd <- (firstWd + lastDay - 2) %% 7 + 1
+
+            # if the week overlapped slightly into next month, push it back by 1
+            back <- d < 4 & wd > 4 & firstWd > 4
+
+            # if the week overlapped slightly into previous month, push it forward by 1
+            forward <- !back & d > 25 & lastDay - d < 3 & wd < 4 & lastWd < 4
+
+            month[back] <- month[back] - 1
+            month[forward] <- month[forward] + 1
+
+            # moving the earliest dates into the previous or next month can
+            # shift the start of the index, so re-normalise it to start at 1
+            month <- month - min(month) + 1
           },
           fourWeek = {
             week <- weekIndex(x)
@@ -164,9 +163,10 @@ monthIndex <- function(x, overlapWeeks = "naive"){
           },
           wholeOnly = {
             month <- monthIndex(x, "naive")
-            wd <- as.numeric(format(x, "%u")) # day of the week, Monday = 1
-            sowMonth <- as.numeric(format(x - wd + 1, "%m"))
-            eowMonth <- as.numeric(format(x - wd + 7, "%m"))
+            wday <- as.POSIXlt(x)$wday
+            wd <- ifelse(wday == 0, 7, wday) # day of the week, Monday = 1
+            sowMonth <- as.POSIXlt(x - wd + 1)$mon
+            eowMonth <- as.POSIXlt(x - wd + 7)$mon
             month[!(sowMonth == eowMonth)] <- NA
           }
   )

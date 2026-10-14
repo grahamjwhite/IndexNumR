@@ -60,6 +60,7 @@ splice_t <- function(x, oldWindow, newWindow, method="mean"){
 splice <- function(period, oldWindow, newWindow){
   w <- length(newWindow)
   spliceFactor <- (newWindow[w]/newWindow[period])/(oldWindow[w]/oldWindow[period+1])
+  return(spliceFactor)
 }
 
 
@@ -74,11 +75,11 @@ splice <- function(period, oldWindow, newWindow){
 #' @noRd
 meanSplice <- function(oldWindow, newWindow){
   w <- length(newWindow)
-  pvector <- matrix(0,nrow=w-1,ncol=1)
 
-  for(l in 1:(w-1)){
-    pvector[l,1] <- splice(l, oldWindow, newWindow)
-  }
-  return(geomean(pvector))
+  # the splice factors for every overlapping period l = 1, ..., w-1
+  # (the vectorised equivalent of splice(l, oldWindow, newWindow))
+  spliceFactors <- (newWindow[w]/newWindow[1:(w-1)])/(oldWindow[w]/oldWindow[2:w])
+
+  return(geomean(spliceFactors))
 }
 

@@ -60,3 +60,53 @@ test_that("similarity linked bilateral price index functions return the correct 
 })
 
 rm(testData)
+
+
+# shuffle the rows so that products are in a different order in each period
+set.seed(1)
+CESShuffled <- CES_sigma_2[sample(nrow(CES_sigma_2)),]
+
+test_that("dissimilarity measures do not depend on the row order of the data", {
+
+  expect_equal(relativeDissimilarity(CESShuffled, pvar = "prices", qvar = "quantities",
+                                     pervar = "time", prodID = "prodID",
+                                     similarityMethod = "logquadratic"),
+               relativeDissimilarity(CES_sigma_2, pvar = "prices", qvar = "quantities",
+                                     pervar = "time", prodID = "prodID",
+                                     similarityMethod = "logquadratic"))
+
+  expect_equal(mixScaleDissimilarity(CESShuffled, pvar = "prices", qvar = "quantities",
+                                     pervar = "time", prodID = "prodID"),
+               mixScaleDissimilarity(CES_sigma_2, pvar = "prices", qvar = "quantities",
+                                     pervar = "time", prodID = "prodID"))
+
+  expect_equal(relativeDissimilarity(CES_sigma_2, pvar = "prices", qvar = "quantities",
+                                     pervar = "time", prodID = "prodID",
+                                     similarityMethod = "PredictedShare"),
+               relativeDissimilarity(CES_sigma_2, pvar = "prices", qvar = "quantities",
+                                     pervar = "time", prodID = "prodID",
+                                     similarityMethod = "predictedshare"))
+})
+
+rm(CESShuffled)
+
+
+test_that("maximumSimilarityLinks uses the period, not the row position", {
+
+  lq <- relativeDissimilarity(CES_sigma_2, pvar = "prices", qvar = "quantities",
+                              pervar = "time", prodID = "prodID")
+
+  expect_equal(maximumSimilarityLinks(lq[nrow(lq):1,]), maximumSimilarityLinks(lq))
+})
+
+
+test_that("maximumSimilarityLinks works with two periods", {
+
+  lq <- relativeDissimilarity(CES_sigma_2[CES_sigma_2$time <= 2,], pvar = "prices",
+                              qvar = "quantities", pervar = "time", prodID = "prodID")
+
+  links <- maximumSimilarityLinks(lq)
+
+  expect_equal(nrow(links), 2)
+  expect_equal(links$x0, c(1, 1))
+})

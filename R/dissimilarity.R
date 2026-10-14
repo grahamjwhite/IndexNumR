@@ -49,17 +49,31 @@
 relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
                                   indexMethod="fisher",
                                   similarityMethod="logquadratic"){
-  if(!(tolower(indexMethod) %in% c("fisher","tornqvist"))){
+  indexMethod <- tolower(indexMethod)
+  similarityMethod <- tolower(similarityMethod)
+
+  if(!(indexMethod %in% c("fisher","tornqvist"))){
     stop("Not a valid index number method.")
   }
 
-  if(!(tolower(similarityMethod) %in% c("plspread","logquadratic",
-                                        "asymplinear", "predictedshare"))){
+  if(!(similarityMethod %in% c("plspread","logquadratic",
+                               "asymplinear", "predictedshare"))){
     stop("Not a valid similarity method.")
   }
 
-  if(tolower(similarityMethod == "predictedshare")){
+  x <- prepareData(x, pvar, qvar, pervar, prodID)
+
+  # find the rows for each time period, so that the data for a period can be
+  # extracted without scanning the whole dataset
+  rows <- periodRows(x, pervar)
+  cols <- setdiff(c(pvar, qvar, prodID), "")
+
+  if(similarityMethod == "predictedshare"){
     return(predictedShareDissimilarity(x, pvar, qvar, pervar, prodID))
+  }
+
+  if(qvar == ""){
+    stop("A quantity variable is required for similarityMethod = \"", similarityMethod, "\".")
   }
 
   # get a list of possible combinations of time periods
@@ -71,8 +85,8 @@ relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
   res[,1:2] <- t(comb)
 
   for(i in 1:ncol(comb)){
-    xt0 <- x[x[[pervar]]==comb[1,i],]
-    xt1 <- x[x[[pervar]]==comb[2,i],]
+    xt0 <- getPeriod(x, rows, comb[1,i], cols)
+    xt1 <- getPeriod(x, rows, comb[2,i], cols)
 
     # get a matched sample
     xt1 <- xt1[xt1[[prodID]] %in% unique(xt0[[prodID]]),]
@@ -144,6 +158,28 @@ relativeDissimilarity <- function(x, pvar, qvar, pervar, prodID,
 mixScaleDissimilarity <- function(x, pvar, qvar, prodID, pervar,
                                   measure="absolute", combine="geomean"){
 
+  measure <- tolower(measure)
+  combine <- tolower(combine)
+
+  if(!(measure %in% c("mix", "scale", "absolute"))){
+    stop("Not a valid measure. Please choose from mix, scale or absolute.")
+  }
+
+  if(!(combine %in% c("stack", "geomean"))){
+    stop("Not a valid combine method. Please choose from stack or geomean.")
+  }
+
+  if(qvar == ""){
+    stop("A quantity variable is required for mixScaleDissimilarity.")
+  }
+
+  x <- prepareData(x, pvar, qvar, pervar, prodID)
+
+  # find the rows for each time period, so that the data for a period can be
+  # extracted without scanning the whole dataset
+  rows <- periodRows(x, pervar)
+  cols <- setdiff(c(pvar, qvar, prodID), "")
+
   # find number of combinations
   n <- max(x[[pervar]])
   cn <- utils::combn(n,2)
@@ -155,8 +191,8 @@ mixScaleDissimilarity <- function(x, pvar, qvar, prodID, pervar,
   for(i in 1:ncol(cn)){
 
     # get the i and j vectors
-    xi <- x[x[[pervar]]==cn[1,i],]
-    xj <- x[x[[pervar]]==cn[2,i],]
+    xi <- getPeriod(x, rows, cn[1,i], cols)
+    xj <- getPeriod(x, rows, cn[2,i], cols)
 
     # get a matched sample
     xj <- xj[xj[[prodID]] %in% unique(xi[[prodID]]),]
@@ -246,16 +282,21 @@ maximumSimilarityLinks <- function(x){
   result[2,3] = x[x$period_j==2 & x$period_i==1,3]
 
   # from period 3 onwards, find the minimum dissimilarity linking period
-  for(i in 3:periods){
+  for(i in seq_len(max(periods - 2, 0)) + 2){
     # get the similarity measures between period i and previous periods
     temp <- x[x$period_j==i & x$period_i<i,]
+    minPos <- which.min(temp$dissimilarity)
+    if(length(minPos) == 0){
+      stop("No valid dissimilarity measure was found between period ", i,
+           " and any earlier period.")
+    }
     # store minimum dissimilarity
     # current period
     result[i,1] = i
     # linking period
-    result[i,2] = which.min(temp$dissimilarity)
+    result[i,2] = temp$period_i[minPos]
     # the dissimilarity measure
-    result[i,3] = min(temp$dissimilarity)
+    result[i,3] = temp$dissimilarity[minPos]
   }
   colnames(result) <- c("xt","x0","dissimilarity")
   return(as.data.frame(result))

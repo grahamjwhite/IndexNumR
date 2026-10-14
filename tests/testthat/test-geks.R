@@ -175,3 +175,35 @@ test_that("The right GEKSIndex result is given when prices are imputed", {
   )))
 
 })
+
+
+test_that("intGEKS handles bilateral comparisons with no overlapping products", {
+
+  # period 3 contains only a new product, so some intersections are empty
+  dx <- CES_sigma_2[CES_sigma_2$time != 3,]
+  dx <- rbind(dx, data.frame(time = 3, prices = 1, quantities = 1, prodID = 99))
+
+  expect_warning(result <- GEKSIndex(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                                     prodID = "prodID", window = 5, intGEKS = TRUE),
+                 "no overlapping products were found")
+  expect_equal(nrow(result), 12)
+})
+
+
+test_that("splice argument is not case sensitive", {
+
+  expect_equal(GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                         prodID = "prodID", window = 5, splice = "Mean"),
+               GEKSIndex(CES_sigma_2, pvar = "prices", qvar = "quantities", pervar = "time",
+                         prodID = "prodID", window = 5, splice = "mean"))
+})
+
+
+test_that("GEKS with an unmatched sample and different products is an error", {
+
+  dx <- CES_sigma_2[!(CES_sigma_2$time == 2 & CES_sigma_2$prodID == 1),]
+
+  expect_error(GEKSIndex(dx, pvar = "prices", qvar = "quantities", pervar = "time",
+                         prodID = "prodID", window = 5, sample = "unmatched"),
+               "The products differ between periods")
+})
